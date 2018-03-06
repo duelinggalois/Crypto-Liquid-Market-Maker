@@ -192,6 +192,60 @@ def send_trade_list(pair, side, first_trade_price, first_trade_size, \
         print(t.json())
         n += 1
     return ts
+    
+def n_from_mid_budget(budget, first_size, size_change, mid_price, last_price):
+    '''
+    Takes a budget, first_size, size_change, mid_price, and last_price which
+    could both be a high or low price. 
+    >>> n_from_mid_budget(60,.01,.01,900,500)
+    4.0
+    >>> ta.n_from_mid_budget(120,.01,.01,900,1300)
+    4.0
+
+
+    '''
+    
+    A = size_change*(mid_price+2*last_price)
+    B = 3*first_size*(
+        mid_price+last_price)-3*size_change*mid_price
+    C = (3*first_size-2*size_change)*(last_price-mid_price)-6*budget
+    return (-B + math.sqrt(B**2-4*A*C))/(2*A)
+
+def find_buy_budget (first_price, price_change, min_size, size_change,  n):
+    """Once a n has been established using find_n(), this function can be used
+    to determine the buy_budget using the min_size, size_change, n, the 
+    first_price to be traded on the buy side, and the price_change between
+    trades. 
+    
+    >>> find_buy_budget(.01, .001, 3, 14000, 1000)
+    503.0
+    
+    >>> find_buy_budget(.01, .001, find_n (0.01, 0.001, 0.04), 14000, 1000)
+    503.0
+    
+    >>> find_buy_budget(1, .25, find_n (1, .25, 10), 200, 10)
+    1975.0 
+    """
+    
+    # that the change between each buy would be 2*size change 
+    alt_size_change = 2 * size_change
+    
+    # We assume the first trade in the series will be a sell thus the 
+    # second will be the buy size below. 
+    first_size = min_size + size_change
+    
+    # A, B, and C are the constants in the buy_budget formula, An**3+Bn**2+Cn 
+    A = -1/3 * price_change * alt_size_change
+    B = 1/2 * ( 
+        first_price * alt_size_change     \
+        - first_size * price_change       \
+        + price_change * alt_size_change)
+    C = first_price * first_size                \
+        -1/2 * first_price * alt_size_change    \
+        +1/2 * first_size * price_change        \
+        -1/6 * price_change * alt_size_change
+    
+    return A*n**3 + B*n**2 + C*n
 
 def start_websocket():
     '''yet to be built'''
@@ -213,8 +267,8 @@ def prompt_user():
                 "BTC-USD, ETH-USD, LTC-USD, BCH-USD, BTC-ETH, LTC-BTC, "+\
                 "BCH-BTC\n")
             pair = input("What trading pair would you like to list?\n\n")
-            sell_budget = float(input((
-                "\nWhat is the value of {0} would you like to sell in "+\
+            budget = float(input((
+                "\nWhat is the value of {0} would you like to allocate in "+\
                 "terms of {1}?\n\n").format(pair[:3],pair[4:])))
             print("\nSize of trades")
             min_size = float(input("\nWhat is the minimum trade size for this "+\
@@ -235,8 +289,10 @@ def prompt_user():
                 mid_price = float(input("\nWhat midpoint price would you "+\
                     "like to use?\n\n"))
             else: mid_price = current_price
+            
             high_price = float(input(\
                 "\nWhat is the highest price to be sold at?\n\n"))
+            low_price = 2* mid_price - high_price
             
         # if input raises errors, ask if user would like to try again
         except:
@@ -244,55 +300,13 @@ def prompt_user():
                 "to retry? (y or n)")     
             retry = retry[:1].lower()
             ready = 'y' == retry
-            continue 
-            
-        # calculate needed variables and ask if user would like to continue.
-        
-        sell_n = n_from_mid_budget(
-            sell_budget, min_size, 2*size_change, mid_price, high_price)//1
-        
-        #Rounding depends on pair "***-USD" or "***-BTC"
-        if pair[4:] == 'USD':
-            r = 2
-        else:
-            r = 5
-            
-        price_change = round((high_price-mid_price)/sell_n, r) 
-        
-        trade_count = 2*sell_n
-        
-        first_price = round(mid_market + price_change, r)
+            continue
         
         
         
-        trading_terms = TradingTerms(pair, mid_market, price_change, \
-            min_size, size_change, trade_count)
+        trading_terms = TradingTerms(
+            pair, budget, low_price, mid_price, min_size, size_change)
         
-        buy_budget = find_buy_budget (
-            min_size, size_change, first_price, price_change, \
-            trade_count
-            )
-        
-
-        # Let user review variables before moving forward
-        print((
-            "Using the input provided, you are ready to create a sequnce\n"+\
-            "of {0} trades requiring an allocatation of {1} {2} and \n{3} "+\
-            "{4} which is worth {5} {2} from your account\n"
-            ).format(
-                2*trade_count, buy_budget, pair[4:], sell_budget, pair[:3], \
-                sell_budget * current_price
-                )
-            )
-            
-        print_trades = 'y' == input(
-            "Would you like to list the the size and values of trades? " +\
-            "(y or n)\n"
-            )[:1].lower()
-        
-        # if user wants to print trades run print_review_of_trades()
-        if print_trades:
-            print_review_of_trades(trading_terms)
         
         return trading_terms
 
