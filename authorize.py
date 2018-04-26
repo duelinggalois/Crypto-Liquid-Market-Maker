@@ -146,14 +146,14 @@ config = configparser.ConfigParser()
 
 def run_GdaxAuth():
   
-  config.read('config.ini.default')
+  config.read('config.ini')
   keys = config['DEFAULT']
   
   return GdaxAuth(keys['api_key'],keys['api_secret'], keys['api_pass'])
 
 def run_Subscribe(pair, channel):
   
-  config.read('config.ini.')
+  config.read('config.ini')
   keys = config['DEFAULT']
   
   return Subscribe(pair, channel=channel, auth=True, api_key=keys['api_key'], api_secret=keys['api_secret'], api_passphrase=keys['api_pass'])
