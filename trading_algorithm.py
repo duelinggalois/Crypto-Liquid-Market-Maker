@@ -1,325 +1,319 @@
 import requests, math
 import authorize as autho
 
-
 class TradingTerms():
+  
+  def __init__(self, pair, budget, low_price, mid_price, first_size, size_change):
+    """Class initializes parameters to for building sequence of trades"""
     
-    def __init__(self, pair, budget, low_price, mid_price, first_size,
-        size_change):
-        """Class initializes parameters to for building sequence of trades"""
-        
-        # Fixed variables for class
-        self.pair = pair
-        self.budget = budget
-        
-        self.first_size = first_size
-        self.size_change = size_change
-        
-        if pair[4:] == 'USD':
-            self.p_round = 2
-        else:
-            self.p_round = 5
-        self.low_price = low_price
-        self.mid_price = round(mid_price, self.p_round)
-        self.high_price = 2*mid_price-low_price
-        
-        self.n = n_from_budget(
-            budget, first_size, size_change, low_price, self.high_price) 
-        self.price_change = round(
-            (self.high_price - mid_price ) /(self.n/2), self.p_round)
-        
-        # Varibles that will change for buy and sell sequences
-        f_b_size = first_size + size_change 
-        f_b_price = mid_price - self.price_change
-        f_s_price = mid_price + self.price_change
-        
-        # trading_sequences gives the variable info for each sequnce to be 
-        # traded, sequences will be added as trades execute. 
-        self.trading_sequences = []
-        self.trading_sequences.append(
-            {'side': 'sell', 'first_size': first_size,'first_price': f_s_price,
-                'n': self.n/2})
-        self.trading_sequences.append(
-            {'side': 'buy', 'first_size': f_b_size, 'first_price': f_b_price, 
-                'n': self.n/2})
-            
-        self.new_sequences = self.trading_sequences
-        self.book = []
+    # Fixed variables for class
+    self.pair = pair
+    self.budget = budget
     
-    def print_trades(self):
-        print_review_of_trades(self)
+    self.first_size = first_size
+    self.size_change = size_change
+    
+    if pair[4:] == 'USD':
+      self.p_round = 2
+    else:
+      self.p_round = 5
+    self.low_price = low_price
+    self.mid_price = round(mid_price, self.p_round)
+    self.high_price = 2*mid_price-low_price
+    
+    self.n = n_from_budget(
+      budget, first_size, size_change, low_price, self.high_price) 
+    self.price_change = round(
+      (self.high_price - mid_price ) /(self.n/2), self.p_round)
+    
+    # Varibles that will change for buy and sell sequences
+    f_b_size = first_size + size_change 
+    f_b_price = mid_price - self.price_change
+    f_s_price = mid_price + self.price_change
+    
+    # trading_sequences gives the variable info for each sequnce to be 
+    # traded, sequences will be added as trades execute. 
+    self.trading_sequences = []
+    self.trading_sequences.append(
+      {'side': 'sell', 'first_size': first_size,'first_price': f_s_price,
+        'n': self.n/2})
+    self.trading_sequences.append(
+      {'side': 'buy', 'first_size': f_b_size, 'first_price': f_b_price, 
+        'n': self.n/2})
+      
+    self.new_sequences = self.trading_sequences
+    self.book = []
+  
+  def print_trades(self):
+    print_review_of_trades(self)
 
-    def list_trades(self):
-        """Used to send trading sequences in new_sequences to be listed
-        """
+  def list_trades(self):
+    """Used to send trading sequences in new_sequences to be listed
+    """
+    
+    # Send each sequence in new_squences to GDAX and return orders to book
+    for i in self.new_sequences:
+      self.book += auth_and_list_trades(
+        self.pair, i['side'], i['first_size'], self.size_change*2, 
+        i['first_price'], self.price_change, self.n/2)
         
-        # Send each sequence in new_squences to GDAX and return orders to book
-        for i in self.new_sequences:
-            self.book += auth_and_list_trades(
-                self.pair, i['side'], i['first_size'], self.size_change*2, 
-                i['first_price'], self.price_change, self.n/2)
-                
-        # Empty new_sequence for future use
-        self.new_sequences = []
-        
-        start_websocket()
-        
+    # Empty new_sequence for future use
+    self.new_sequences = []
+    
+    start_websocket()
+    
 
 def n_from_budget(budget, first_size, size_change, low_price, high_price):
-    '''Using a budget in terms of the denominator of a trading pair (USD for
-    BTC-USD), first_size and size_change of trade amounts, and a price range
-    for trade values in terms of low_price and high_price this function will 
-    give you the maximoum possible trades that can be used in a sequence of 
-    alternating increasing buy and sell trades. 
-    
-    >>> n_from_budget(193, .01, .005, 500, 1300)
-    8
-    '''
-    
-    mid_price = ( low_price + high_price ) / 2
-    
-    A = 12 * size_change * mid_price
-    B = 3 * ( 
-        mid_price * ( 
-            4 * first_size - 3 * size_change) + size_change * low_price )
-    C = -3 * ( size_change * ( high_price - mid_price ) + 2 * budget ) 
-    
-    return 2*int(( - B + math.sqrt( B ** 2 - 4 * A * C))  / (2*A) )
-    
+  '''Using a budget in terms of the denominator of a trading pair (USD for
+  BTC-USD), first_size and size_change of trade amounts, and a price range
+  for trade values in terms of low_price and high_price this function will 
+  give you the maximoum possible trades that can be used in a sequence of 
+  alternating increasing buy and sell trades. 
+  
+  >>> n_from_budget(193, .01, .005, 500, 1300)
+  8
+  '''
+  
+  mid_price = ( low_price + high_price ) / 2
+  
+  A = 12 * size_change * mid_price
+  B = 3 * ( 
+    mid_price * ( 
+      4 * first_size - 3 * size_change) + size_change * low_price )
+  C = -3 * ( size_change * ( high_price - mid_price ) + 2 * budget ) 
+  
+  return 2*int(( - B + math.sqrt( B ** 2 - 4 * A * C))  / (2*A) )
+  
 def print_review_of_trades(tt):
-    '''Takes a class tt for trading_terms generated by TradingTerms() class and 
-    lists the trades that would be listed under current state of trading_terms
-    '''
-       
-    strings = {'buy' : [], 'sell' : []}
-    budgets = {'buy' : 0 , 'sell' : 0}
+  '''Takes a class tt for trading_terms generated by TradingTerms() class and 
+  lists the trades that would be listed under current state of trading_terms
+  '''
+     
+  strings = {'buy' : [], 'sell' : []}
+  budgets = {'buy' : 0 , 'sell' : 0}
+  
+  # Header
+  print ( '\n' )
+  print( 'buys'+'\t'*5+'sells' )   
+  
+  # Build strings "size BOT @ price TOP / BOT" where pair = TOP-BOT
+  for i in tt.new_sequences:
+    # for loop through trade counts = i['n']
+    for j in range(0, int(i['n']-1)):
+      
+      # -1 or 1 depending on i['side']
+      pos_neg = 1 - 2 * ('buy' == i['side'])
+  
+      size = round ( i['first_size'] + j * tt.size_change * 2 , 5)
+      price = round (
+        i['first_price'] + pos_neg * j * tt.price_change, 5)
+      
+      strings[i['side']].append(
+        "{0} {1} @ {2} {3}/{1}".format(
+          size, tt.pair[:3], price, tt.pair[4:] 
+          )
+        )
+      
+      if i['side'] == 'buy':
+        budgets['buy'] += size * price
+      else:
+        budgets['sell'] += size
     
-    # Header
-    print ( '\n' )
-    print( 'buys'+'\t'*5+'sells' )   
-    
-    # Build strings "size BOT @ price TOP / BOT" where pair = TOP-BOT
-    for i in tt.new_sequences:
-        # for loop through trade counts = i['n']
-        for j in range(0, int(i['n']-1)):
-            
-            # -1 or 1 depending on i['side']
-            pos_neg = 1 - 2 * ('buy' == i['side'])
-    
-            size = round ( i['first_size'] + j * tt.size_change * 2 , 5)
-            price = round (
-                i['first_price'] + pos_neg * j * tt.price_change, 5)
-            
-            strings[i['side']].append(
-                "{0} {1} @ {2} {3}/{1}".format(
-                    size, tt.pair[:3], price, tt.pair[4:] 
-                    )
-                )
-            
-            if i['side'] == 'buy':
-                budgets['buy'] += size * price
-            else:
-                budgets['sell'] += size
-        
-    # Print strings expect out of range error if sizes are unequal
-    for i in range(0, len(strings['buy'])):
-        print( strings['buy'][i] + '\t' * 2 + strings['sell'][i] )
-    
-    print ( '\n' )
-    print ('Buy budget: {0} {1}, Sell budget {2} {3} roughly worth {4} {1} '
-        .format(budgets['buy'], tt.pair[4:], budgets['sell'], tt.pair[:3], 
-            budgets['sell'] * tt.mid_price) +\
-        
-        'based on {5} {1}/{3} midmarket price.'.format(
-            budgets['buy'], tt.pair[4:], budgets['sell'], tt.pair[:3], 
-            budgets['sell'] * tt.mid_price, tt.mid_price)) 
+  # Print strings expect out of range error if sizes are unequal
+  for i in range(0, len(strings['buy'])):
+    print( strings['buy'][i] + '\t' * 2 + strings['sell'][i] )
+  
+  print ( '\n' )
+  print ('Buy budget: {0} {1}, Sell budget {2} {3} roughly worth {4} {1} '
+    .format(
+      budgets['buy'],
+      tt.pair[4:],
+      budgets['sell'],
+      tt.pair[:3], 
+      budgets['sell'] * tt.mid_price) + \
+      'based on {5} {1}/{3} midmarket price.'.format(
+        budgets['buy'],
+        tt.pair[4:],
+        budgets['sell'],
+        tt.pair[:3], 
+        budgets['sell'] * tt.mid_price,
+        tt.mid_price
+      )
+    ) 
 
 
-def auth_and_list_trades(pair, side, first_trade_size, size_increase, 
-    first_trade_price, price_change, trade_count ):
-    '''Creates Auth Token and lists sequence of trades on Exchange given a 
-    trading pair, side, first_trade_size, size_increase, first_trade_price,
-    price_change, trade_count
-    
-    '''
-    # set up autorization token and factors needed to send trades.
-    auth = autho.run_GdaxAuth()
-    
-    # Send trades.
-    ts = send_trade_list(pair, side, first_trade_price, first_trade_size, \
-        price_change, size_increase, trade_count, auth)
-    return ts
+def auth_and_list_trades(pair, side, first_trade_size, size_increase, first_trade_price, price_change, trade_count ):
+  '''
+  creates auth token and lists sequence of trades on Exchange given a trading pair, side, first_trade_size, size_increase, first_trade_price, price_change, trade_count
+  '''
+  # set up authorization token and factors needed to send trades.
+  auth = autho.run_GdaxAuth()
+  
+  # Send trades.
+  ts = send_trade_list(pair, side, first_trade_price, first_trade_size, price_change, size_increase, trade_count, auth)
+  return ts
 
-def send_trade_list(pair, side, first_trade_price, first_trade_size, \
-        price_increase, size_increase, trade_count, auth):
-    """function takes in intial info trading pair (BTC-USD), side (buy or 
-    sell), first trade price, minimum trade value, increase in price per trade,
-    increase in value per trade, the number of trades and an authorization
-    token and lists a corrosponding sequence of trades on GDAX through there
-    API
-    
-    To do's : write function to accept class object instead of each item
-    """
-    
-    # Initiate trading index, trade dictionary to be sent in while-loop, and
-    # neg_pos variable to help manage buy vs sell sequence direction in loop. 
-    n = 0
-    ts = []
-    trade = {
-        "size": "",
-        "price": "",
-        "side": side,
-        "product_id": pair
-        }
-    if side == "buy":
-        neg_pos = -1
-    else:
-        neg_pos = 1
-    api_url = 'https://api.gdax.com/'
-    
-    # While loop to list each trade in sequence
-    while n < trade_count:
-        trade["size"] = str(
-            round(first_trade_size + size_increase * n, 10) 
-            )
-        trade["price"] = str(
-            round(
-                first_trade_price + neg_pos * price_increase * n, 10
-                ) 
-            )
-        t = requests.post(api_url + 'orders', json=trade, auth=auth)
-        ts.append( t.json() )
-        print(t.json())
-        n += 1
-    return ts
-    
+def send_trade_list(pair, side, first_trade_price, first_trade_size, price_increase, size_increase, trade_count, auth):
+  """function takes in intial info trading pair (BTC-USD), side (buy or 
+  sell), first trade price, minimum trade value, increase in price per trade,
+  increase in value per trade, the number of trades and an authorization
+  token and lists a corrosponding sequence of trades on GDAX through there
+  API
+  
+  To do's : write function to accept class object instead of each item
+  """
+  
+  # Initiate trading index, trade dictionary to be sent in while-loop, and
+  # neg_pos variable to help manage buy vs sell sequence direction in loop. 
+  n = 0
+  ts = []
+  trade = {
+    "size": "",
+    "price": "",
+    "side": side,
+    "product_id": pair
+  }
+  if side == "buy":
+    neg_pos = -1
+  else:
+    neg_pos = 1
+  api_url = 'https://api.gdax.com/'
+  
+  # While loop to list each trade in sequence
+  while n < trade_count:
+    trade["size"] = str(
+      round(first_trade_size + size_increase * n, 10) 
+      )
+    trade["price"] = str(
+      round(
+        first_trade_price + neg_pos * price_increase * n, 10
+        ) 
+      )
+    t = requests.post(api_url + 'orders', json=trade, auth=auth)
+    ts.append( t.json() )
+    print(t.json())
+    n += 1
+  return ts
+  
 def n_from_mid_budget(budget, first_size, size_change, mid_price, last_price):
-    '''
-    Takes a budget, first_size, size_change, mid_price, and last_price which
-    could both be a high or low price. 
-    >>> n_from_mid_budget(60,.01,.01,900,500)
-    4.0
-    >>> ta.n_from_mid_budget(120,.01,.01,900,1300)
-    4.0
+  '''
+  Takes a budget, first_size, size_change, mid_price, and last_price which
+  could both be a high or low price. 
+  >>> n_from_mid_budget(60,.01,.01,900,500)
+  4.0
+  >>> ta.n_from_mid_budget(120,.01,.01,900,1300)
+  4.0
 
 
-    '''
-    
-    A = size_change*(mid_price+2*last_price)
-    B = 3*first_size*(
-        mid_price+last_price)-3*size_change*mid_price
-    C = (3*first_size-2*size_change)*(last_price-mid_price)-6*budget
-    return (-B + math.sqrt(B**2-4*A*C))/(2*A)
+  '''
+  
+  A = size_change*(mid_price+2*last_price)
+  B = 3*first_size*(
+    mid_price+last_price)-3*size_change*mid_price
+  C = (3*first_size-2*size_change)*(last_price-mid_price)-6*budget
+  return (-B + math.sqrt(B**2-4*A*C))/(2*A)
 
 def find_buy_budget (first_price, price_change, min_size, size_change,  n):
-    """Once a n has been established using find_n(), this function can be used
-    to determine the buy_budget using the min_size, size_change, n, the 
-    first_price to be traded on the buy side, and the price_change between
-    trades. 
-    
-    >>> find_buy_budget(.01, .001, 3, 14000, 1000)
-    503.0
-    
-    >>> find_buy_budget(.01, .001, find_n (0.01, 0.001, 0.04), 14000, 1000)
-    503.0
-    
-    >>> find_buy_budget(1, .25, find_n (1, .25, 10), 200, 10)
-    1975.0 
-    """
-    
-    # that the change between each buy would be 2*size change 
-    alt_size_change = 2 * size_change
-    
-    # We assume the first trade in the series will be a sell thus the 
-    # second will be the buy size below. 
-    first_size = min_size + size_change
-    
-    # A, B, and C are the constants in the buy_budget formula, An**3+Bn**2+Cn 
-    A = -1/3 * price_change * alt_size_change
-    B = 1/2 * ( 
-        first_price * alt_size_change     \
-        - first_size * price_change       \
-        + price_change * alt_size_change)
-    C = first_price * first_size                \
-        -1/2 * first_price * alt_size_change    \
-        +1/2 * first_size * price_change        \
-        -1/6 * price_change * alt_size_change
-    
-    return A*n**3 + B*n**2 + C*n
+  """Once a n has been established using find_n(), this function can be used
+  to determine the buy_budget using the min_size, size_change, n, the 
+  first_price to be traded on the buy side, and the price_change between
+  trades. 
+  
+  >>> find_buy_budget(.01, .001, 3, 14000, 1000)
+  503.0
+  
+  >>> find_buy_budget(.01, .001, find_n (0.01, 0.001, 0.04), 14000, 1000)
+  503.0
+  
+  >>> find_buy_budget(1, .25, find_n (1, .25, 10), 200, 10)
+  1975.0 
+  """
+  
+  # that the change between each buy would be 2*size change 
+  alt_size_change = 2 * size_change
+  
+  # We assume the first trade in the series will be a sell thus the 
+  # second will be the buy size below. 
+  first_size = min_size + size_change
+  
+  # A, B, and C are the constants in the buy_budget formula, An**3+Bn**2+Cn 
+  A = -1/3 * price_change * alt_size_change
+  B = 1/2 * ( 
+    first_price * alt_size_change     \
+    - first_size * price_change       \
+    + price_change * alt_size_change)
+  C = first_price * first_size                \
+    -1/2 * first_price * alt_size_change    \
+    +1/2 * first_size * price_change        \
+    -1/6 * price_change * alt_size_change
+  
+  return A*n**3 + B*n**2 + C*n
 
 def start_websocket():
-    '''yet to be built'''
-    print ('Still a work in progress parsing websocket data goes here.01')
+  '''yet to be built'''
+  print ('Still a work in progress parsing websocket data goes here.01')
 
 def prompt_user():
-    '''Prompts User for input to start algorithm, returns trading_terms. 
-    '''
-    ready = True
-    print(" ***********************Trading Algorithm************************ \
-        \n ***********************By William P. Fey************************ \
-        \n\n" +\
-        "This program will list a squence of buy and sell trades on \n"+ \
-        "GDAX.com based on the follosing input.\n")
-    while ready:
-        try:
-            # Sizes of Trades
-            print("Available Trading Pairs\n"+\
-                "BTC-USD, ETH-USD, LTC-USD, BCH-USD, BTC-ETH, LTC-BTC, "+\
-                "BCH-BTC\n")
-            pair = input("What trading pair would you like to list?\n\n")
-            budget = float(input((
-                "\nWhat is the value of {0} would you like to allocate in "+\
-                "terms of {1}?\n\n").format(pair[:3],pair[4:])))
-            print("\nSize of trades")
-            min_size = float(input("\nWhat is the minimum trade size for this "+\
-                 "pair?\n\n"))
-            size_change = float(input("\nHow much should each trade in the "+ \
-                "sequnce of buys and sells \nincrease by?\n\n"))
-            
-            print("\nPrices of trades\n")
-            current_price = float(\
-                input(\
-                ("What is the estimated price of {0} in terms of {1}?\n\n")\
-                .format(pair[:3], pair[4:])))
-            use_current_price = (input(\
-                ("\nWould you like to use {0} {1}/{2} as the the midpoint of "+\
-                 "the \ntrading algorithm? (y or n)\n\n")\
-                .format(current_price, pair[4:], pair[:3])))
-            if 'y' != use_current_price[:1].lower():
-                mid_price = float(input("\nWhat midpoint price would you "+\
-                    "like to use?\n\n"))
-            else: mid_price = current_price
-            
-            high_price = float(input(\
-                "\nWhat is the highest price to be sold at?\n\n"))
-            low_price = 2* mid_price - high_price
-            
-        # if input raises errors, ask if user would like to try again
-        except:
-            retry = input("Input was incorrectly formatted would you like "+\
-                "to retry? (y or n)")     
-            retry = retry[:1].lower()
-            ready = 'y' == retry
-            continue
-        
-        
-        
-        trading_terms = TradingTerms(
-            pair, budget, low_price, mid_price, min_size, size_change)
-        
-        
-        return trading_terms
+  '''Prompts User for input to start algorithm, returns trading_terms. 
+  '''
+  ready = True
+  print(" ***********************Trading Algorithm************************ \
+    \n ***********************By William P. Fey************************ \
+    \n\n" +\
+    "This program will list a squence of buy and sell trades on \n"+ \
+    "GDAX.com based on the follosing input.\n")
+  while ready:
+    try:
+      # Sizes of Trades
+      print("Available Trading Pairs\n"+\
+        "BTC-USD, ETH-USD, LTC-USD, BCH-USD, BTC-ETH, LTC-BTC, "+\
+        "BCH-BTC\n")
+      pair = input("What trading pair would you like to list?\n\n")
+      budget = float(input((
+        "\nWhat is the value of {0} would you like to allocate in "+\
+        "terms of {1}?\n\n").format(pair[:3],pair[4:])))
+      print("\nSize of trades")
+      min_size = float(input("\nWhat is the minimum trade size for this "+\
+         "pair?\n\n"))
+      size_change = float(input("\nHow much should each trade in the "+ \
+        "sequnce of buys and sells \nincrease by?\n\n"))
+      
+      print("\nPrices of trades\n")
+      current_price = float(\
+        input(\
+        ("What is the estimated price of {0} in terms of {1}?\n\n")\
+        .format(pair[:3], pair[4:])))
+      use_current_price = (input(\
+        ("\nWould you like to use {0} {1}/{2} as the the midpoint of "+\
+         "the \ntrading algorithm? (y or n)\n\n")\
+        .format(current_price, pair[4:], pair[:3])))
+      if 'y' != use_current_price[:1].lower():
+        mid_price = float(input("\nWhat midpoint price would you "+\
+          "like to use?\n\n"))
+      else: mid_price = current_price
+      
+      high_price = float(input(\
+        "\nWhat is the highest price to be sold at?\n\n"))
+      low_price = 2* mid_price - high_price
+      
+    # if input raises errors, ask if user would like to try again
+    except:
+      retry = input("Input was incorrectly formatted would you like "+\
+        "to retry? (y or n)")     
+      retry = retry[:1].lower()
+      ready = 'y' == retry
+      continue
+    
+    trading_terms = TradingTerms(pair, budget, low_price, mid_price, min_size, size_change)
+
+    return trading_terms
 
 def prompt_ready_to_trade():
-    if 'y' == input("Would you like trades to be listed? (y or n)\n")[:1]\
-        .lower():
-        return True
-    elif 'n' == input("Would you like to chage input? (y or n)\n")[:1].\
-        lower():
-        return False 
+  if 'y' == input("Would you like trades to be listed? (y or n)\n")[:1].lower():
+    return True
+  elif 'n' == input("Would you like to change input? (y or n)\n")[:1].lower():
+    return False 
 
 def prompt_to_return_class():
-    if 'y' == input("Would you like to return trades as a class? (y or n)\n")\
-        [:1].lower():
-        return True
-
+  if 'y' == input("Would you like to return trades as a class? (y or n)\n")[:1].lower():
+    return True
