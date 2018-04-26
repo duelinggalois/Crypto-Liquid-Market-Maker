@@ -1,4 +1,4 @@
-##LiquidCryPy
+## Crypto Liquid Market Maker
 
 This program will list a sequence of buy and sell trades on GDAX.com based on the following parameters:  
 * trading pair (BTC-USD, ETH-USD, LTC-USD, BCH-USD, BTC-ETH, LTC-BTC, BCH-BTC)
@@ -51,3 +51,4 @@ Listing trades, user CTRL+c to kill
 
 Trades would be listed when next line is uncommented
 ```
+
