@@ -1,5 +1,4 @@
 [DEFAULT]
-api_pass = egogho851f
-api_key = 3098cd2edf21cfcc1c6b1906084e4531
-api_secret = WZCSmNFSyKMcNcie0rvPQrNA+eWM5mWjOmkuDjYgOztpicbGmBPu2VIMHIo5Um32exH1MGHowHACiHs9IuWT9g==
-
+api_pass = passphrase
+api_key = key
+api_secret = secret
