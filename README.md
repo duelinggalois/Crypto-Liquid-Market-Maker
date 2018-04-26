@@ -52,3 +52,10 @@ Listing trades, user CTRL+c to kill
 Trades would be listed when next line is uncommented
 ```
 
+**Work In Progress**
+
+Trading manually on GDAX for two years was a great inspiration to learn python. I still have a lot to learn and this is an outline of what I am currently working on:
+
+* Parsing data from GDAX websocket to trigger new trades when listed trades execute. 
+* storing trading data into a database for analysis and computing tax basis and procedes automatically. 
+* Implementing new ideas into strategy like using percentage change rather than a fixed change in price or fluxuating frequency rather than increasing each sequential trades value to achive the same goal. 
