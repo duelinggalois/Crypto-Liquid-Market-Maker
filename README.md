@@ -1,85 +1,49 @@
 ##LiquidCryPy
 
-**Python Package Dependencies**
-[requests]{http://docs.python-requests.org/en/master/user/install/#install}
-Should be the only package that is not standard. 
+This program will list a sequence of buy and sell trades on GDAX.com based on the following parameters.
+- trading pair (BTC-USD, ETH-USD, LTC-USD, BCH-USD, BTC-ETH, LTC-BTC, BCH-BTC)
+- budget
+- minimum trade size
+- trade increase increment
+- estimated trade price
+- midpoint (optional)
+- highest sale price
 
-**How to Use**
+** Recommended Installation **
+- [Install Python3](http://docs.python-guide.org/en/latest/starting/install3)
+- [Install PipEnv](https://docs.pipenv.org/)
+- clone repo
+- in repo directory, run `pipenv install`
+- run `pipenv shell`
+- in pipenv shell, run `python -m main`
 
-../liquidcrypy$ python3 -m main
+note: dependencies managed by `Pipfile` in project root
 
- ***********************Trading Algorithm************************         
- ***********************By William P. Fey************************         
-
-This program will list a squence of buy and sell trades on 
-GDAX.com based on the follosing input.
-
-Available Trading Pairs
-BTC-USD, ETH-USD, LTC-USD, BCH-USD, BTC-ETH, LTC-BTC, BCH-BTC
-
-What trading pair would you like to list?
-
-BCH-BTC
-
-What is the value of BCH would you like to allocate in terms of BTC?
-
-.075
-
-Size of trades
-
-What is the minimum trade size for this pair?
-
-.01
-
-How much should each trade in the sequnce of buys and sells 
-increase by?
-
-.001
-
-Prices of trades
-
-What is the estimated price of BCH in terms of BTC?
-
-..1125
-Input was incorrectly formatted would you like to retry? (y or n)y
-Available Trading Pairs
-BTC-USD, ETH-USD, LTC-USD, BCH-USD, BTC-ETH, LTC-BTC, BCH-BTC
+** Suggested Default Values **
 
 What trading pair would you like to list?
-
-BCH-BTC
+*BCH-BTC*
 
 What is the value of BCH would you like to allocate in terms of BTC?
-
-.075
-
-Size of trades
+*.075*
 
 What is the minimum trade size for this pair?
+*.01*
 
-.01
-
-How much should each trade in the sequnce of buys and sells 
-increase by?
-
-.001
-
-Prices of trades
+How much should each trade in the sequnce of buys and sells increase by?
+*.001*
 
 What is the estimated price of BCH in terms of BTC?
+*.1125*
 
-.1125
-
-Would you like to use 0.1125 BTC/BCH as the the midpoint of the 
-trading algorithm? (y or n)
-
-y
+Would you like to use 0.1125 BTC/BCH as the the midpoint of the trading algorithm? (y or n)
+*y*
 
 What is the highest price to be sold at?
+*.1625*
 
-.1625
-
-
+** typical output **
+```
 buys					sells
 0.011 BCH @ 0.10893 BTC/BCH		0.01 BCH @ 0.11607 BTC/BCH
 0.013 BCH @ 0.10536 BTC/BCH		0.012 BCH @ 0.11964 BTC/BCH
@@ -95,10 +59,10 @@ buys					sells
 0.033 BCH @ 0.06966 BTC/BCH		0.032 BCH @ 0.15534 BTC/BCH
 0.035 BCH @ 0.06609 BTC/BCH		0.034 BCH @ 0.15891 BTC/BCH
 
-
 Buy budget: 0.024866009999999997 BTC, Sell budget 0.28600000000000003 BCH roughly worth 0.032175 BTC based on 0.1125 BTC/BCH midmarket price.
 Would you like trades to be listed? (y or n)
 y
 Listing trades, user CTRL+c to kill
 
 Trades would be listed when next line is uncommented
+```
