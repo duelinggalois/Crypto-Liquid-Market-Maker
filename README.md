@@ -12,12 +12,12 @@ This program will list a sequence of buy and sell trades on GDAX.com based on th
 **Recommended Installation**
 * [Install Python3](http://docs.python-guide.org/en/latest/starting/install3)
 * [Install PipEnv](https://docs.pipenv.org/)
-* `git clone (repo url)`
+* `git clone https://github.com/rev3ks/Crypto-Liquid-Market-Maker`
 * `cd liquidcrypy`
 * `pipenv install` (dependencies managed by `Pipfile` in project root)
 * `pipenv run python -m main`
 
-**Suggested Default Values**
+**Example of Using Main**
 
 `What trading pair would you like to list?` **BCH-BTC**  
 `What is the value of BCH would you like to allocate in terms of BTC?` **.075**  
@@ -27,7 +27,7 @@ This program will list a sequence of buy and sell trades on GDAX.com based on th
 `Would you like to use 0.1125 BTC/BCH as the the midpoint of the trading algorithm? (y or n)` **y**  
 `What is the highest price to be sold at?` **.1625**  
 
-** typical output **
+**typical output**
 ```
 buys					sells
 0.011 BCH @ 0.10893 BTC/BCH		0.01 BCH @ 0.11607 BTC/BCH
@@ -47,9 +47,6 @@ buys					sells
 Buy budget: 0.024866009999999997 BTC, Sell budget 0.28600000000000003 BCH roughly worth 0.032175 BTC based on 0.1125 BTC/BCH midmarket price.
 Would you like trades to be listed? (y or n)
 y
-Listing trades, user CTRL+c to kill
-
-Trades would be listed when next line is uncommented
 ```
 
 **Work In Progress**
@@ -59,3 +56,4 @@ Trading manually on GDAX for two years was a great inspiration to learn python. 
 * Parsing data from GDAX websocket to trigger new trades when listed trades execute. 
 * storing trading data into a database for analysis and computing tax basis and procedes automatically. 
 * Implementing new ideas into strategy like using percentage change rather than a fixed change in price or fluxuating frequency rather than increasing each sequential trades value to achive the same goal. 
+* Cleaning up my code to be better organized and easier to understand.
