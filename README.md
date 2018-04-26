@@ -47,6 +47,22 @@ buys					sells
 Buy budget: 0.024866009999999997 BTC, Sell budget 0.28600000000000003 BCH roughly worth 0.032175 BTC based on 0.1125 BTC/BCH midmarket price.
 Would you like trades to be listed? (y or n)
 y
+
+Listing Trades
+
+BCH-BTC, buy, 0.01025000, 0.14022000, <Response [200]>
+BCH-BTC, buy, 0.01075000, 0.12793000, <Response [200]>
+BCH-BTC, buy, 0.01125000, 0.11564000, <Response [200]>
+BCH-BTC, buy, 0.01175000, 0.10335000, <Response [200]>
+BCH-BTC, buy, 0.01225000, 0.09106000, <Response [200]>
+BCH-BTC, buy, 0.01275000, 0.07877000, <Response [200]>
+BCH-BTC, buy, 0.01325000, 0.06648000, <Response [200]>
+BCH-BTC, buy, 0.01375000, 0.05419000, <Response [200]>
+BCH-BTC, buy, 0.01425000, 0.04190000, <Response [200]>
+BCH-BTC, buy, 0.01475000, 0.02961000, <Response [200]>
+BCH-BTC, buy, 0.01525000, 0.01732000, <Response [200]>
+BCH-BTC, buy, 0.01575000, 0.00503000, <Response [200]>
+
 ```
 
 **Work In Progress**

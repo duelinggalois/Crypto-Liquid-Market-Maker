@@ -214,9 +214,11 @@ def send_trade_list(pair, side, first_trade_price, first_trade_size, price_incre
       
       except:
         print(t.json)
-  
+    n += 1
+
   return ts
-  
+
+
 def n_from_mid_budget(budget, first_size, size_change, mid_price, last_price):
   '''
   Takes a budget, first_size, size_change, mid_price, and last_price which
@@ -329,6 +331,9 @@ def prompt_user():
     trading_terms = TradingTerms(pair, budget, low_price, mid_price, min_size, size_change)
 
     return trading_terms
+
+  # if user exits inuput returns -1 to disrupt main from running. 
+  return -1
 
 def prompt_ready_to_trade():
   if 'y' == input("Would you like trades to be listed? (y or n)\n")[:1].lower():

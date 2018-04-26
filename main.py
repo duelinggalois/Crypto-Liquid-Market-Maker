@@ -9,7 +9,9 @@ def run_main():
   while run:  
     # Get initial input for starting trading aglogrithm
     trade_terms = ta.prompt_user()
-    
+    if trade_terms == -1:
+      run = False
+
     # Print preview of trades
     trade_terms.print_trades()
     
