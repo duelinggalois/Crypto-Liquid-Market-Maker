@@ -1,46 +1,31 @@
 ##LiquidCryPy
 
-This program will list a sequence of buy and sell trades on GDAX.com based on the following parameters.
-- trading pair (BTC-USD, ETH-USD, LTC-USD, BCH-USD, BTC-ETH, LTC-BTC, BCH-BTC)
-- budget
-- minimum trade size
-- trade increase increment
-- estimated trade price
-- midpoint (optional)
-- highest sale price
+This program will list a sequence of buy and sell trades on GDAX.com based on the following parameters:  
+* trading pair (BTC-USD, ETH-USD, LTC-USD, BCH-USD, BTC-ETH, LTC-BTC, BCH-BTC)
+* budget
+* minimum trade size
+* trade increase increment
+* estimated trade price
+* midpoint (optional)
+* highest sale price
 
-** Recommended Installation **
-- [Install Python3](http://docs.python-guide.org/en/latest/starting/install3)
-- [Install PipEnv](https://docs.pipenv.org/)
-- clone repo
-- in repo directory, run `pipenv install`
-- run `pipenv shell`
-- in pipenv shell, run `python -m main`
+**Recommended Installation**
+* [Install Python3](http://docs.python-guide.org/en/latest/starting/install3)
+* [Install PipEnv](https://docs.pipenv.org/)
+* `git clone (repo url)`
+* `cd liquidcrypy`
+* `pipenv install` (dependencies managed by `Pipfile` in project root)
+* `pipenv run python -m main`
 
-note: dependencies managed by `Pipfile` in project root
+**Suggested Default Values**
 
-** Suggested Default Values **
-
-What trading pair would you like to list?
-*BCH-BTC*
-
-What is the value of BCH would you like to allocate in terms of BTC?
-*.075*
-
-What is the minimum trade size for this pair?
-*.01*
-
-How much should each trade in the sequnce of buys and sells increase by?
-*.001*
-
-What is the estimated price of BCH in terms of BTC?
-*.1125*
-
-Would you like to use 0.1125 BTC/BCH as the the midpoint of the trading algorithm? (y or n)
-*y*
-
-What is the highest price to be sold at?
-*.1625*
+`What trading pair would you like to list?` **BCH-BTC**  
+`What is the value of BCH would you like to allocate in terms of BTC?` **.075**  
+`What is the minimum trade size for this pair?` **.01**  
+`How much should each trade in the sequnce of buys and sells increase by?` **.001**  
+`What is the estimated price of BCH in terms of BTC?` **.1125**  
+`Would you like to use 0.1125 BTC/BCH as the the midpoint of the trading algorithm? (y or n)` **y**  
+`What is the highest price to be sold at?` **.1625**  
 
 ** typical output **
 ```
