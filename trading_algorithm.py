@@ -190,9 +190,31 @@ def send_trade_list(pair, side, first_trade_price, first_trade_size, price_incre
         ) 
       )
     t = requests.post(api_url + 'orders', json=trade, auth=auth)
-    ts.append( t.json() )
-    print(t.json())
-    n += 1
+    
+    if t.status_code != 200:
+      print(("Response: {0}, Price: {1}, Size: {2}").format(
+        str(t.status_code),
+        trade["price"],
+        trade["size"],
+        t.json()['message']
+        )
+      )
+
+    else: 
+      try:
+        print(("{0}, {1}, {2}, {3}, {4}").format(
+          t.json()["product_id"],
+          t.json()["side"],
+          t.json()["size"],
+          t.json()["price"],
+          str(t)
+          )
+        )
+        ts.append( t.json() ) 
+      
+      except:
+        print(t.json)
+  
   return ts
   
 def n_from_mid_budget(budget, first_size, size_change, mid_price, last_price):
