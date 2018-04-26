@@ -1,4 +1,4 @@
 [DEFAULT]
 api_pass = 
 api_key = 
-api_secret = 
+api_secret = testing
