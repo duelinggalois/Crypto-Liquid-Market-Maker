@@ -146,7 +146,7 @@ config = configparser.ConfigParser()
 
 def run_GdaxAuth():
   
-  config.read('config.ini.')
+  config.read('config.ini.default')
   keys = config['DEFAULT']
   
   return GdaxAuth(keys['api_key'],keys['api_secret'], keys['api_pass'])
