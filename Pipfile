@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 requests = "*"
 websockets = "*"
+pick = "*"
 
 [dev-packages]
 
