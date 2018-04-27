@@ -3,10 +3,10 @@ import authorize, requests, config
 def send_trade_list(
   pair, 
   side, 
-  first_trade_price, 
   first_trade_size, 
+  size_increase,
   price_increase, 
-  size_increase, 
+  first_trade_price, 
   trade_count,
   auth=None):
 

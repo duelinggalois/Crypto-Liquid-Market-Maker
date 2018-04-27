@@ -1,4 +1,4 @@
-import requests, math, trading
+p.import requests, math, trading
 import authorize as autho
 
 class TradingTerms():
@@ -34,7 +34,7 @@ class TradingTerms():
     # trading_sequences gives the variable info for each sequnce to be 
     # traded, sequences will be added as trades execute. 
     self.trading_sequences = []
-    self.trading_sequences.append(
+    self.trading_sequences.append(p
       {'side': 'sell', 'first_size': first_size,'first_price': f_s_price,
         'n': self.n/2})
     self.trading_sequences.append(
