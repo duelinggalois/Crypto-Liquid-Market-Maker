@@ -1,21 +1,32 @@
 import trading_algorithm
+from pick import pick
+
+def show_intro():
+  # display header and description of program intent
+  print(
+    "** Crypto Liquid Market Maker - By William P. Fey **\n"+ \
+    "This program will list a sequence of buy and sell trades on \n"+ \
+    "GDAX.com based on pertinent user input.\n\n"
+  )
+  input("Press return to continue...")
+
+def prompt_pair():
+  # prompt user to select trading pair, validate input
+  title = 'Select Trading Pair: '
+  supported_pairs = ['BTC-USD', 'ETH-USD', 'LTC-USD', 'BCH-USD', 'BTC-ETH', 'LTC-BTC', 'BCH-BTC']
+  selected_pair, index = pick(supported_pairs, title)
+  return selected_pair
 
 def prompt_user():
-  '''Prompts User for input to start algorithm, returns trading_terms. 
-  '''
+  #Prompts User for input to start algorithm, returns trading_terms.
+
+  show_intro()
   ready = True
-  print(" ***********************Trading Algorithm************************ \
-    \n ***********************By William P. Fey************************ \
-    \n\n" +\
-    "This program will list a squence of buy and sell trades on \n"+ \
-    "GDAX.com based on the follosing input.\n")
   while ready:
     try:
       # Sizes of Trades
-      print("Available Trading Pairs\n"+\
-        "BTC-USD, ETH-USD, LTC-USD, BCH-USD, BTC-ETH, LTC-BTC, "+\
-        "BCH-BTC\n")
-      pair = input("What trading pair would you like to list?\n\n")
+      pair = prompt_pair()
+
       budget = float(input((
         "\nWhat is the value of {0} would you like to allocate in "+\
         "terms of {1}?\n\n").format(pair[:3],pair[4:])))
@@ -55,7 +66,7 @@ def prompt_user():
 
     return trading_terms
 
-  # if user exits inuput returns -1 to disrupt main from running. 
+  # if user exits input returns -1 to disrupt main from running. 
   return -1
 
 def prompt_ready_to_trade():
