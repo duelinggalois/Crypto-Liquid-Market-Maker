@@ -1,4 +1,4 @@
-p.import requests, math, trading
+import requests, math, trading
 import authorize as autho
 
 class TradingTerms():
