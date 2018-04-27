@@ -1,4 +1,4 @@
-import authorize, requests
+import authorize, requests, config
 
 def send_trade_list(
   pair, 
@@ -28,10 +28,7 @@ def send_trade_list(
     "side": side,
     "product_id": pair
   }
-  config = configparser.ConfigParser()
-  config.read('config.ini')
-  url = config['DEFAULT']
-  api_url = url['url']
+  api_url = config.url
 
   if side == "buy":
     neg_pos = -1
@@ -86,7 +83,8 @@ def auth_and_list_trades(
   price_change, 
   trade_count ):
   '''
-  creates auth token and lists sequence of trades on Exchange given a trading pair, side, first_trade_size, size_increase, first_trade_price, price_change, trade_count
+  creates auth token and lists sequence of trades on Exchange given a trading pair, 
+  side, first_trade_size, size_increase, first_trade_price, price_change, trade_count
   '''
   # set up authorization token and factors needed to send trades.
   auth = authorize.run_GdaxAuth()
