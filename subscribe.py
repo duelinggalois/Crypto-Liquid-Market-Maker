@@ -1,23 +1,29 @@
 import config
+import asyncio, websockets, time, base64, hmac, json, hashlib
+import sys
+
+file_path = "./socketdata/data.txt"
 
 class Subscribe():
   '''Subscription Class to interact with GDAX websocket.
   '''
   
-  def __init__(self, pair, url="", channel=None, 
-    auth=False, api_key="",api_secret="", api_passphrase=""):
+  def __init__(self, product_ids=[], url="", channel=[], 
+    subscription='subscribe', auth=False, api_key="",
+    api_secret="", api_passphrase="", file_path=None):
     
     self.url = url
-    self.pair = pair 
+    self.product_ids = product_ids 
     self.auth = auth
     self.channel = channel
+    self.subscription = subscription
     self.api_key = api_key
     self.api_secret = api_secret
-    self.api_passphrase= api_pass
-    self.stop = False
+    self.api_passphrase= api_passphrase
     self.error = None
     self.ws = None
     self.thread = None
+    self.file_path=file_path
     
   def start(self):
     self._connect()
@@ -25,13 +31,15 @@ class Subscribe():
   
   def _connect(self):     
     
-    if self.channel is None:
-      sub_params = {'type': 'subscribe', 'product_ids': self.pair}
+    if self.channel == []:
+      sub_params = {
+        'type': subscription, 
+        'product_ids': self.product_ids}
     else:
       sub_params = {
-        'type': 'subscribe', 
-        'product_ids': [self.pair], 
-        'channels': [self.channel] 
+        'type': subscription, 
+        'product_ids': self.product_ids, 
+        'channels': self.channel 
       }
     
     if self.auth:
@@ -46,7 +54,11 @@ class Subscribe():
       sub_params['passphrase'] = self.api_passphrase
       sub_params['timestamp'] = timestamp
     
-    self.ws = start_to_send(self.url, json.dumps(sub_params))
+    self.ws = start_to_send(
+      self.url, 
+      json.dumps(sub_params), 
+      file_path=self.file_path)
+
     asyncio.get_event_loop().run_until_complete(self.ws)
   
   def _disconnect(self):
@@ -74,24 +86,45 @@ class Subscribe():
     self.error = e
     self.stop = True
     print('{} - data: {}'.format(e, data))
-    
-async def start_to_send(url, message_added):
+
+async def start_to_send(url, message_added, file_path=file_path):
   async with websockets.connect(url) as websocket:
     await websocket.send(message_added)
-    while True:
-      info = await websocket.recv()
-      print("< {}".format(info))
+    with open(file_path, 'a') as output:
+      print_first = True
+      while True:
+        info = await websocket.recv()
+        if print_first:
+          print("< {}\n".format(info))
+          print_first = False
+        output.write("< {}\n".format(info))
 
-def run_Subscribe(pair, channel):
+def run_Subscribe(product_ids, channel, subscription='subscribe', file_path=None):
   
   return Subscribe(
-    pair, 
+    product_ids, 
     url=config.socket,
     channel=channel, 
     auth=True, 
-    api_key=config.api_key
-    api_secret=config.api_secret 
-    api_passphrase=config.api_pass)
+    api_key=config.api_key,
+    api_secret=config.api_secret, 
+    api_passphrase=config.api_pass,
+    file_path=file_path)
+
+if __name__== "__main__":
+  subscription = sys.argv[1]
+  product_ids = sys.argv[2].split(',')
+  channels = sys.argv[3].split(',')
+  try:
+    main_file_path = sys.argv[4]
+  except:
+    main_file_path = file_path
+  sock = run_Subscribe(
+      product_ids, 
+      channels, 
+      subscription=subscription,
+      file_path=main_file_path)
+  sock.start()
 
 """
 Notes on socket
@@ -119,3 +152,4 @@ Notes on socket
     "product_id":"ETH-USD",
     "sequence":2509845620,
     "time":"2018-02-11T22:55:11.673000Z"}
+"""

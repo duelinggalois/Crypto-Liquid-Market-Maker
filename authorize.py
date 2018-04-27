@@ -1,9 +1,5 @@
-import json, hmac, hashlib, time, requests, base64, configparser, config
+import json, hmac, hashlib, time, requests, base64, config
 from requests.auth import AuthBase
-
-import asyncio
-import websockets
-from threading import Thread
 
 # Create custom authentication token for GDAX Exchange
 # Used https://stackoverflow.com/questions/37763235/unicode-objects-must-be-
@@ -31,7 +27,6 @@ class GdaxAuth(AuthBase):
     })
     return request
 
-# run GdaxAuth pulls keys from config 
-
+# run GdaxAuth pulls keys from config and return auth
 def run_GdaxAuth():
   return GdaxAuth(config.api_key, config.api_secret, config.api_pass)
