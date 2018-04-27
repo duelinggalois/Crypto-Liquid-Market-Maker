@@ -13,7 +13,9 @@ This program will list a sequence of buy and sell trades on GDAX.com based on th
 * [Install Python3](http://docs.python-guide.org/en/latest/starting/install3)
 * [Install PipEnv](https://docs.pipenv.org/)
 * `git clone https://github.com/rev3ks/Crypto-Liquid-Market-Maker`
-* `cd liquidcrypy`
+* `cd Crypto-Liquid-Market-Maker`
+* `cp config.ini.default config.ini`
+* Add GDAX API passphrase, keys, and secret to config.ini
 * `pipenv install` (dependencies managed by `Pipfile` in project root)
 * `pipenv run python -m main`
 
@@ -87,7 +89,6 @@ BCH-BTC, buy, Size: 0.01675000, Price: 0.02991000
 BCH-BTC, buy, Size: 0.01725000, Price: 0.02120000
 BCH-BTC, buy, Size: 0.01775000, Price: 0.01249000
 BCH-BTC, buy, Size: 0.01825000, Price: 0.00378000
-
 ```
 
 **Work In Progress**
