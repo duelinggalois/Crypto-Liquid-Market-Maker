@@ -1,4 +1,5 @@
 import trading_algorithm as ta
+import prompts
 
 # Start main program
 def run_main():
@@ -8,15 +9,15 @@ def run_main():
   run = True
   while run:  
     # Get initial input for starting trading aglogrithm
-    trade_terms = ta.prompt_user()
+    trade_terms = prompts.prompt_user()
     if trade_terms == -1:
-      run = False
+      break
 
     # Print preview of trades
     trade_terms.print_trades()
     
     # Ask user if he would like to allow trades to be made.
-    ready_to_list_trades = ta.prompt_ready_to_trade()
+    ready_to_list_trades = prompts.prompt_ready_to_trade()
     
     if ready_to_list_trades:
       print("Listing trades, user CTRL+c to kill\n")
@@ -26,7 +27,7 @@ def run_main():
       trade_terms.list_trades()
              
       run = False
-    elif prompt_to_return_class():
+    elif prompts.prompt_to_return_class():
       return trade_terms
     
     elif ready_to_list_trades == None:
