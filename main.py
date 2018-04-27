@@ -1,10 +1,12 @@
 import trading_algorithm as ta
+import os
 import prompts
 
 # Start main program
 def run_main():
-  '''Main flow of program
-  '''
+  #Main flow of program
+
+  os.system('clear')
   
   run = True
   while run:  
@@ -42,4 +44,3 @@ def run_main():
 
 if __name__ == '__main__':
   run_main()
-  
