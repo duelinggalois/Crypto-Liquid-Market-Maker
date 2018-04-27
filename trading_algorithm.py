@@ -53,7 +53,7 @@ class TradingTerms():
     
     # Send each sequence in new_squences to GDAX and return orders to book
     for i in self.new_sequences:
-      self.book += trading.auth_and_list_trades(
+      self.book += trading.send_trade_list(
         self.pair, i['side'], i['first_size'], self.size_change*2, 
         i['first_price'], self.price_change, self.n/2)
         
@@ -159,4 +159,4 @@ def n_from_mid_budget(budget, first_size, size_change, mid_price, last_price):
 
 def start_websocket():
   '''yet to be built'''
-  print ('Still a work in progress parsing websocket data goes here.01')
+  print ('\nStill a work in progress parsing websocket...')
