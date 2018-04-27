@@ -17,6 +17,17 @@ def prompt_pair():
   selected_pair, index = pick(supported_pairs, title)
   return selected_pair
 
+def prompt_budget(pair):
+  while True:
+    try:
+      budget = float(input(("What is the value of {0} would you like to allocate in terms of {1}?\n\n").format(pair[:3],pair[4:])))
+    except ValueError:
+      print("please enter a valid float value (e.g. .075)")
+      continue
+    else:
+      break
+  return float(budget)
+
 def prompt_user():
   #Prompts User for input to start algorithm, returns trading_terms.
 
@@ -24,12 +35,9 @@ def prompt_user():
   ready = True
   while ready:
     try:
-      # Sizes of Trades
       pair = prompt_pair()
+      budget = prompt_budget(pair)
 
-      budget = float(input((
-        "\nWhat is the value of {0} would you like to allocate in "+\
-        "terms of {1}?\n\n").format(pair[:3],pair[4:])))
       print("\nSize of trades")
       min_size = float(input("\nWhat is the minimum trade size for this "+\
          "pair?\n\n"))
