@@ -20,47 +20,73 @@ This program will list a sequence of buy and sell trades on GDAX.com based on th
 **Example of Using Main**
 
 `What trading pair would you like to list?` **BCH-BTC**  
-`What is the value of BCH would you like to allocate in terms of BTC?` **.05**  
+`What is the value of BCH would you like to allocate in terms of BTC?` **.075**  
 `What is the minimum trade size for this pair?` **.01**  
 `How much should each trade in the sequnce of buys and sells increase by?` **.000025**  
-`What is the estimated price of BCH in terms of BTC?` **.15251**  
+`What is the estimated price of BCH in terms of BTC?` **.15185**  
 `Would you like to use 0.1125 BTC/BCH as the the midpoint of the trading algorithm? (y or n)` **y**  
 `What is the highest price to be sold at?` **.3**  
 
 **Output**
 ```
 buys					sells
-0.01025 BCH @ 0.14022 BTC/BCH		0.01 BCH @ 0.1648 BTC/BCH
-0.01075 BCH @ 0.12793 BTC/BCH		0.0105 BCH @ 0.17709 BTC/BCH
-0.01125 BCH @ 0.11564 BTC/BCH		0.011 BCH @ 0.18938 BTC/BCH
-0.01175 BCH @ 0.10335 BTC/BCH		0.0115 BCH @ 0.20167 BTC/BCH
-0.01225 BCH @ 0.09106 BTC/BCH		0.012 BCH @ 0.21396 BTC/BCH
-0.01275 BCH @ 0.07877 BTC/BCH		0.0125 BCH @ 0.22625 BTC/BCH
-0.01325 BCH @ 0.06648 BTC/BCH		0.013 BCH @ 0.23854 BTC/BCH
-0.01375 BCH @ 0.05419 BTC/BCH		0.0135 BCH @ 0.25083 BTC/BCH
-0.01425 BCH @ 0.0419 BTC/BCH		0.014 BCH @ 0.26312 BTC/BCH
-0.01475 BCH @ 0.02961 BTC/BCH		0.0145 BCH @ 0.27541 BTC/BCH
-0.01525 BCH @ 0.01732 BTC/BCH		0.015 BCH @ 0.2877 BTC/BCH
+0.01025 BCH @ 0.14314 BTC/BCH		0.01 BCH @ 0.16056 BTC/BCH
+0.01075 BCH @ 0.13443 BTC/BCH		0.0105 BCH @ 0.16927 BTC/BCH
+0.01125 BCH @ 0.12572 BTC/BCH		0.011 BCH @ 0.17798 BTC/BCH
+0.01175 BCH @ 0.11701 BTC/BCH		0.0115 BCH @ 0.18669 BTC/BCH
+0.01225 BCH @ 0.1083 BTC/BCH		0.012 BCH @ 0.1954 BTC/BCH
+0.01275 BCH @ 0.09959 BTC/BCH		0.0125 BCH @ 0.20411 BTC/BCH
+0.01325 BCH @ 0.09088 BTC/BCH		0.013 BCH @ 0.21282 BTC/BCH
+0.01375 BCH @ 0.08217 BTC/BCH		0.0135 BCH @ 0.22153 BTC/BCH
+0.01425 BCH @ 0.07346 BTC/BCH		0.014 BCH @ 0.23024 BTC/BCH
+0.01475 BCH @ 0.06475 BTC/BCH		0.0145 BCH @ 0.23895 BTC/BCH
+0.01525 BCH @ 0.05604 BTC/BCH		0.015 BCH @ 0.24766 BTC/BCH
+0.01575 BCH @ 0.04733 BTC/BCH		0.0155 BCH @ 0.25637 BTC/BCH
+0.01625 BCH @ 0.03862 BTC/BCH		0.016 BCH @ 0.26508 BTC/BCH
+0.01675 BCH @ 0.02991 BTC/BCH		0.0165 BCH @ 0.27379 BTC/BCH
+0.01725 BCH @ 0.0212 BTC/BCH		0.017 BCH @ 0.2825 BTC/BCH
+0.01775 BCH @ 0.01249 BTC/BCH		0.0175 BCH @ 0.29121 BTC/BCH
 
 
-Buy budget: 0.024866009999999997 BTC, Sell budget 0.28600000000000003 BCH roughly worth 0.032175 BTC based on 0.1125 BTC/BCH midmarket price.
+Buy budget: 0.015949859999999996 BTC, Sell budget 0.22000000000000003 BCH roughly worth 0.033407000000000006 BTC based on 0.15185 BTC/BCH midmarket price.
 Would you like trades to be listed? (y or n)
 y
+Listing trades, user CTRL+c to kill
 
-Listing Trades
-
-BCH-BTC, buy, 0.01025000, 0.14022000
-BCH-BTC, buy, 0.01075000, 0.12793000
-BCH-BTC, buy, 0.01125000, 0.11564000
-BCH-BTC, buy, 0.01175000, 0.10335000
-BCH-BTC, buy, 0.01225000, 0.09106000
-BCH-BTC, buy, 0.01275000, 0.07877000
-BCH-BTC, buy, 0.01325000, 0.06648000
-BCH-BTC, buy, 0.01375000, 0.05419000
-BCH-BTC, buy, 0.01425000, 0.04190000
-BCH-BTC, buy, 0.01475000, 0.02961000 
-BCH-BTC, buy, 0.01525000, 0.01732000
-BCH-BTC, buy, 0.01575000, 0.00503000
+BCH-BTC, sell, Size: 0.01000000, Price: 0.16056000
+BCH-BTC, sell, Size: 0.01050000, Price: 0.16927000
+Response: 400, Message Insufficient funds, Price: 0.17798, Size: 0.011
+Response: 400, Message Insufficient funds, Price: 0.18669, Size: 0.0115
+Response: 400, Message Insufficient funds, Price: 0.1954, Size: 0.012
+Response: 400, Message Insufficient funds, Price: 0.20411, Size: 0.0125
+Response: 400, Message Insufficient funds, Price: 0.21282, Size: 0.013
+Response: 400, Message Insufficient funds, Price: 0.22153, Size: 0.0135
+Response: 400, Message Insufficient funds, Price: 0.23024, Size: 0.014
+Response: 400, Message Insufficient funds, Price: 0.23895, Size: 0.0145
+Response: 400, Message Insufficient funds, Price: 0.24766, Size: 0.015
+Response: 400, Message Insufficient funds, Price: 0.25637, Size: 0.0155
+Response: 400, Message Insufficient funds, Price: 0.26508, Size: 0.016
+Response: 400, Message Insufficient funds, Price: 0.27379, Size: 0.0165
+Response: 400, Message Insufficient funds, Price: 0.2825, Size: 0.017
+Response: 400, Message Insufficient funds, Price: 0.29121, Size: 0.0175
+Response: 400, Message Insufficient funds, Price: 0.29992, Size: 0.018
+BCH-BTC, buy, Size: 0.01025000, Price: 0.14314000
+BCH-BTC, buy, Size: 0.01075000, Price: 0.13443000
+BCH-BTC, buy, Size: 0.01125000, Price: 0.12572000
+BCH-BTC, buy, Size: 0.01175000, Price: 0.11701000
+BCH-BTC, buy, Size: 0.01225000, Price: 0.10830000
+BCH-BTC, buy, Size: 0.01275000, Price: 0.09959000
+BCH-BTC, buy, Size: 0.01325000, Price: 0.09088000
+BCH-BTC, buy, Size: 0.01375000, Price: 0.08217000
+BCH-BTC, buy, Size: 0.01425000, Price: 0.07346000
+BCH-BTC, buy, Size: 0.01475000, Price: 0.06475000
+BCH-BTC, buy, Size: 0.01525000, Price: 0.05604000
+BCH-BTC, buy, Size: 0.01575000, Price: 0.04733000
+BCH-BTC, buy, Size: 0.01625000, Price: 0.03862000
+BCH-BTC, buy, Size: 0.01675000, Price: 0.02991000
+BCH-BTC, buy, Size: 0.01725000, Price: 0.02120000
+BCH-BTC, buy, Size: 0.01775000, Price: 0.01249000
+BCH-BTC, buy, Size: 0.01825000, Price: 0.00378000
 
 ```
 

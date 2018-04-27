@@ -1,3 +1,5 @@
+import trading_algorithm
+
 def prompt_user():
   '''Prompts User for input to start algorithm, returns trading_terms. 
   '''
@@ -49,7 +51,7 @@ def prompt_user():
       ready = 'y' == retry
       continue
     
-    trading_terms = TradingTerms(pair, budget, low_price, mid_price, min_size, size_change)
+    trading_terms = trading_algorithm.TradingTerms(pair, budget, low_price, mid_price, min_size, size_change)
 
     return trading_terms
 

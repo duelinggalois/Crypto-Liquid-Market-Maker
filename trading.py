@@ -1,3 +1,5 @@
+import authorize, requests
+
 def send_trade_list(
   pair, 
   side, 
@@ -75,7 +77,7 @@ def auth_and_list_trades(pair, side, first_trade_size, size_increase, first_trad
   creates auth token and lists sequence of trades on Exchange given a trading pair, side, first_trade_size, size_increase, first_trade_price, price_change, trade_count
   '''
   # set up authorization token and factors needed to send trades.
-  auth = autho.run_GdaxAuth()
+  auth = authorize.run_GdaxAuth()
   
   # Send trades.
   ts = send_trade_list(
