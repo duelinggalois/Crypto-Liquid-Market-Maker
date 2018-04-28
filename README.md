@@ -1,6 +1,6 @@
 ## Crypto Liquid Market Maker
 
-I created this strategy in an attempt to automate small gains repeatedly. A set amount is intended to be allocated to the stategry and as pairs of buys and sells execute over time, profit is generated. As a price is dropping, this strategy will maybe counterintuitively repeatedly buy more, as prices rise, it sells more. If the range of price breaks out of the trading range that is set, no more trades will execute unless the price returns to the range. This is not financial advice and this program can result in losses. Use at your own risk.
+I created this strategy in an attempt to automate small gains repeatedly. A set amount is intended to be allocated to the stategry and as pairs of buys and sells execute over time, profit is generated. As a price is dropping, this strategy will repeatedly buy more crypto, as prices rise, it sells more. If the range of price breaks out of the trading range that is set, no more trades will execute unless the price returns to the range. This is not financial advice and this program can result in losses. Use at your own risk.
 
 This program will list a sequence of buy and sell trades on GDAX.com based on the following parameters:  
 * trading pair (BTC-USD, ETH-USD, LTC-USD, BCH-USD, BTC-ETH, LTC-BTC, BCH-BTC)
