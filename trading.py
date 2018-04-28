@@ -3,10 +3,10 @@ import authorize, requests, config
 def send_trade_list(
   pair, 
   side, 
-  first_trade_price, 
   first_trade_size, 
-  price_increase, 
   size_increase, 
+  first_trade_price,
+  price_increase, 
   trade_count,
   auth=None):
 
@@ -83,7 +83,7 @@ def adjust(pair, side, first_trade_size, size_increase,
     list_trades funtion (if multiple strategies are in effect, this will
     cancel all orders from any strategy. 
     '''
-    auth = autho.run_GdaxAuth()
+    auth = authorize.run_GdaxAuth()
     api_url = 'https://api.gdax.com/'
 
     if side == 'buy':
