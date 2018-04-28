@@ -54,8 +54,14 @@ class TradingTerms():
     # Send each sequence in new_squences to GDAX and return orders to book
     for i in self.new_sequences:
       self.book += trading.send_trade_list(
-        self.pair, i['side'], i['first_size'], self.size_change*2, 
-        i['first_price'], self.price_change, self.n/2)
+        self.pair, # pair
+        i['side'], # side
+        i['first_size'], # first_trade_size
+        self.size_change*2, # size_increase
+        i['first_price'], # first_trade_price
+        self.price_change, #price_increase
+        self.n/2 # trade_count
+      ) 
         
     # Empty new_sequence for future use
     self.new_sequences = []
