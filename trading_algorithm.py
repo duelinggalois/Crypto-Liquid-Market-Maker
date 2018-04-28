@@ -60,7 +60,7 @@ class TradingTerms():
         self.size_change*2, # size_increase
         i['first_price'], # first_trade_price
         self.price_change, #price_increase
-        self.n/2 # trade_count
+        self.n/2 - 1 # trade_count minus 1 as trade function starts at 0
       ) 
         
     # Empty new_sequence for future use
