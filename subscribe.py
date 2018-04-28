@@ -27,7 +27,9 @@ class Subscribe():
     
   def start(self):
     self._connect()
-    self.on_open()  
+    self.on_open() 
+
+    asyncio.get_event_loop().run_until_complete(self.ws) 
   
   def _connect(self):     
     
@@ -54,13 +56,17 @@ class Subscribe():
       sub_params['passphrase'] = self.api_passphrase
       sub_params['timestamp'] = timestamp
     
-    self.ws = start_to_send(
-      self.url, 
-      json.dumps(sub_params), 
-      file_path=self.file_path)
-
-    asyncio.get_event_loop().run_until_complete(self.ws)
+    self.ws = self.start_to_send(
+      json.dumps(sub_params))
   
+  async def start_to_send(self, message_added):
+    async with websockets.connect(self.url) as websocket:
+      await websocket.send(message_added)
+      while True:
+        msg = await websocket.recv()
+        self.on_message(msg)
+      
+
   def _disconnect(self):
     try:
       if self.ws:
@@ -71,7 +77,6 @@ class Subscribe():
   
   def close(self):
     self.stop = True
-    self.thread.join()
   
   def on_open(self):
     print("\n-- Subscribed! --\n")
@@ -80,27 +85,21 @@ class Subscribe():
     print("\n-- Socket Closed --")
   
   def on_message(self, msg):
-    print(msg)
+    with open(self.file_path, 'a') as output:
+      print_first = True
+      if print_first:
+         print("< {}\n".format(msg))
+         print_first = False
+      output.write("< {}\n".format(msg))
   
   def on_error(self, e, data=None):
     self.error = e
     self.stop = True
     print('{} - data: {}'.format(e, data))
 
-async def start_to_send(url, message_added, file_path=file_path):
-  async with websockets.connect(url) as websocket:
-    await websocket.send(message_added)
-    with open(file_path, 'a') as output:
-      print_first = True
-      while True:
-        info = await websocket.recv()
-        if print_first:
-          print("< {}\n".format(info))
-          print_first = False
-        output.write("< {}\n".format(info))
-
 def run_Subscribe(product_ids, channel, subscription='subscribe', file_path=None):
-  
+  '''Fuction bypasses the need to enter authroziation info when creating class.
+  '''
   return Subscribe(
     product_ids, 
     url=config.socket,
