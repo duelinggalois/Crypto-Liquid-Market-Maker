@@ -86,10 +86,7 @@ class Subscribe():
   
   def on_message(self, msg):
     with open(self.file_path, 'a') as output:
-      print_first = True
-      if print_first:
-         print("< {}\n".format(msg))
-         print_first = False
+      print("< {}\n".format(msg))
       output.write("< {}\n".format(msg))
   
   def on_error(self, e, data=None):
