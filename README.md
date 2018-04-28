@@ -1,5 +1,7 @@
 ## Crypto Liquid Market Maker
 
+I created this strategy in an attempt to automate small gains repeatedly. A set amount is intended to be allocated to the stategry and as pairs of buys and sells execute over time, profit is generated. As a price is dropping, this strategy will maybe counterintuitively repeatedly buy more, as prices rise, it sells more. If the range of price breaks out of the trading range that is set, no more trades will execute unless the price returns to the range. This is not financial advice and this program can result in losses. Use at your own risk.
+
 This program will list a sequence of buy and sell trades on GDAX.com based on the following parameters:  
 * trading pair (BTC-USD, ETH-USD, LTC-USD, BCH-USD, BTC-ETH, LTC-BTC, BCH-BTC)
 * budget
@@ -90,6 +92,26 @@ BCH-BTC, buy, Size: 0.01725000, Price: 0.02120000
 BCH-BTC, buy, Size: 0.01775000, Price: 0.01249000
 BCH-BTC, buy, Size: 0.01825000, Price: 0.00378000
 ```
+**Adjustments**
+
+As trades execute, the proceeds are relisted for at a margin. For example after three trades were sold in a single price movement in the `ETH-BTC pair`, the `trading.adjust()` command relists those trades:
+
+```
+#python3.6
+>>> trading.adjust('ETH-USD', 'buy', .01, .0025, 655.56, 18.68, 5)
+canceled orders:
+0b902cd7-5309-4663-832a-8f6db3136885, 580.84000000, 0.01250000
+258bde0d-21be-4714-9488-033fbfae9527, 599.52000000, 0.01000000
+
+New orders:
+ETH-USD, buy, Size: 0.01000000, Price: 655.56000000
+ETH-USD, buy, Size: 0.01250000, Price: 636.88000000
+ETH-USD, buy, Size: 0.01500000, Price: 618.20000000
+ETH-USD, buy, Size: 0.01750000, Price: 599.52000000
+ETH-USD, buy, Size: 0.02000000, Price: 580.84000000
+'''
+
+This will be automated once the websocket is completed. 
 
 **Work In Progress**
 

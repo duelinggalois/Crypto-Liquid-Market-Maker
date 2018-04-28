@@ -83,7 +83,7 @@ def adjust(pair, side, first_trade_size, size_increase,
     list_trades funtion (if multiple strategies are in effect, this will
     cancel all orders from any strategy. 
     '''
-    auth = autho.run_GdaxAuth()
+    auth = authorize.run_GdaxAuth()
     api_url = 'https://api.gdax.com/'
 
     if side == 'buy':
