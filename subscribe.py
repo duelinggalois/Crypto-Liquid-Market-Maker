@@ -1,8 +1,11 @@
 import config
 import asyncio, websockets, time, base64, hmac, json, hashlib
 import sys
+import logging
 
 file_path = "./socketdata/data.txt"
+PYTHONASYNCIODEBUG = 1
+logging.basicConfig(level=logging.DEBUG)
 
 class Subscribe():
   '''Subscription Class to interact with GDAX websocket.
@@ -63,16 +66,17 @@ class Subscribe():
     async with websockets.connect(self.url) as websocket:
       await websocket.send(message_added)
       while True:
-        msg = await websocket.recv()
+        try:
+          msg = await websocket.recv()
+        except websockets.exceptions.ConnectionClosed as e:
+          self._disconnect(e)
+          self.start()
         self.on_message(msg)
       
 
-  def _disconnect(self):
-    try:
-      if self.ws:
-        self.ws.close()
-    except WebSocketConnectionClosedException as e:
-      print(e)
+  def _disconnect(self, error=None):
+    print(error)
+    asyncio.get_event_loop().stop()
     self.on_close()
   
   def close(self):
