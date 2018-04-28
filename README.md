@@ -94,7 +94,7 @@ BCH-BTC, buy, Size: 0.01825000, Price: 0.00378000
 ```
 **Adjustments**
 
-As trades execute, the proceeds are relisted for at a margin. For example after three trades were sold in a single price movement in the `ETH-BTC pair`, the `trading.adjust()` command relists those trades:
+As trades execute, the proceeds are relisted for at a margin. For example after three trades were sold in a single price movement in the `ETH-BTC` pair, the `trading.adjust()` function relists those trades:
 
 ```
 #python3.6
@@ -109,7 +109,7 @@ ETH-USD, buy, Size: 0.01250000, Price: 636.88000000
 ETH-USD, buy, Size: 0.01500000, Price: 618.20000000
 ETH-USD, buy, Size: 0.01750000, Price: 599.52000000
 ETH-USD, buy, Size: 0.02000000, Price: 580.84000000
-'''
+```
 
 This will be automated once the websocket is completed. 
 
