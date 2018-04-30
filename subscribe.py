@@ -11,22 +11,19 @@ class Subscribe():
   '''Subscription Class to interact with GDAX websocket.
   '''
   
-  def __init__(self, product_ids=[], url="", channel=[], 
-    subscription='subscribe', auth=False, api_key="",
-    api_secret="", api_passphrase="", file_path=None):
+  def __init__(self, product_ids=[], channel=[], url="", 
+    subscription='subscribe', auth=False, file_path=None):
     
-    self.url = url
+    if url == "":
+      self.url = config.socket
     self.product_ids = product_ids 
     self.auth = auth
     self.channel = channel
     self.subscription = subscription
-    self.api_key = api_key
-    self.api_secret = api_secret
-    self.api_passphrase= api_passphrase
     self.error = None
     self.ws = None
-    self.thread = None
     self.file_path=file_path
+    self.stop= False
     
   def start(self):
     self._connect()
@@ -48,6 +45,9 @@ class Subscribe():
       }
     
     if self.auth:
+      self.api_key = config.api_key
+      self.api_secret = config.api_secret
+      self.api_passphrase= config.api_passphrase
       timestamp = str(time.time())
       message = timestamp + 'GET' + '/users/self/verify'
       message = message.encode()
@@ -65,17 +65,16 @@ class Subscribe():
   async def start_to_send(self, message_added):
     async with websockets.connect(self.url) as websocket:
       await websocket.send(message_added)
-      while True:
+      while not self.stop:
         try:
           msg = await websocket.recv()
         except websockets.exceptions.ConnectionClosed as e:
+          on_error(e)
           self._disconnect(e)
-          self.start()
         self.on_message(msg)
       
 
-  def _disconnect(self, error=None):
-    print(error)
+  def _disconnect(self):
     asyncio.get_event_loop().stop()
     self.on_close()
   
@@ -98,58 +97,24 @@ class Subscribe():
     self.stop = True
     print('{} - data: {}'.format(e, data))
 
-def run_Subscribe(product_ids, channel, subscription='subscribe', file_path=None):
-  '''Fuction bypasses the need to enter authroziation info when creating class.
-  '''
-  return Subscribe(
-    product_ids, 
-    url=config.socket,
-    channel=channel, 
-    auth=True, 
-    api_key=config.api_key,
-    api_secret=config.api_secret, 
-    api_passphrase=config.api_pass,
-    file_path=file_path)
-
 if __name__== "__main__":
   subscription = sys.argv[1]
   product_ids = sys.argv[2].split(',')
   channels = sys.argv[3].split(',')
   try:
     main_file_path = sys.argv[4]
+    try:
+      auth = sys.argv[5]
+    except:
+      auth = False
   except:
     main_file_path = file_path
-  sock = run_Subscribe(
-      product_ids, 
-      channels, 
-      subscription=subscription,
-      file_path=main_file_path)
+    auth = False
+  
+  sock = Subscribe(
+    product_ids, 
+    channels, 
+    auth=auth,
+    subscription=subscription,
+    file_path=main_file_path)
   sock.start()
-
-"""
-Notes on socket
->>> ETHUSD = a.run_Subscribe('ETH-USD', 'full')
->>> ETHUSD.start()
-  < {"type":"subscriptions","channels":[{"name":"full","product_ids":["ETH-US
-  D"]}]}
-  < { 
-    "type":"received",
-    "order_id":"931d0197-fa5f-4521-9bfa-b96356055510",
-    "order_type":"limit",
-    "size":"9.00000000",
-    "price":"831.03000000",
-    "side":"buy",
-    "client_oid":"3fff2cb2-abda-4ce9-89fd-10407093cdfe",
-    "product_id":"ETH-USD",
-    "sequence":2509845619,
-    "time":"2018-02-11T22:55:11.673000Z"}
-  < {
-    "type":"open",
-    "side":"buy",
-    "price":"831.03000000",
-    "order_id":"931d0197-fa5f-4521-9bfa-b96356055510",
-    "remaining_size":"9.00000000",
-    "product_id":"ETH-USD",
-    "sequence":2509845620,
-    "time":"2018-02-11T22:55:11.673000Z"}
-"""
