@@ -1,11 +1,10 @@
-import config
+import config, process
 import asyncio, websockets, time, base64, hmac, json, hashlib
 import sys
 import logging
 
-file_path = "./socketdata/data.txt"
-PYTHONASYNCIODEBUG = 1
-logging.basicConfig(level=logging.DEBUG)
+#PYTHONASYNCIODEBUG = 1
+#logging.basicConfig(level=logging.DEBUG)
 
 
 class Subscribe():
@@ -40,7 +39,7 @@ class Subscribe():
   def auth_stamp(self):     
     self.api_key = config.api_key
     self.api_secret = config.api_secret
-    self.api_passphrase= config.api_passphrase
+    self.api_passphrase= config.api_pass
     timestamp = str(time.time())
     message = timestamp + 'GET' + '/users/self/verify'
     message = message.encode()
@@ -55,7 +54,7 @@ class Subscribe():
   def start(self):
 
     if auth:
-      auth_stamp()
+      self.auth_stamp()
     self.ws = self._connect()
 
     asyncio.get_event_loop().run_until_complete(self.ws)  
@@ -73,16 +72,18 @@ class Subscribe():
     while True:
       try:
         msg = await asyncio.wait_for(ws.recv(), timeout=20)
-        while not subsc:
+        if not subsc:
           # need to check for "type":"subscriptions"
-          # self.on_open(msg)
+          if json.loads(msg)["type"] == "subscriptions":
+            self.on_open(msg)
+            subsc = True
+          else:
+            self.on_message(msg)
+        else:
           self.on_message(msg)
-          subsc = True
-
-        self.on_message(msg)
       # ping socket to keep connection alive
       except asyncio.TimeoutError:
-        print("\n--pinging socket--\n")
+        print("\n--pinging socket--")
         try:
           pong_socket = await ws.ping()
           await asyncio.wait_for(pong_socket, timeout=10)
@@ -94,27 +95,18 @@ class Subscribe():
         self.on_error(e)
       
 
+  def on_open(self, msg):
+    process.subscription(msg)
+    
+  def on_message(self, msg): 
+    process.new(msg, self.file_path)
+
   def _disconnect(self, e):
     print(e)
-    self.on_close()
-  
-  def close(self):
-    self.stop = True
-  
-  def on_open(self, msg):
-    print("\n-- Subscribed! --\n")
-    print("{0}".format(
-      msg
-      )
-    )
-  
+    self.on_close()  
+    
   def on_close(self):
     print("\n-- Socket Closed --")
-  
-  def on_message(self, msg):
-    with open(self.file_path, 'a') as output:
-      print("< {}\n".format(msg))
-      output.write("< {}\n".format(msg))
   
   def on_error(self, e, data=None):
     self.error = e
@@ -125,13 +117,12 @@ if __name__== "__main__":
   product_ids = sys.argv[2].split(',')
   channels = sys.argv[3].split(',')
   try:
-    main_file_path = sys.argv[4]
+    auth = sys.argv[4]
     try:
-      auth = sys.argv[5]
+      main_file_path = sys.argv[5]
     except:
-      auth = False
+      main_file_path = None
   except:
-    main_file_path = file_path
     auth = False
   
   sock = Subscribe(
