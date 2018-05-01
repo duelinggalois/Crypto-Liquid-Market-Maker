@@ -26,13 +26,15 @@ class Subscribe():
     self.file_path=file_path
     self.stop= False
     
-  def start(self):
-    self._connect()
-    self.on_open() 
+  async def start(self):
+    self.sub_params = create_sub_params()
+    async with websockets.connect( self.url ) as self.ws:
+      await self.ws.send( json.dumps( sub_params ))
+      await listen()
 
     asyncio.get_event_loop().run_until_complete(self.ws) 
   
-  def _connect(self):     
+  def create_sub_params(self):     
     
     if self.channel == []:
       sub_params = {
@@ -60,37 +62,47 @@ class Subscribe():
       sub_params['passphrase'] = self.api_passphrase
       sub_params['timestamp'] = timestamp
     
-    self.ws = self.start_to_send(
-      json.dumps(sub_params))
+    return sub_params
   
-  async def start_to_send(self, message_added):
-    async with websockets.connect(self.url) as websocket:
-      await websocket.send(message_added)
-      while True:
+  async def listen(self):
+    subsc = False
+    while True:
+      try:
+        msg = await asyncio.wait_for(self.ws.recv(), timeout=20)
+        while not subsc:
+          # check for "type":"subscriptions"
+          if msg.json()["type"] == "subsciptions":
+            on_open(msg) 
+          else:
+            self.on_message(msg)
+      # ping socket to keep connection alive
+      except asyncio.TimeoutError:
         try:
-          msg = await asyncio.wait_for(websocket.recv(), timeout=20)
-        except asyncio.TimeoutError:
-          try:
-            pong_socket = await websocket.ping()
-            await asyncio.wait_for(pong_socket, timeout=10)
-            print("--ping socket --")
-          except:
-            break
-        except websockets.exceptions.ConnectionClosed as e:
-          on_error(e)
-          self._disconnect(e)
-        self.on_message(msg)
+          pong_socket = await websocket.ping()
+          await asyncio.wait_for(pong_socket, timeout=10)
+          print("\n--pinging socket--\n")
+        except:
+          print("\n--no pong from socket--\n")
+          break
+      
+      except Exception as e:
+        self.on_error(e)
+        self._disconnect(e)
       
 
   def _disconnect(self):
-    asyncio.get_event_loop().stop()
     self.on_close()
   
   def close(self):
     self.stop = True
   
-  def on_open(self):
+  def on_open(self, msg):
     print("\n-- Subscribed! --\n")
+    print("Pairs: {0}\nChannels: {1}".format(
+      msg.json()["product_ids"],
+      msg.json()["channels"]
+      )
+    )
   
   def on_close(self):
     print("\n-- Socket Closed --")
@@ -102,7 +114,6 @@ class Subscribe():
   
   def on_error(self, e, data=None):
     self.error = e
-    self.stop = True
     print('{} - data: {}'.format(e, data))
 
 if __name__== "__main__":
