@@ -72,7 +72,7 @@ def send_trade_list(
         ts.append( t.json() ) 
       
       except:
-        print(t.json)
+        print( t.json() )
     n += 1
 
   return ts
