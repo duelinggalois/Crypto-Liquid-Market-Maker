@@ -7,6 +7,7 @@ file_path = "./socketdata/data.txt"
 PYTHONASYNCIODEBUG = 1
 logging.basicConfig(level=logging.DEBUG)
 
+
 class Subscribe():
   '''Subscription Class to interact with GDAX websocket.
   '''
@@ -65,9 +66,16 @@ class Subscribe():
   async def start_to_send(self, message_added):
     async with websockets.connect(self.url) as websocket:
       await websocket.send(message_added)
-      while not self.stop:
+      while True:
         try:
-          msg = await websocket.recv()
+          msg = await asyncio.wait_for(websocket.recv(), timeout=20)
+        except asyncio.TimeoutError:
+          try:
+            pong_socket = await websocket.ping()
+            await asyncio.wait_for(pong_socket, timeout=10)
+            print("--ping socket --")
+          except:
+            break
         except websockets.exceptions.ConnectionClosed as e:
           on_error(e)
           self._disconnect(e)
