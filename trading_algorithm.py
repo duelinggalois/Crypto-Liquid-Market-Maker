@@ -1,5 +1,5 @@
-import requests, math, trading, subscribe
-import authorize as autho
+import requests, math
+import trading, subscribe, process
 
 class TradingTerms():
   
@@ -50,7 +50,8 @@ class TradingTerms():
   def list_trades(self):
     """Used to send trading sequences in new_sequences to be listed
     """
-    
+    # Start socket to make sure to catch any trades executed right away
+    self.start_ws()
     # Send each sequence in new_squences to GDAX and return orders to book
     for i in self.new_sequences:
       self.book += trading.send_trade_list(
@@ -62,21 +63,45 @@ class TradingTerms():
         self.price_change, #price_increase
         self.n/2 - 1 # trade_count minus 1 as trade function starts at 0
       ) 
-        
+    
     # Empty new_sequence for future use
     self.new_sequences = []
 
   def start_ws(self):
-    socket = subscribe.Subscribe(
+    self.socket = subscribe.Subscribe(
       [self.pair], 
       ["matches"], 
       trading_algorithm=self
     )
-    socket.start()
+    self.socket.start()
 
-  def test_message(self, msg):
-    print("test_message: " + str(msg))
-    
+  def process_message(self, msg):
+    '''used to check socket data to see if anything needs to be done.
+    '''
+  
+    maker_order_id =  process.new(msg)
+    # Check if order matches our active trades
+    if maker_order_id in [trade["id"] for trade in self.book]:
+      load_msg = json.loads(msg)
+      my_trade = [trade for trade in self.book if trade["id"] == maker_order_id][0]
+      
+      # Check to see if entire trade is filled
+      if load_msg["size"] == my_trade["size"]:
+        # Remove my_trade from book
+        filled_trade = self.book.pop(self.book.index(my_trade))
+        
+        # Create new sequence of trades to list
+
+
+        new_trades = trading.adjust_to_trade(filled_trade, self.book) 
+        
+      else:
+        new_size = my_trade["size"] - load_msg["size"]
+        partial_filled_trade = self.book.pop(self.book.index(my_trade))
+        partial_filled_trade["size"] = new_size
+        self.book.append( partial_filled_trade)
+
+
 
 def n_from_budget(budget, first_size, size_change, low_price, high_price):
   '''Using a budget in terms of the denominator of a trading pair (USD for

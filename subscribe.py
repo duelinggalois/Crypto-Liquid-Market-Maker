@@ -25,7 +25,7 @@ class Subscribe():
     self.file_path = file_path
     self.ws = websockets.connect(self.url)
     self.stop= False
-    self.t_a = trading_algorithm
+    self.trading_algorithm = trading_algorithm
 
     if self.channel == []:
       self.sub_params = {
@@ -69,38 +69,37 @@ class Subscribe():
       
     
   async def _listen(self, ws):
-    subsc = False
     while True:
       try:
         msg = await asyncio.wait_for(ws.recv(), timeout=30)
-        if not subsc:
-          # need to check for "type":"subscriptions"
-          if json.loads(msg)["type"] == "subscriptions":
-            self.on_open(msg)
-            subsc = True
-          else:
-            self.on_message(msg)
-        else:
-          self.on_message(msg)
+        self.on_message(msg)
+
       # ping socket to keep connection alive
       except asyncio.TimeoutError:
         print("\n--pinging socket--")
         try:
           pong_socket = await ws.ping()
-          await asyncio.wait_for(pong_socket, timeout=10)
-        except:
-          print("\n--no pong from socket--\n")
-          break
-      
+          await asyncio.wait_for(pong_socket, timeout=30)
+        # Try twice
+        except asyncio.TimeoutError:
+          try:
+            pong_socket = await ws.ping()
+            await asyncio.wait_for(pong_socket, timeout=30)
+          except:
+            print("\n--no pong from socket--\n")
+            break
+        
       except Exception as e:
         self.on_error(e, msg)
       
 
   def on_open(self, msg):
-    process.subscription(msg)
+    # Not using
+    return None
     
   def on_message(self, msg): 
-    process.new(msg, self.file_path)
+    self.trading_algorithm.process_message(msg)
+
 
   def on_error(self, e, data=None):
     print('{}: {} , {} - data: {}'.format(type(e), e, e.args, data))
