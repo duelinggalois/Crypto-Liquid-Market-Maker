@@ -35,10 +35,36 @@ def subscription(msg):
     )
 
 def new (msg, file_p=None):
+
+  chooser = {
+    "last_match": last_match,
+    "match": match,
+    "error": error
+  }
+  func = chooser.get(json.loads(msg)["type"], other)
+  func(msg, file_p)
+
+def last_match(msg, file_p=None):
+  load_msg = json.loads(msg)
+  file_path = "./socketdata/data.txt"
+  print(" -- Last Match -- ")
+  print("< {0} - {1} - id: {2} - side: {3} - {4} - {5}\n{6}".format(
+      load_msg["time"],
+      load_msg["product_id"],
+      load_msg["trade_id"],
+      load_msg["side"],
+      load_msg["size"],
+      load_msg["price"],
+      everything_else(load_msg)
+      )
+    )
+
+def match(msg, file_p=None):
+  load_msg = json.loads(msg)
   file_path = "./socketdata/data.txt"
   if file_p:
     file_path = file_p
-  load_msg = json.loads(msg)
+  
   with open(file_path, 'a') as output:
     #pick_type(msg)
     print("< {0} - {1} - id: {2} - side: {3} - {4} - {5}\n{6}".format(
@@ -52,6 +78,22 @@ def new (msg, file_p=None):
       )
     )
     output.write("< {}\n".format(msg))
+
+def error(msg, file_p):
+  load_msg = json.loads(msg)
+  raise ProcessError(load_msg["error"])
+  print("< {} message: {}".format(
+    load_msg["error"],
+    load_msg[""]
+    )
+  )
+
+def other(msg, file_p):
+  load_msg = json.loads(msg)
+  statement = "< "
+  for i in load_msg.keys():
+    statement += '"'+ i +'"' + '"'+ str(load_msg[i]) +'"' + ", "
+  print( statement[:-2] )
 
 def everything_else(msg):
   statement = ""

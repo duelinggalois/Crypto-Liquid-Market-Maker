@@ -93,7 +93,7 @@ class Subscribe():
           break
       
       except Exception as e:
-        self.on_error(e)
+        self.on_error(e, msg)
       
 
   def on_open(self, msg):
@@ -102,16 +102,16 @@ class Subscribe():
   def on_message(self, msg): 
     process.new(msg, self.file_path)
 
-  def _disconnect(self, e):
-    print(e)
-    self.on_close()  
+  def on_error(self, e, data=None):
+    print('{}: {} , {} - data: {}'.format(type(e), e, e.args, data))
+    self._disconnect()
+
+  def _disconnect(self):
+    self.ws.close()
+    self.on_close()
     
   def on_close(self):
     print("\n-- Socket Closed --")
-  
-  def on_error(self, e, data=None):
-    self.error = e
-    print('{}: {} , {} - data: {}'.format(type(e), e, e.args, data))
 
 # Run as main option used for debugging websocket
 

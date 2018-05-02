@@ -69,7 +69,7 @@ class TradingTerms():
   def start_ws(self):
     socket = subscribe.Subscribe(
       [self.pair], 
-      ["mathces"], 
+      ["matches"], 
       trading_algorithm=self
     )
     socket.start()
