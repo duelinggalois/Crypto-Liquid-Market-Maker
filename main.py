@@ -25,7 +25,7 @@ def run_main():
       print("Listing trades, user CTRL+c to kill\n")
       
       # List trades here
-      
+      trade_terms.start_ws()
       trade_terms.list_trades()
              
       run = False

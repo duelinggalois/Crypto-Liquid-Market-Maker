@@ -2,24 +2,32 @@ import json
 
 file_path = "./socketdata/data.txt"
 
-def subscription(msg):
+def new (msg, file_p=file_path):
+  '''Chooose which process function to use to process message based on message type.
+  ''' 
+  chooser = {
+    "subscriptions": subscriptions,
+    "last_match": last_match,
+    "match": match,
+    "error": error
+  }
+  func = chooser.get(json.loads(msg)["type"], other)
+  func(msg, file_p)
+
+def subscriptions(msg, file_p=file_path):
   #Channels: {'channels': [{'product_ids': ['ETH-BTC'], 'name': 'matches'}], 'type': 'subscriptions'}   Pair: 
   load_msg = json.loads(msg)
-  print("\n-- {0} --".format(load_msg["type"]))
+  print("\n-- Subscribed --".format(load_msg["type"]))
   for c in load_msg["channels"]:
     print("Channel: {0}\t\tPair: {1}\n".format(
       c["name"],
       c["product_ids"]
       )
     )
-
-def new (msg, file_p=None):
-  if file_p:
-    file_path = file_p
+def last_match(msg, file_p=file_path):
   load_msg = json.loads(msg)
-  with open(file_path, 'a') as output:
-    #pick_type(msg)
-    print("< {0} - {1} - id: {2} - side: {3} - {4} - {5}\n{6}".format(
+  print("\n-- Last Match -- ")
+  print("< {0} - {1} - id: {2} - side: {3} - {4} - {5}\n{6}".format(
       load_msg["time"],
       load_msg["product_id"],
       load_msg["trade_id"],
@@ -29,24 +37,37 @@ def new (msg, file_p=None):
       everything_else(load_msg)
       )
     )
+
+def match(msg, file_p=file_path):
+  load_msg = json.loads(msg)
+  print("< {0} - {1} - trade_id: {2} - side: {3} - {4} - {5}\n{6}".format(
+    load_msg["time"],
+    load_msg["product_id"],
+    load_msg["trade_id"],
+    load_msg["side"],
+    load_msg["size"],
+    load_msg["price"]
+    )
+  )
+  return load_msg["maker_order_id"]
+
+def error(msg, file_p):
+  load_msg = json.loads(msg)
+  raise ProcessError(load_msg["error"])
+  print("< {} message: {}".format(
+    load_msg["error"],
+    load_msg[""]
+    )
+  )
+
+def other(msg, file_p):
+  load_msg = json.loads(msg)
+  statement = "< "
+  for i in load_msg.keys():
+    statement += '"'+ i +'"' + '"'+ str(load_msg[i]) +'"' + ", "
+  print( statement[:-2] )
+
+def save_to_file(msg, file_p=file_path):
+  with open(file_p, 'a') as output:
+    #pick_type(msg)
     output.write("< {}\n".format(msg))
-
-def everything_else(msg):
-  statement = ""
-  for i in msg.keys():
-    if i not in [
-      "time", 
-      "product_id", 
-      "trade_id", 
-      "side", 
-      "size", 
-      "price", 
-      "type", 
-      "maker_order_id",
-      "taker_order_id"]:
-      statement += '"'+str(i)+'"' + '"'+str(msg[i])+'"' + ", "
-
-  return statement[:-2] 
-
-def pick_type(msg):
-  print(msg)

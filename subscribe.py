@@ -12,7 +12,8 @@ class Subscribe():
   '''
   
   def __init__(self, product_ids=[], channel=[], url="", 
-    subscription='subscribe', auth=False, file_path=None):
+    subscription='subscribe', auth=False, file_path=None,
+    trading_algorithm=None):
     
     if url == "":
       self.url = config.socket
@@ -21,9 +22,10 @@ class Subscribe():
     self.channel = channel
     self.subscription = subscription
     self.error = None
-    self.ws = None
-    self.file_path=file_path
+    self.file_path = file_path
+    self.ws = websockets.connect(self.url)
     self.stop= False
+    self.trading_algorithm = trading_algorithm
 
     if self.channel == []:
       self.sub_params = {
@@ -53,10 +55,10 @@ class Subscribe():
 
   def start(self):
 
-    if auth:
+    if self.auth:
       self.auth_stamp()
     self.ws = self._connect()
-
+    
     asyncio.get_event_loop().run_until_complete(self.ws)  
 
 
@@ -64,53 +66,53 @@ class Subscribe():
     async with websockets.connect(self.url) as ws:
       await ws.send( json.dumps( self.sub_params ))
       await self._listen(ws)
-
-    return ws
+      
     
   async def _listen(self, ws):
-    subsc = False
     while True:
       try:
-        msg = await asyncio.wait_for(ws.recv(), timeout=20)
-        if not subsc:
-          # need to check for "type":"subscriptions"
-          if json.loads(msg)["type"] == "subscriptions":
-            self.on_open(msg)
-            subsc = True
-          else:
-            self.on_message(msg)
-        else:
-          self.on_message(msg)
+        msg = await asyncio.wait_for(ws.recv(), timeout=30)
+        self.on_message(msg)
+
       # ping socket to keep connection alive
       except asyncio.TimeoutError:
         print("\n--pinging socket--")
         try:
           pong_socket = await ws.ping()
-          await asyncio.wait_for(pong_socket, timeout=10)
-        except:
-          print("\n--no pong from socket--\n")
-          break
-      
+          await asyncio.wait_for(pong_socket, timeout=30)
+        # Try twice
+        except asyncio.TimeoutError:
+          try:
+            pong_socket = await ws.ping()
+            await asyncio.wait_for(pong_socket, timeout=30)
+          except:
+            print("\n--no pong from socket--\n")
+            break
+        
       except Exception as e:
-        self.on_error(e)
+        self.on_error(e, msg)
       
 
   def on_open(self, msg):
-    process.subscription(msg)
+    # Not using
+    return None
     
   def on_message(self, msg): 
-    process.new(msg, self.file_path)
+    self.trading_algorithm.process_message(msg)
 
-  def _disconnect(self, e):
-    print(e)
-    self.on_close()  
+
+  def on_error(self, e, data=None):
+    print('{}: {} , {} - data: {}'.format(type(e), e, e.args, data))
+    self._disconnect()
+
+  def _disconnect(self):
+    self.ws.close()
+    self.on_close()
     
   def on_close(self):
     print("\n-- Socket Closed --")
-  
-  def on_error(self, e, data=None):
-    self.error = e
-    print('{} - data: {}'.format(e, data))
+
+# Run as main option used for debugging websocket
 
 if __name__== "__main__":
   subscription = sys.argv[1]

@@ -59,6 +59,7 @@ def send_trade_list(
         trade["size"],
         )
       )
+      ts.append( t.json() )
 
     else: 
       try:
@@ -69,13 +70,17 @@ def send_trade_list(
           t.json()["price"],
           )
         )
-        ts.append( t.json() ) 
+         
       
       except:
         print( t.json() )
-    n += 1
 
+    n += 1
+  # Return trades 
   return ts
+
+def adjust_to_trade():
+  print ("adjusting to matched trade")
 
 def adjust(pair, side, first_trade_size, size_increase, 
     first_trade_price, price_change, trade_count ):
