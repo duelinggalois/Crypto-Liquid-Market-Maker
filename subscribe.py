@@ -12,7 +12,8 @@ class Subscribe():
   '''
   
   def __init__(self, product_ids=[], channel=[], url="", 
-    subscription='subscribe', auth=False, file_path=None):
+    subscription='subscribe', auth=False, file_path=None,
+    trading_algorithm=None):
     
     if url == "":
       self.url = config.socket
@@ -21,9 +22,10 @@ class Subscribe():
     self.channel = channel
     self.subscription = subscription
     self.error = None
-    self.ws = None
-    self.file_path=file_path
+    self.file_path = file_path
+    self.ws = websockets.connect(self.url)
     self.stop= False
+    self.t_a = trading_algorithm
 
     if self.channel == []:
       self.sub_params = {
@@ -53,10 +55,10 @@ class Subscribe():
 
   def start(self):
 
-    if auth:
+    if self.auth:
       self.auth_stamp()
     self.ws = self._connect()
-
+    
     asyncio.get_event_loop().run_until_complete(self.ws)  
 
 
@@ -64,14 +66,13 @@ class Subscribe():
     async with websockets.connect(self.url) as ws:
       await ws.send( json.dumps( self.sub_params ))
       await self._listen(ws)
-
-    return ws
+      
     
   async def _listen(self, ws):
     subsc = False
     while True:
       try:
-        msg = await asyncio.wait_for(ws.recv(), timeout=20)
+        msg = await asyncio.wait_for(ws.recv(), timeout=30)
         if not subsc:
           # need to check for "type":"subscriptions"
           if json.loads(msg)["type"] == "subscriptions":
@@ -110,7 +111,9 @@ class Subscribe():
   
   def on_error(self, e, data=None):
     self.error = e
-    print('{} - data: {}'.format(e, data))
+    print('{}: {} , {} - data: {}'.format(type(e), e, e.args, data))
+
+# Run as main option used for debugging websocket
 
 if __name__== "__main__":
   subscription = sys.argv[1]

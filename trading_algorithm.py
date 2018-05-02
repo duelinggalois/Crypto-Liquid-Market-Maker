@@ -1,4 +1,4 @@
-import requests, math, trading
+import requests, math, trading, subscribe
 import authorize as autho
 
 class TradingTerms():
@@ -65,8 +65,17 @@ class TradingTerms():
         
     # Empty new_sequence for future use
     self.new_sequences = []
-    
-    start_websocket()
+
+  def start_ws(self):
+    socket = subscribe.Subscribe(
+      [self.pair], 
+      ["mathces"], 
+      trading_algorithm=self
+    )
+    socket.start()
+
+  def test_message(self, msg):
+    print("test_message: " + str(msg))
     
 
 def n_from_budget(budget, first_size, size_change, low_price, high_price):

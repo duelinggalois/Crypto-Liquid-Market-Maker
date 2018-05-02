@@ -1,5 +1,26 @@
 import json
 
+'''
+This is intended to parse websocket data from subscribe and tell trading_algorithm to send 
+trades when trades execute. 
+
+maker_order_id in list of trades executes -> trading_terms.adjsut()
+
+Where should I put the list of trades. How best should this file access that list
+
+how best to call .adjust() once file is filled. 
+
+Process:
+Main calls prompts which creates trading_algorithm class. 
+
+Main starts websocket 
+
+Websocket uses process to parse data and decide if a trade has been made
+
+trading_algroithm 
+'''
+
+
 file_path = "./socketdata/data.txt"
 
 def subscription(msg):
@@ -14,6 +35,7 @@ def subscription(msg):
     )
 
 def new (msg, file_p=None):
+  file_path = "./socketdata/data.txt"
   if file_p:
     file_path = file_p
   load_msg = json.loads(msg)
