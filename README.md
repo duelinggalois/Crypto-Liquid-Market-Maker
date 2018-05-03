@@ -23,13 +23,15 @@ This program will list a sequence of buy and sell trades on GDAX.com based on th
 
 **Example of Using Main**
 
+See below if you would like python shell instructions to import modules.
+
 `What trading pair would you like to list?` **ETH-BTC**  
-`What is the value of BCH would you like to allocate in terms of BTC?` **0.571399326**  
+`What is the value of BCH would you like to allocate in terms of BTC?` **0.8**  
 `What is the minimum trade size for this pair?` **.01**  
 `How much should each trade in the sequnce of buys and sells increase by?` **.0005**  
-`What is the estimated price of ETH in terms of BTC?` **.07480**  
+`What is the estimated price of ETH in terms of BTC?` **.0786**  
 `Would you like to use 0.1125 BTC/BCH as the the midpoint of the trading algorithm? (y or n)` **y**
-`What is the highest price to be sold at?` **.12075**  
+`What is the highest price to be sold at?` **.12835**  
 
 **Printed Trades for Review**
 ```
@@ -100,7 +102,7 @@ ETH-BTC, Size: 0.01250000, Price: 0.07695000
 
 ```
 >>> from trading_algorithm import TradingTerms 
->>> ETH_BTC = TradingTerms("ETH-BTC", 0.8, .02885, .07860, .01, .0005)
+>>> ETH_BTC = TradingTerms(pair, budget, low_price, mid_price, min_size, size_change)
 >>> ETH_BTC.print_trades()
 ```
 See *Printed Trades for Reveiw* for `print_trades()` output.
