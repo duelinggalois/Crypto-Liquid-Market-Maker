@@ -58,7 +58,7 @@ class Subscribe():
     if self.auth:
       self.auth_stamp()
     self.ws = self._connect()
-    
+
     asyncio.get_event_loop().run_until_complete(self.ws)  
 
 
@@ -106,8 +106,8 @@ class Subscribe():
     self._disconnect()
 
   def _disconnect(self):
-    self.ws.close()
-    self.on_close()
+    # Need to disconnect socket when error
+    return None
     
   def on_close(self):
     print("\n-- Socket Closed --")
