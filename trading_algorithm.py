@@ -41,7 +41,6 @@ class TradingTerms():
       {'side': 'buy', 'first_size': f_b_size, 'first_price': f_b_price, 
         'n': self.n/2})
       
-    self.new_sequences = self.trading_sequences
     self.book = []
   
   def print_trades(self):
@@ -53,7 +52,7 @@ class TradingTerms():
     # Start socket to make sure to catch any trades executed right away
     self.start_ws()
     # Send each sequence in new_squences to GDAX and return orders to book
-    for i in self.new_sequences:
+    for i in self.trading_sequences:
       self.book += trading.send_trade_list(
         self.pair, # pair
         i['side'], # side
@@ -63,9 +62,6 @@ class TradingTerms():
         self.price_change, #price_increase
         self.n/2 - 1 # trade_count minus 1 as trade function starts at 0
       ) 
-    
-    # Empty new_sequence for future use
-    self.new_sequences = []
 
   def start_ws(self):
     self.socket = subscribe.Subscribe(
@@ -89,11 +85,8 @@ class TradingTerms():
       if load_msg["size"] == my_trade["size"]:
         # Remove my_trade from book
         filled_trade = self.book.pop(self.book.index(my_trade))
-        
         # Create new sequence of trades to list
-
-
-        new_trades = trading.adjust_to_trade(filled_trade, self.book) 
+        self.adjust(filled_trade)
         
       else:
         new_size = my_trade["size"] - load_msg["size"]
@@ -101,7 +94,43 @@ class TradingTerms():
         partial_filled_trade["size"] = new_size
         self.book.append( partial_filled_trade)
 
+  def adjust(self, filled_trade):
+    if filled_trade["side"] == "buy":
+      side = "sell"
+      neg_pos = 1
+    else: 
+      side = "buy"
+      neg_pos = -1
+    first_price = filled_trade["price"] + neg_pos * self.price_change
+    count = ( filled_trade["size"] - self.first_size ) / self.size_change # Trade count starts at 0
+    price_limit = ( count + .1) * price_change
 
+    conditions = lambda trade: trade["side"] == side and math.fabs(trade["price"]-first_price) < price_limit
+
+    for id in [
+      trade["id"]
+      for trade 
+      in self.book 
+      if conditions
+    ]:
+      trade.cancel(id)
+
+    self.book = [
+      trade
+      for trade
+      in self.book
+      if not conditions
+    ]
+
+    trading.send_trade_list(
+      self.pair, # pair
+      side, # side
+      self.first_size, # first_trade_size
+      self.size_change, # size_increase
+      first_price, # first_trade_price
+      self.price_change, #price_increase
+      count # trade_count minus 1 as trade function starts at 0
+    )        
 
 def n_from_budget(budget, first_size, size_change, low_price, high_price):
   '''Using a budget in terms of the denominator of a trading pair (USD for
@@ -137,7 +166,7 @@ def print_review_of_trades(tt):
   print( 'buys'+'\t'*5+'sells' )   
   
   # Build strings "size BOT @ price TOP / BOT" where pair = TOP-BOT
-  for i in tt.new_sequences:
+  for i in tt.trading_sequences:
     # for loop through trade counts = i['n']
     for j in range(0, int(i['n']-1)):
       

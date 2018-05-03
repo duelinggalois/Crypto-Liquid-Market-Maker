@@ -27,20 +27,21 @@ def subscriptions(msg, file_p=file_path):
 def last_match(msg, file_p=file_path):
   load_msg = json.loads(msg)
   print("\n-- Last Match -- ")
-  print("< {0} - {1} - id: {2} - side: {3} - {4} - {5}\n{6}".format(
+  print("< {0} - {1} - trade id: {2} - "
+      "side: {3} size: {4} price: {5}".format(
       load_msg["time"],
       load_msg["product_id"],
       load_msg["trade_id"],
       load_msg["side"],
       load_msg["size"],
-      load_msg["price"],
-      everything_else(load_msg)
+      load_msg["price"]
       )
     )
 
 def match(msg, file_p=file_path):
   load_msg = json.loads(msg)
-  print("< {0} - {1} - trade_id: {2} - side: {3} - {4} - {5}\n{6}".format(
+  print("< {0} - {1} - trade_id: {2} - "
+    "side: {3} size: {4} price: {5}".format(
     load_msg["time"],
     load_msg["product_id"],
     load_msg["trade_id"],
