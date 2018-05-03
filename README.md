@@ -23,76 +23,93 @@ This program will list a sequence of buy and sell trades on GDAX.com based on th
 
 **Example of Using Main**
 
-`What trading pair would you like to list?` **BCH-BTC**  
-`What is the value of BCH would you like to allocate in terms of BTC?` **.075**  
+`What trading pair would you like to list?` **ETH-BTC**  
+`What is the value of BCH would you like to allocate in terms of BTC?` **0.571399326**  
 `What is the minimum trade size for this pair?` **.01**  
-`How much should each trade in the sequnce of buys and sells increase by?` **.000025**  
-`What is the estimated price of BCH in terms of BTC?` **.15185**  
-`Would you like to use 0.1125 BTC/BCH as the the midpoint of the trading algorithm? (y or n)` **y**  
-`What is the highest price to be sold at?` **.3**  
+`How much should each trade in the sequnce of buys and sells increase by?` **.0005**  
+`What is the estimated price of ETH in terms of BTC?` **.07480**  
+`Would you like to use 0.1125 BTC/BCH as the the midpoint of the trading algorithm? (y or n)` **y**
+`What is the highest price to be sold at?` **.12075**  
+
+**Printed Trades for Review**
+```
+buys					sells
+0.0105 ETH @ 0.07805 BTC/ETH		0.01 ETH @ 0.07915 BTC/ETH
+0.0115 ETH @ 0.0775 BTC/ETH			0.011 ETH @ 0.0797 BTC/ETH
+0.0125 ETH @ 0.07695 BTC/ETH		0.012 ETH @ 0.08025 BTC/ETH
+0.0135 ETH @ 0.0764 BTC/ETH			0.013 ETH @ 0.0808 BTC/ETH
+0.0145 ETH @ 0.07585 BTC/ETH		0.014 ETH @ 0.08135 BTC/ETH
+0.0155 ETH @ 0.0753 BTC/ETH			0.015 ETH @ 0.0819 BTC/ETH
+0.0165 ETH @ 0.07475 BTC/ETH		0.016 ETH @ 0.08245 BTC/ETH
+0.0175 ETH @ 0.0742 BTC/ETH			0.017 ETH @ 0.083 BTC/ETH
+0.0185 ETH @ 0.07365 BTC/ETH		0.018 ETH @ 0.08355 BTC/ETH
+0.0195 ETH @ 0.0731 BTC/ETH			0.019 ETH @ 0.0841 BTC/ETH
+...									...
+
+...									...
+0.0905 ETH @ 0.03405 BTC/ETH		0.09 ETH @ 0.12315 BTC/ETH
+0.0915 ETH @ 0.0335 BTC/ETH			0.091 ETH @ 0.1237 BTC/ETH
+0.0925 ETH @ 0.03295 BTC/ETH		0.092 ETH @ 0.12425 BTC/ETH
+0.0935 ETH @ 0.0324 BTC/ETH			0.093 ETH @ 0.1248 BTC/ETH
+0.0945 ETH @ 0.03185 BTC/ETH		0.094 ETH @ 0.12535 BTC/ETH
+0.0955 ETH @ 0.0313 BTC/ETH			0.095 ETH @ 0.1259 BTC/ETH
+0.0965 ETH @ 0.03075 BTC/ETH		0.096 ETH @ 0.12645 BTC/ETH
+0.0975 ETH @ 0.0302 BTC/ETH			0.097 ETH @ 0.127 BTC/ETH
+0.0985 ETH @ 0.02965 BTC/ETH		0.098 ETH @ 0.12755 BTC/ETH
+0.0995 ETH @ 0.0291 BTC/ETH			0.099 ETH @ 0.1281 BTC/ETH
+
+Buy budget: 0.23179 BTC, Sell budget 4.905 ETH roughly worth 0.38553 BTC based on 
+0.0786 BTC/ETH midmarket price.
+
+Would you like trades to be listed? (y or n)
+y
+```
 
 **Output**
 ```
-buys					sells
-0.01025 BCH @ 0.14314 BTC/BCH		0.01 BCH @ 0.16056 BTC/BCH
-0.01075 BCH @ 0.13443 BTC/BCH		0.0105 BCH @ 0.16927 BTC/BCH
-0.01125 BCH @ 0.12572 BTC/BCH		0.011 BCH @ 0.17798 BTC/BCH
-0.01175 BCH @ 0.11701 BTC/BCH		0.0115 BCH @ 0.18669 BTC/BCH
-0.01225 BCH @ 0.1083 BTC/BCH		0.012 BCH @ 0.1954 BTC/BCH
-0.01275 BCH @ 0.09959 BTC/BCH		0.0125 BCH @ 0.20411 BTC/BCH
-0.01325 BCH @ 0.09088 BTC/BCH		0.013 BCH @ 0.21282 BTC/BCH
-0.01375 BCH @ 0.08217 BTC/BCH		0.0135 BCH @ 0.22153 BTC/BCH
-0.01425 BCH @ 0.07346 BTC/BCH		0.014 BCH @ 0.23024 BTC/BCH
-0.01475 BCH @ 0.06475 BTC/BCH		0.0145 BCH @ 0.23895 BTC/BCH
-0.01525 BCH @ 0.05604 BTC/BCH		0.015 BCH @ 0.24766 BTC/BCH
-0.01575 BCH @ 0.04733 BTC/BCH		0.0155 BCH @ 0.25637 BTC/BCH
-0.01625 BCH @ 0.03862 BTC/BCH		0.016 BCH @ 0.26508 BTC/BCH
-0.01675 BCH @ 0.02991 BTC/BCH		0.0165 BCH @ 0.27379 BTC/BCH
-0.01725 BCH @ 0.0212 BTC/BCH		0.017 BCH @ 0.2825 BTC/BCH
-0.01775 BCH @ 0.01249 BTC/BCH		0.0175 BCH @ 0.29121 BTC/BCH
+-- Last Match -- 
+< 2018-05-03T04:41:43.620000Z - ETH-BTC - trade id: 4699790 - side: sell size: 1.52318962 price: 0.07863000
+
+-- Subscribed --
+Channel: matches		Pair: ['ETH-BTC']
 
 
-Buy budget: 0.015949859999999996 BTC, Sell budget 0.22000000000000003 BCH roughly worth 0.033407000000000006 BTC based on 0.15185 BTC/BCH midmarket price.
-Would you like trades to be listed? (y or n)
-y
-Listing trades, user CTRL+c to kill
+--Listing Trades-- 
 
-BCH-BTC, sell, Size: 0.01000000, Price: 0.16056000
-BCH-BTC, sell, Size: 0.01050000, Price: 0.16927000
-Response: 400, Message Insufficient funds, Price: 0.17798, Size: 0.011
-Response: 400, Message Insufficient funds, Price: 0.18669, Size: 0.0115
-Response: 400, Message Insufficient funds, Price: 0.1954, Size: 0.012
-Response: 400, Message Insufficient funds, Price: 0.20411, Size: 0.0125
-Response: 400, Message Insufficient funds, Price: 0.21282, Size: 0.013
-Response: 400, Message Insufficient funds, Price: 0.22153, Size: 0.0135
-Response: 400, Message Insufficient funds, Price: 0.23024, Size: 0.014
-Response: 400, Message Insufficient funds, Price: 0.23895, Size: 0.0145
-Response: 400, Message Insufficient funds, Price: 0.24766, Size: 0.015
-Response: 400, Message Insufficient funds, Price: 0.25637, Size: 0.0155
-Response: 400, Message Insufficient funds, Price: 0.26508, Size: 0.016
-Response: 400, Message Insufficient funds, Price: 0.27379, Size: 0.0165
-Response: 400, Message Insufficient funds, Price: 0.2825, Size: 0.017
-Response: 400, Message Insufficient funds, Price: 0.29121, Size: 0.0175
-Response: 400, Message Insufficient funds, Price: 0.29992, Size: 0.018
-BCH-BTC, buy, Size: 0.01025000, Price: 0.14314000
-BCH-BTC, buy, Size: 0.01075000, Price: 0.13443000
-BCH-BTC, buy, Size: 0.01125000, Price: 0.12572000
-BCH-BTC, buy, Size: 0.01175000, Price: 0.11701000
-BCH-BTC, buy, Size: 0.01225000, Price: 0.10830000
-BCH-BTC, buy, Size: 0.01275000, Price: 0.09959000
-BCH-BTC, buy, Size: 0.01325000, Price: 0.09088000
-BCH-BTC, buy, Size: 0.01375000, Price: 0.08217000
-BCH-BTC, buy, Size: 0.01425000, Price: 0.07346000
-BCH-BTC, buy, Size: 0.01475000, Price: 0.06475000
-BCH-BTC, buy, Size: 0.01525000, Price: 0.05604000
-BCH-BTC, buy, Size: 0.01575000, Price: 0.04733000
-BCH-BTC, buy, Size: 0.01625000, Price: 0.03862000
-BCH-BTC, buy, Size: 0.01675000, Price: 0.02991000
-BCH-BTC, buy, Size: 0.01725000, Price: 0.02120000
-BCH-BTC, buy, Size: 0.01775000, Price: 0.01249000
-BCH-BTC, buy, Size: 0.01825000, Price: 0.00378000
+--Listing sells--
+ETH-BTC, Size: 0.01000000, Price: 0.07915000
+ETH-BTC, Size: 0.01100000, Price: 0.07970000
+ETH-BTC, Size: 0.01200000, Price: 0.08025000
+...
+
+--Listing buys--
+ETH-BTC, Size: 0.01050000, Price: 0.07805000
+ETH-BTC, Size: 0.01150000, Price: 0.07750000
+ETH-BTC, Size: 0.01250000, Price: 0.07695000
+
+--Live Matches from GDAX Websocket--
+< 2018-05-03T04:41:44.459000Z - ETH-BTC - trade_id: 4699791 - side: sell size: 0.96902862 price: 0.07863000
+< 2018-05-03T04:41:44.459000Z - ETH-BTC - trade_id: 4699792 - side: sell size: 6.30321200 price: 0.07863000
+< 2018-05-03T04:41:44.459000Z - ETH-BTC - trade_id: 4699793 - side: sell size: 6.30320576 price: 0.07863000
+< 2018-05-03T04:41:44.459000Z - ETH-BTC - trade_id: 4699794 - side: sell size: 0.01000000 price: 0.07863000
+
+
 ```
-**Adjustments**
+
+**Alternative use from a python shell**
+
+```
+>>> from trading_algorithm import TradingTerms 
+>>> ETH_BTC = TradingTerms("ETH-BTC", 0.8, .02885, .07860, .01, .0005)
+>>> ETH_BTC.print_trades()
+```
+See *Printed Trades for Reveiw* for `print_trades()` output.
+```
+>>> ETH_BTC.start_ws_trade()
+```
+See *Output* for `start_ws_trade()` output.
+
+**Manual Adjustments**
 
 As trades execute, the proceeds are relisted for at a margin. For example after three trades were sold in a single price movement in the `ETH-BTC` pair, the `trading.adjust()` function relists those trades:
 
@@ -117,7 +134,7 @@ This will be automated once the websocket is completed.
 
 Trading manually on GDAX for two years was a great inspiration to learn python. I still have a lot to learn and this is an outline of what I am currently working on:
 
-* Parsing data from GDAX websocket to trigger new trades when listed trades execute. 
 * storing trading data into a database for analysis and computing tax basis and procedes automatically. 
-* Implementing new ideas into strategy like using percentage change rather than a fixed change in price or fluxuating frequency rather than increasing each sequential trades value to achive the same goal. 
 * Cleaning up my code to be better organized and easier to understand.
+* implementing unit testing.
+* Implementing new ideas into strategy like using percentage change rather than a fixed change in price or fluxuating frequency rather than increasing each sequential trades value to achive the same goal. 
