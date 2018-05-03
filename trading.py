@@ -24,7 +24,7 @@ def send_trade_list(
   # neg_pos variable to help manage buy vs sell sequence direction in loop. 
   
   n = 0
-  ts = []
+  listed_trades = []
   trade = {
     "size": "",
     "price": "",
@@ -38,7 +38,7 @@ def send_trade_list(
   else:
     neg_pos = 1
   
-  
+  print("\n--Listing {}s--".format(trade["side"]))
   # While loop to list each trade in sequence
   while n < trade_count:
     trade["size"] = str(
@@ -51,31 +51,36 @@ def send_trade_list(
       )
     t = requests.post(api_url + 'orders', json=trade, auth=auth)
     
+    #Check for error
     if t.status_code != 200:
-      print(("Response: {0}, Message {1}, Price: {2}, Size: {3}").format(
+      print(("Response: {}, Message {}, Price: {}, Size: {}").format(
         str(t.status_code),
         t.json()["message"],
         trade["price"],
         trade["size"],
         )
       )
-
+      
+    # Try to enter data into ts
     else: 
       try:
-        print(("{0}, {1}, Size: {2}, Price: {3}").format(
+        print(("{}, Size: {}, Price: {}").format(
           t.json()["product_id"],
-          t.json()["side"],
           t.json()["size"],
           t.json()["price"],
           )
         )
-        ts.append( t.json() ) 
+        listed_trades.append( t.json() )  
       
       except:
-        print(t.json)
-    n += 1
+        print( t.json() )
 
-  return ts
+    n += 1
+  # Return trades 
+  return listed_trades
+
+def adjust_to_trade():
+  print ("adjusting to matched trade")
 
 def adjust(pair, side, first_trade_size, size_increase, 
     first_trade_price, price_change, trade_count ):
@@ -98,17 +103,10 @@ def adjust(pair, side, first_trade_size, size_increase,
         api_url + 'orders?product_id' + pair, auth=auth).json()
     
     # Cancel trades in range
-    cancel_order_ids = [
-        [order["id"], order["price"], order["size"]] for order in open_orders if float(
-            order["price"]) <= high and float(order["price"]) >= low]
+    cancel(pair, side=side, high_price=high, low_price=low)
 
-    print('canceled orders:')
-    for order_id in cancel_order_ids:
-        response = requests.delete(api_url + 'orders/' + order_id[0], auth=auth)
-        print(order_id[0] + ", " + order_id[1] + ", " + order_id[2])
-
-    print ('')
-    print ("New orders:")
+    # List new trades
+    print ("\n--New Orders--")
     
     # List new trades
     trade_list = send_trade_list(
@@ -122,3 +120,37 @@ def adjust(pair, side, first_trade_size, size_increase,
       auth)
 
     return trade_list
+
+def cancel(pair, side=None, high_price=None, low_price=None):
+  auth = authorize.run_GdaxAuth()
+  api_url = 'https://api.gdax.com/'
+
+  # Get list of trades for pair
+  open_orders =requests.get(
+      api_url + 'orders?product_id' + pair, auth=auth).json()
+  
+  cancel_order_ids = [
+    [ order["id"], order["price"], order["size"] ] 
+    for order in open_orders
+  ]
+
+  if side:
+    cancel_order_ids = [
+      [ order["id"], order["price"], order["size"] ] 
+      for order in cancel_order_ids if side == order["side"]
+    ]
+  if high_price:
+    cancel_order_ids = [
+      [ order["id"], order["price"], order["size"] ] 
+      for order in cancel_order_ids if high_price >= order["price"]
+    ]
+  if low_price:
+    cancel_order_ids = [
+      [ order["id"], order["price"], order["size"] ] 
+      for order in cancel_order_ids if low_price <= order["price"]
+    ]
+  
+  print("\n--Canceled Orders--")
+  for order_id in cancel_order_ids:
+      response = requests.delete(api_url + 'orders/' + order_id[0], auth=auth)
+      print(order_id[0] + ", " + order_id[1] + ", " + order_id[2])
