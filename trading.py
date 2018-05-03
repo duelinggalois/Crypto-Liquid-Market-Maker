@@ -38,7 +38,7 @@ def send_trade_list(
   else:
     neg_pos = 1
   
-  print("\n-- Listing New {}s --".format(trade["side"]))
+  print("\n-- Listing New {}s --".format(trade["side"].title()))
   # While loop to list each trade in sequence
   while n < trade_count:
     trade["size"] = str(
@@ -79,9 +79,6 @@ def send_trade_list(
   # Return trades 
   return listed_trades
 
-def adjust_to_trade():
-  print ("adjusting to matched trade")
-
 def adjust(pair, side, first_trade_size, size_increase, 
     first_trade_price, price_change, trade_count ):
     '''Addes cancelation of trades listed between range given to auth_and_
@@ -120,6 +117,12 @@ def adjust(pair, side, first_trade_size, size_increase,
       auth)
 
     return trade_list
+
+def cancel_id(id_info):
+  response = requests.delete(api_url + 'orders/' + id_info["id"], auth=auth)
+  print("response: {}, id: {}, size: {}, price: {}".format(
+    id_info["id"] + ", " + id_info["size"] + ", " + id_info["price"])
+    )
 
 def cancel(pair, side=None, high_price=None, low_price=None):
   auth = authorize.run_GdaxAuth()

@@ -137,21 +137,34 @@ class TradingTerms():
         self.ready_to_send = False
 
     # Check if order matches our active trades
+    # Error 
+    '''
+    <class 'TypeError'>: Can't convert 'float' object to str implicitly , 
+    ("Can't convert 'float' object to str implicitly",) 
+    - data: {"type":"match","trade_id":4701090,
+    "maker_order_id":"2b2f6ea4-a514-4a85-bda2-d95ae9adf91f",
+    "taker_order_id":"73afbea8-0236-4960-8275-e1f6760d30f5",
+    "side":"buy","size":"0.01050000","price":"0.07751000",
+    "product_id":"ETH-BTC","sequence":1073841220,
+    "time":"2018-05-03T05:48:38.118000Z"}
+    '''
+
     if maker_order_id in [trade["id"] for trade in self.book]:
       load_msg = json.loads(msg)
       my_trade = [trade for trade in self.book if trade["id"] == maker_order_id][0]
       
       # Check to see if entire trade is filled
-      if load_msg["size"] == my_trade["size"]:
+      if float(load_msg["size"]) == float(my_trade["size"]):
         # Remove my_trade from book
         filled_trade = self.book.pop(self.book.index(my_trade))
         # Create new sequence of trades to list
         self.adjust(filled_trade)
         
       else:
-        new_size = my_trade["size"] - load_msg["size"]
+        string_lenth = len(my_trade["size"])
+        new_size = float(my_trade["size"]) - float(load_msg["size"])
         partial_filled_trade = self.book.pop(self.book.index(my_trade))
-        partial_filled_trade["size"] = new_size
+        partial_filled_trade["size"] = str(new_size)[:string_lenght]
         self.book.append( partial_filled_trade)
 
   def adjust(self, filled_trade):
@@ -161,19 +174,24 @@ class TradingTerms():
     else: 
       side = "buy"
       neg_pos = -1
-    first_price = filled_trade["price"] + neg_pos * self.price_change
-    count = ( filled_trade["size"] - self.first_size ) / self.size_change # Trade count starts at 0
-    price_limit = ( count + .1) * price_change
+    first_price = float(filled_trade["price"]) + neg_pos * self.price_change
+    count = ( float(filled_trade["size"]) - self.first_size ) / self.size_change # Trade count starts at 0
+    price_limit = ( count + .1) * self.price_change
+    delta_f_price = math.fabs(float(trade["price"])-first_price)
+    
+    conditions = lambda trade: trade["side"] == side and delta_f_price < price_limit
 
-    conditions = lambda trade: trade["side"] == side and math.fabs(trade["price"]-first_price) < price_limit
-
-    for id in [
-      trade["id"]
+    print("\n--Canceled Orders--")
+    for id_info in [
+      { "id": trade["id"], 
+        "size": trade["size"], 
+        "price": trade["price"]
+      } 
       for trade 
       in self.book 
       if conditions
     ]:
-      trade.cancel(id)
+      trading.cancel(id_info)
 
     self.book = [
       trade

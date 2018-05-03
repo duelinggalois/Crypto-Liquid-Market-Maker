@@ -76,7 +76,7 @@ class Subscribe():
 
       # ping socket to keep connection alive
       except asyncio.TimeoutError:
-        print("\n--pinging socket--")
+        print("\n-- Pinging Socket --")
         try:
           pong_socket = await ws.ping()
           await asyncio.wait_for(pong_socket, timeout=30)
@@ -86,10 +86,13 @@ class Subscribe():
             pong_socket = await ws.ping()
             await asyncio.wait_for(pong_socket, timeout=30)
           except:
-            print("\n--no pong from socket--\n")
+            print("\n-- No Pong --")
             break
         
       except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
         self.on_error(e, msg)
       
 
@@ -107,7 +110,16 @@ class Subscribe():
 
   def _disconnect(self):
     # Need to disconnect socket when error
-    return None
+    print("\n-- Error => Canceling Trades --")
+    for trade in [
+      { "id": trade["id"], 
+        "size": trade["size"], 
+        "price": trade["price"]
+      } 
+      for trade 
+      in self.book
+    ]:
+      trading.cancel_id(id_info)
     
   def on_close(self):
     print("\n-- Socket Closed --")
