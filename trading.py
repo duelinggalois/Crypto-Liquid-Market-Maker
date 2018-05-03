@@ -38,7 +38,7 @@ def send_trade_list(
   else:
     neg_pos = 1
   
-  print("\n--Listing {}s--".format(trade["side"]))
+  print("\n-- Listing New {}s --".format(trade["side"]))
   # While loop to list each trade in sequence
   while n < trade_count:
     trade["size"] = str(
@@ -106,7 +106,7 @@ def adjust(pair, side, first_trade_size, size_increase,
     cancel(pair, side=side, high_price=high, low_price=low)
 
     # List new trades
-    print ("\n--New Orders--")
+    print ("\n-- New Orders --")
     
     # List new trades
     trade_list = send_trade_list(

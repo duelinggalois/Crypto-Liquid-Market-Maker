@@ -131,8 +131,9 @@ class TradingTerms():
     # if sending orders logic below
     if self.ready_to_send:
       if json.loads(msg)["type"] == "subscriptions":
-        print("\n--Listing Trades-- ")
+        print("\n-- Listing Trades -- ")
         self.list_trades()
+        print("\n-- Live Matches on GDAX --")
         self.ready_to_send = False
 
     # Check if order matches our active trades

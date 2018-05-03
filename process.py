@@ -12,14 +12,14 @@ def new (msg, file_p=file_path):
     "error": error
   }
   func = chooser.get(json.loads(msg)["type"], other)
-  func(msg, file_p)
+  return func(msg, file_p)
 
 def subscriptions(msg, file_p=file_path):
   #Channels: {'channels': [{'product_ids': ['ETH-BTC'], 'name': 'matches'}], 'type': 'subscriptions'}   Pair: 
   load_msg = json.loads(msg)
   print("\n-- Subscribed --".format(load_msg["type"]))
   for c in load_msg["channels"]:
-    print("Channel: {0}\t\tPair: {1}\n".format(
+    print("Channel: {0}\t\tPair: {1}".format(
       c["name"],
       c["product_ids"]
       )
