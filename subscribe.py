@@ -115,7 +115,8 @@ class Subscribe():
     for trade in [
       { "id": trade["id"], 
         "size": trade["size"], 
-        "price": trade["price"]
+        "price": trade["price"],
+        "side": trade["side"]
       } 
       for trade 
       in self.trading_algorithm.book

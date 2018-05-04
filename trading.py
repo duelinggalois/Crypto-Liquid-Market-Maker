@@ -86,8 +86,8 @@ def cancel_id(trade):
   print(
     "response: {}, id: {}, side: {}, size: {}, price: {}".format(
       response.status_code,
-      trade["side"],
       trade["id"],
+      trade["side"],
       trade["size"],
       trade["price"]
     )
