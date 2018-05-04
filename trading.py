@@ -79,81 +79,16 @@ def send_trade_list(
   # Return trades 
   return listed_trades
 
-def adjust(pair, side, first_trade_size, size_increase, 
-    first_trade_price, price_change, trade_count ):
-    '''Addes cancelation of trades listed between range given to auth_and_
-    list_trades funtion (if multiple strategies are in effect, this will
-    cancel all orders from any strategy. 
-    '''
-    auth = authorize.run_GdaxAuth()
-    api_url = 'https://api.gdax.com/'
-
-    if side == 'buy':
-        high = first_trade_price
-        low = first_trade_price - (trade_count - 1) * price_change
-    else:
-        low = first_trade_price
-        high = first_trade_price + (trade_count - 1) * price_change
-        
-    # Get list of trades for pair
-    open_orders =requests.get(
-        api_url + 'orders?product_id' + pair, auth=auth).json()
-    
-    # Cancel trades in range
-    cancel(pair, side=side, high_price=high, low_price=low)
-
-    # List new trades
-    print ("\n-- New Orders --")
-    
-    # List new trades
-    trade_list = send_trade_list(
-      pair, 
-      side, 
-      first_trade_size, 
-      size_increase,
-      first_trade_price, 
-      price_change, 
-      trade_count, 
-      auth)
-
-    return trade_list
-
-def cancel_id(id_info):
-  response = requests.delete(api_url + 'orders/' + id_info["id"], auth=auth)
-  print("response: {}, id: {}, size: {}, price: {}".format(
-    id_info["id"] + ", " + id_info["size"] + ", " + id_info["price"])
-    )
-
-def cancel(pair, side=None, high_price=None, low_price=None):
+def cancel_id(trade):
   auth = authorize.run_GdaxAuth()
   api_url = 'https://api.gdax.com/'
-
-  # Get list of trades for pair
-  open_orders =requests.get(
-      api_url + 'orders?product_id' + pair, auth=auth).json()
-  
-  cancel_order_ids = [
-    [ order["id"], order["price"], order["size"] ] 
-    for order in open_orders
-  ]
-
-  if side:
-    cancel_order_ids = [
-      [ order["id"], order["price"], order["size"] ] 
-      for order in cancel_order_ids if side == order["side"]
-    ]
-  if high_price:
-    cancel_order_ids = [
-      [ order["id"], order["price"], order["size"] ] 
-      for order in cancel_order_ids if high_price >= order["price"]
-    ]
-  if low_price:
-    cancel_order_ids = [
-      [ order["id"], order["price"], order["size"] ] 
-      for order in cancel_order_ids if low_price <= order["price"]
-    ]
-  
-  print("\n--Canceled Orders--")
-  for order_id in cancel_order_ids:
-      response = requests.delete(api_url + 'orders/' + order_id[0], auth=auth)
-      print(order_id[0] + ", " + order_id[1] + ", " + order_id[2])
+  response = requests.delete(api_url + 'orders/' + trade["id"], auth=auth)
+  print(
+    "response: {}, id: {}, side: {}, size: {}, price: {}".format(
+      response.status_code,
+      trade["side"],
+      trade["id"],
+      trade["size"],
+      trade["price"]
+    )
+  )

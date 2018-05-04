@@ -94,8 +94,24 @@ ETH-BTC, Size: 0.01250000, Price: 0.07695000
 < 2018-05-03T04:41:44.459000Z - ETH-BTC - trade_id: 4699792 - side: sell size: 6.30321200 price: 0.07863000
 < 2018-05-03T04:41:44.459000Z - ETH-BTC - trade_id: 4699793 - side: sell size: 6.30320576 price: 0.07863000
 < 2018-05-03T04:41:44.459000Z - ETH-BTC - trade_id: 4699794 - side: sell size: 0.01000000 price: 0.07863000
+...
+```
+When Trades Execute
+```
+...
 
+...
+```
+Socket ping socket everyonce in a while when trading is low.
+```
+...
+< 2018-05-03T09:22:59.966000Z - ETH-BTC - trade_id: 4702810 - side: sell size: 0.10586000 price: 0.07764000
 
+-- Pinging Socket --
+
+-- Pinging Socket --
+< 2018-05-03T09:24:19.343000Z - ETH-BTC - trade_id: 4702811 - side: sell size: 0.00000822 price: 0.07764000
+< 2018-05-03T09:24:19.343000Z - ETH-BTC - trade_id: 4702812 - side: sell size: 0.01083642 price: 0.07764000
 ```
 
 **Alternative use from a python shell**

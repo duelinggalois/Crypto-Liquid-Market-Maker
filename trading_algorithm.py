@@ -137,78 +137,95 @@ class TradingTerms():
         self.ready_to_send = False
 
     # Check if order matches our active trades
-    # Error 
-    '''
-    <class 'TypeError'>: Can't convert 'float' object to str implicitly , 
-    ("Can't convert 'float' object to str implicitly",) 
-    - data: {"type":"match","trade_id":4701090,
-    "maker_order_id":"2b2f6ea4-a514-4a85-bda2-d95ae9adf91f",
-    "taker_order_id":"73afbea8-0236-4960-8275-e1f6760d30f5",
-    "side":"buy","size":"0.01050000","price":"0.07751000",
-    "product_id":"ETH-BTC","sequence":1073841220,
-    "time":"2018-05-03T05:48:38.118000Z"}
-    '''
-
     if maker_order_id in [trade["id"] for trade in self.book]:
       load_msg = json.loads(msg)
       my_trade = [trade for trade in self.book if trade["id"] == maker_order_id][0]
+      filled_size = float(load_msg["size"])
+      remaing_in_trade = float(my_trade["size"])-float(my_trade["filled_size"])
       
       # Check to see if entire trade is filled
-      if float(load_msg["size"]) == float(my_trade["size"]):
+      if filled_size >= remaing_in_trade:
         # Remove my_trade from book
         filled_trade = self.book.pop(self.book.index(my_trade))
-        # Create new sequence of trades to list
+        # Create new sequence of trades to list in response to matched tradde
         self.adjust(filled_trade)
-        
+      
+      # in the case order has been partially filled this updates
+      # filled_size in order book
       else:
-        string_lenth = len(my_trade["size"])
-        new_size = float(my_trade["size"]) - float(load_msg["size"])
-        partial_filled_trade = self.book.pop(self.book.index(my_trade))
-        partial_filled_trade["size"] = str(new_size)[:string_lenght]
-        self.book.append( partial_filled_trade)
+        # define length string formated number for for new entry
+        string_length = len(my_trade["size"])
+        # Pull trade from book and update filled_size and add it back
+        partial_trade = self.book.pop(self.book.index(my_trade))
+        partial_trade["filled_size"] = str(filled_size)[:string_length]
+        self.book.append( partial_trade)
 
   def adjust(self, filled_trade):
+    ''' Logic for placing new orders when old orders are matched. 
+    '''
+    # Create neg_pos to point function logic plus or minus based on side
+    
     if filled_trade["side"] == "buy":
       side = "sell"
       neg_pos = 1
     else: 
       side = "buy"
       neg_pos = -1
-    first_price = float(filled_trade["price"]) + neg_pos * self.price_change
-    count = ( float(filled_trade["size"]) - self.first_size ) / self.size_change # Trade count starts at 0
-    price_limit = ( count + .1) * self.price_change
-    delta_f_price = math.fabs(float(trade["price"])-first_price)
     
-    conditions = lambda trade: trade["side"] == side and delta_f_price < price_limit
+    # Create terms for new sequence of trades from adjusment. 
+    # first_price will be the first price of new sequence of trades
+    first_price = float(filled_trade["price"]) + neg_pos * self.price_change
+    first_price = round(first_price, self.p_round)
+    # Count is the number of new trades
+    count = round( 
+      (float(filled_trade["size"]) 
+      - self.first_size )   
+      / self.size_change + 1
+    ) 
+    
+    # delta is the distance from upper or lower limit to first_price 
+    # trades within this limit need to be canceled before new trades are listed.
+    delta = math.fabs((count -.5 )* self.price_change )
 
-    print("\n--Canceled Orders--")
-    for id_info in [
+    # Canceling active orders based on conditions. 
+    print("\n--Trade Matched Adjusting Canceled and Relisting--")
+    # For loop to pulls data from a conditional list using list comprehension. 
+    for trade_info in [
       { "id": trade["id"], 
         "size": trade["size"], 
-        "price": trade["price"]
+        "price": trade["price"],
+        "side": trade["side"]
       } 
       for trade 
       in self.book 
-      if conditions
+      if trade["side"] == side 
+      and  math.fabs(float(trade["price"]) - first_price ) < delta
     ]:
-      trading.cancel(id_info)
+      # Cancel trade within for loop
+      trading.cancel_id(trade_info)
 
+    # Define book based on trades remaining after above cancel
     self.book = [
       trade
       for trade
       in self.book
-      if not conditions
+      # Logical converse of canceled trades. 
+      if not trade["side"] == side or 
+      not math.fabs(float(trade["price"]) - first_price ) < delta
     ]
-
-    trading.send_trade_list(
+    # Sending new trades and add them to book 
+    self.book += trading.send_trade_list(
       self.pair, # pair
       side, # side
       self.first_size, # first_trade_size
       self.size_change, # size_increase
       first_price, # first_trade_price
       self.price_change, #price_increase
-      count # trade_count minus 1 as trade function starts at 0
-    )        
+      count 
+    )
+
+    # Todo: add print book function to see book as it stands after adjustments
+    # self.print_book()
 
 def n_from_budget(budget, first_size, size_change, low_price, high_price):
   '''Using a budget in terms of the denominator of a trading pair (USD for
@@ -230,25 +247,3 @@ def n_from_budget(budget, first_size, size_change, low_price, high_price):
   C = -3 * ( size_change * ( high_price - mid_price ) + 2 * budget ) 
   
   return 2*int(( - B + math.sqrt( B ** 2 - 4 * A * C))  / (2*A) )
-  
-
-  
-def n_from_mid_budget(budget, first_size, size_change, mid_price, last_price):
-  '''
-  Takes a budget, first_size, size_change, mid_price, and last_price which
-  could both be a high or low price. 
-  >>> n_from_mid_budget(60,.01,.01,900,500)
-  4.0
-  >>> ta.n_from_mid_budget(120,.01,.01,900,1300)
-  4.0
-  '''
-  
-  A = size_change*(mid_price+2*last_price)
-  B = 3*first_size*(
-    mid_price+last_price)-3*size_change*mid_price
-  C = (3*first_size-2*size_change)*(last_price-mid_price)-6*budget
-  return (-B + math.sqrt(B**2-4*A*C))/(2*A)
-
-def start_websocket():
-  '''yet to be built'''
-  print ('\nStill a work in progress parsing websocket...')

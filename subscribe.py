@@ -1,7 +1,8 @@
 import config, process
 import asyncio, websockets, time, base64, hmac, json, hashlib
-import sys
+import sys, os
 import logging
+import trading
 
 #PYTHONASYNCIODEBUG = 1
 #logging.basicConfig(level=logging.DEBUG)
@@ -117,9 +118,9 @@ class Subscribe():
         "price": trade["price"]
       } 
       for trade 
-      in self.book
+      in self.trading_algorithm.book
     ]:
-      trading.cancel_id(id_info)
+      trading.cancel_id(trade)
     
   def on_close(self):
     print("\n-- Socket Closed --")
