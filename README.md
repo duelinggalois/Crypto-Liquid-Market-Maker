@@ -46,9 +46,9 @@ buys					sells
 0.0175 ETH @ 0.0742 BTC/ETH		0.017 ETH @ 0.083 BTC/ETH
 0.0185 ETH @ 0.07365 BTC/ETH		0.018 ETH @ 0.08355 BTC/ETH
 0.0195 ETH @ 0.0731 BTC/ETH		0.019 ETH @ 0.0841 BTC/ETH
-...									...
+...						...
 
-...									...
+...						...
 0.0905 ETH @ 0.03405 BTC/ETH		0.09 ETH @ 0.12315 BTC/ETH
 0.0915 ETH @ 0.0335 BTC/ETH		0.091 ETH @ 0.1237 BTC/ETH
 0.0925 ETH @ 0.03295 BTC/ETH		0.092 ETH @ 0.12425 BTC/ETH
@@ -98,9 +98,23 @@ ETH-BTC, Size: 0.01250000, Price: 0.07695000
 ```
 When Trades Execute
 ```
-...
+< 2018-05-04T08:55:43.472000Z - ETH-BTC - trade_id: 4717369 - side: sell size: 0.00000883 price: 0.08219000
+# Trade aboce is owned by the strategy
 
-...
+--Trade Matched Adjusting Canceled and Relisting--
+response: 200, id: 3e6d356f-77f3-42c9-8218-bd548bf9c1df, side: buy, size: 0.01300000, price: 0.07954000
+response: 200, id: db2c365b-e81c-4b52-bf51-12760f645d07, side: buy, size: 0.01000000, price: 0.08113000
+response: 200, id: 999d6c0d-973b-44c2-9add-5ae6a90b35bd, side: buy, size: 0.01100000, price: 0.08060000
+response: 200, id: 853c6a7d-64d1-4a71-aa07-9a570942db51, side: buy, size: 0.01200000, price: 0.08007000
+
+-- Listing New Buys --
+ETH-BTC, Size: 0.01000000, Price: 0.08166000
+ETH-BTC, Size: 0.01100000, Price: 0.08113000
+ETH-BTC, Size: 0.01200000, Price: 0.08060000
+ETH-BTC, Size: 0.01300000, Price: 0.08007000
+ETH-BTC, Size: 0.01400000, Price: 0.07954000
+< 2018-05-04T08:55:43.472000Z - ETH-BTC - trade_id: 4717370 - side: sell size: 0.25000000 price: 0.08220000
+
 ```
 Socket ping socket everyonce in a while when trading is low.
 ```
@@ -127,32 +141,11 @@ See *Printed Trades for Reveiw* for `print_trades()` output.
 ```
 See *Output* for `start_ws_trade()` output.
 
-**Manual Adjustments**
-
-As trades execute, the proceeds are relisted for at a margin. For example after three trades were sold in a single price movement in the `ETH-BTC` pair, the `trading.adjust()` function relists those trades:
-
-```
-#python3.6
->>> trading.adjust('ETH-USD', 'buy', .01, .0025, 655.56, 18.68, 5)
-canceled orders:
-0b902cd7-5309-4663-832a-8f6db3136885, 580.84000000, 0.01250000
-258bde0d-21be-4714-9488-033fbfae9527, 599.52000000, 0.01000000
-
-New orders:
-ETH-USD, buy, Size: 0.01000000, Price: 655.56000000
-ETH-USD, buy, Size: 0.01250000, Price: 636.88000000
-ETH-USD, buy, Size: 0.01500000, Price: 618.20000000
-ETH-USD, buy, Size: 0.01750000, Price: 599.52000000
-ETH-USD, buy, Size: 0.02000000, Price: 580.84000000
-```
-
-This will be automated once the websocket is completed. 
-
 **Work In Progress**
 
 Trading manually on GDAX for two years was a great inspiration to learn python. I still have a lot to learn and this is an outline of what I am currently working on:
 
-* storing trading data into a database for analysis and computing tax basis and procedes automatically. 
+* Storing trading data into a database for analysis and computing tax basis and procedes automatically. 
 * Cleaning up my code to be better organized and easier to understand.
-* implementing unit testing.
-* Implementing new ideas into strategy like using percentage change rather than a fixed change in price or fluxuating frequency rather than increasing each sequential trades value to achive the same goal. 
+* Implementing unit testing.
+* Implementing new ideas into strategy.
