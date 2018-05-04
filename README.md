@@ -46,9 +46,9 @@ buys					sells
 0.0175 ETH @ 0.0742 BTC/ETH		0.017 ETH @ 0.083 BTC/ETH
 0.0185 ETH @ 0.07365 BTC/ETH		0.018 ETH @ 0.08355 BTC/ETH
 0.0195 ETH @ 0.0731 BTC/ETH		0.019 ETH @ 0.0841 BTC/ETH
-...						...
+...					...
 
-...						...
+...					...
 0.0905 ETH @ 0.03405 BTC/ETH		0.09 ETH @ 0.12315 BTC/ETH
 0.0915 ETH @ 0.0335 BTC/ETH		0.091 ETH @ 0.1237 BTC/ETH
 0.0925 ETH @ 0.03295 BTC/ETH		0.092 ETH @ 0.12425 BTC/ETH
@@ -116,7 +116,7 @@ ETH-BTC, Size: 0.01400000, Price: 0.07954000
 < 2018-05-04T08:55:43.472000Z - ETH-BTC - trade_id: 4717370 - side: sell size: 0.25000000 price: 0.08220000
 
 ```
-Socket ping socket everyonce in a while when trading is low.
+Ping socket everyonce in a while when trading is low to keep alive.
 ```
 ...
 < 2018-05-03T09:22:59.966000Z - ETH-BTC - trade_id: 4702810 - side: sell size: 0.10586000 price: 0.07764000
