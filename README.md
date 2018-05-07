@@ -16,8 +16,8 @@ This program will list a sequence of buy and sell trades on GDAX.com based on th
 * [Install PipEnv](https://docs.pipenv.org/)
 * `git clone https://github.com/rev3ks/Crypto-Liquid-Market-Maker`
 * `cd Crypto-Liquid-Market-Maker`
-* `cp config.ini.default config.ini`
-* Add GDAX API passphrase, keys, and secret to config.ini
+* `cp config.py.default config.py`
+* Add GDAX API passphrase, keys, and secret to `config.py`
 * `pipenv install` (dependencies managed by `Pipfile` in project root)
 * `pipenv run python -m main`
 
