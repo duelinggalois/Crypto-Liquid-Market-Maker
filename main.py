@@ -25,10 +25,9 @@ def run_main():
       print("Listing trades, user CTRL+c to kill\n")
       
       # List trades here
-      trade_terms.start_ws()
-      trade_terms.list_trades()
-             
+      trade_terms.start_ws_trade()
       run = False
+      
     elif prompts.prompt_to_return_class():
       return trade_terms
     
