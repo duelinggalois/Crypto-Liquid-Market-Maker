@@ -11,9 +11,8 @@ class GdaxAuth(AuthBase):
     self.passphrase = passphrase
 
   def __call__(self, request):
-    timestamp = str(time.time())
-    message = timestamp + request.method + request.path_url + (request.body or '')
-    message = message.encode() #hmac does not accept strings
+    timestamp = str(time.time()).encode()
+    message = timestamp + request.method.encode() + request.path_url.encode() + (request.body or '')
     hmac_key = base64.b64decode(self.secret_key)
     signature = hmac.new(hmac_key, message, hashlib.sha256)
     signature_b64 = base64.b64encode(signature.digest()) 

@@ -104,7 +104,6 @@ class Subscribe():
   def on_message(self, msg): 
     self.trading_algorithm.process_message(msg)
 
-
   def on_error(self, e, data=None):
     print('{}: {} , {} - data: {}'.format(type(e), e, e.args, data))
     self._disconnect()
