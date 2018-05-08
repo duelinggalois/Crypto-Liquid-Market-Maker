@@ -18,19 +18,19 @@ def run_main():
     # reprompt for input
     terms = prompts.prompt_trading_terms()
   
-  # # Print preview of trades
-  # terms.print_trades()
+  # Print preview of trades
+  terms.print_trades()
     
-  # # Ask user if he would like to allow trades to be made.
-  # if prompts.prompt_ready_to_trade():
-  #   print("Listing trades, use (CTRL + c) to kill\n")
+  # Ask user if he would like to allow trades to be made.
+  if prompts.prompt_ready_to_trade():
+    print("Listing trades, use (CTRL + c) to kill\n")
       
-  #   # List trades here
-  #   terms.start_ws_trade()
-  #   trade_terms.list_trades()
+    # List trades here
+    terms.start_ws_trade()
+    terms.list_trades()
       
-  # elif prompts.prompt_to_return_class():
-  #   return trade_terms
+  elif prompts.prompt_to_return_class():
+    return terms
 
   print("Thank you for playing!")
 
