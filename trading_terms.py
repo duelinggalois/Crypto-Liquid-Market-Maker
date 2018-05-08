@@ -35,6 +35,11 @@ class TradingTerms():
   def pair_to(self):
     return self._pair_to
 
+  # add definition of p_round property here
+  @property
+  def p_round(self):
+    return self._p_round
+
   # add definition of budget property here
   @property
   def budget(self):

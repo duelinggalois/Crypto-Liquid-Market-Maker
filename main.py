@@ -1,5 +1,6 @@
 import os
 import prompts
+from trading_sequence import Trading_Sequence
 
 # Start main program
 def run_main():
@@ -18,19 +19,21 @@ def run_main():
     # reprompt for input
     terms = prompts.prompt_trading_terms()
   
+  sequence = Trading_Sequence(terms)
+
   # Print preview of trades
-  terms.print_trades()
+  print(sequence.toString());
     
-  # Ask user if he would like to allow trades to be made.
-  if prompts.prompt_ready_to_trade():
-    print("Listing trades, use (CTRL + c) to kill\n")
+  # # Ask user if he would like to allow trades to be made.
+  # if prompts.prompt_ready_to_trade():
+  #   print("Listing trades, use (CTRL + c) to kill\n")
       
-    # List trades here
-    terms.start_ws_trade()
-    terms.list_trades()
+  #   # List trades here
+  #   terms.start_ws_trade()
+  #   terms.list_trades()
       
-  elif prompts.prompt_to_return_class():
-    return terms
+  # elif prompts.prompt_to_return_class():
+  #   return terms
 
   print("Thank you for playing!")
 
