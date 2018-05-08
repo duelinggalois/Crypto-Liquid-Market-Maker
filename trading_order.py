@@ -49,3 +49,6 @@ class Trading_Order():
     self.price = price
     self.num_trades = num_trades
     return
+
+  def __str__(self):
+    return "\{side: {}, size: {}, price: {}, num_trades: {}\}".format(self.side, self.size, self.price, self.num_trades)

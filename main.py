@@ -21,6 +21,8 @@ def run_main():
   
   sequence = Trading_Sequence(terms)
 
+  print(sequence.orders)
+
   # Print preview of trades
   print(sequence.toString());
     

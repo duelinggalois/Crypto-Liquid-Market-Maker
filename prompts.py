@@ -111,9 +111,8 @@ def prompt_trading_terms():
 
 def confirm_trading_terms(terms):
   print("here are your selections:\n")
-  terms.toString()
+  print(terms)
   print("\n\n")
-
   return _prompt_bool("would you like to proceed using these terms?", "y")
 
 def prompt_ready_to_trade():

@@ -136,16 +136,15 @@ class TradingTerms():
   def __init__(self):
     return
   
-  def toString(self):
-    print(
-      " from: \t\t\t{}\n".format(self.pair_from),
-      "to: \t\t\t{}\n".format(self.pair_to),
-      "budget: \t\t{}\n".format(self.budget),
-      "min size: \t\t{}\n".format(self.min_size),
-      "size change: \t\t{}\n".format(self.size_change),
-      "low price: \t\t{}\n".format(self.low_price),
-      "mid price: \t\t{}\n".format(self.mid_price),
-      "high price: \t\t{}\n".format(self.high_price),
-      "max trades: \t\t{}\n".format(self.max_trades),
-      "price change: \t\t{}\n".format(self.price_change)
-    )
+  def __str__(self):
+    output = "from: \t\t\t{}\n".format(self.pair_from)
+    output += "to: \t\t\t{}\n".format(self.pair_to)
+    output += "budget: \t\t{}\n".format(self.budget)
+    output += "min size: \t\t{}\n".format(self.min_size)
+    output += "size change: \t\t{}\n".format(self.size_change)
+    output += "low price: \t\t{}\n".format(self.low_price)
+    output += "mid price: \t\t{}\n".format(self.mid_price)
+    output += "high price: \t\t{}\n".format(self.high_price)
+    output += "max trades: \t\t{}\n".format(self.max_trades)
+    output += "price change: \t\t{}\n".format(self.price_change)
+    return output
