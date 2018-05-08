@@ -2,9 +2,24 @@ import math
 
 class TradingTerms():
 
-  supported_pairs = ["BTC-USD", "ETH-USD", "LTC-USD", "BCH-USD", "BTC-ETH", "LTC-BTC", "BCH-BTC"]
-  default_pair_index = 6
-  
+  def __init__(
+    self, 
+    pair=None, 
+    budget=None, 
+    min_size=None,
+    size_change=None,
+    low_price=None,
+    mid_price=None):
+
+    self.supported_pairs = ["BTC-USD", "ETH-USD", "LTC-USD", "BCH-USD", "ETH-BTC", "LTC-BTC", "BCH-BTC"]
+    self.default_pair_index = 0
+    self.pair = pair
+    self.budget = budget
+    self.min_size = min_size
+    self.size_change = size_change
+    self.low_price = low_price
+    self.mid_price = mid_price
+
   # add definition of pair property here
   @property
   def pair(self):
@@ -15,15 +30,23 @@ class TradingTerms():
     if value not in self.supported_pairs:
       raise ValueError("supplied pair '{}' is not supported".format(value))
     self._pair = value
-
+    
     # split pair into pertinent parts
     self._pair_from = self._pair[:3]
     self._pair_to = self._pair[4:]
 
+    # Set Price rounding for USD pairs and non USD pairs
     if self._pair_to == 'USD':
       self._p_round = 2
     else:
       self._p_round = 5
+
+    # Assign min_price if None
+    if not min_size:
+      if self._pair_from == "LTC":
+        self.min_size = .1
+      else :
+        self.min_size = .01
 
   # add definition of pair_from property here
   @property
@@ -47,6 +70,7 @@ class TradingTerms():
 
   @budget.setter
   def budget(self, value):
+    if value <= 0: ValueError('Budget must be greater than 0')
     self._budget = value
 
   # add definition of min_size property here
@@ -56,6 +80,15 @@ class TradingTerms():
 
   @min_size.setter
   def min_size(self, value):
+    if self.pair_from == "LTC" and value < .1:
+      ValueError("Minimum trade size for {} is .1".fromat(
+        self.pair
+        )
+      )
+    elif value < .01: ValueError('Miminum size trade for {} is .01'.format(
+      self.pair
+      )
+    )
     self._min_size = value
 
   # add definition of size_change property here
@@ -63,18 +96,20 @@ class TradingTerms():
   def size_change(self):
     return self._size_change
 
+  # not sure if size_change can be 0
   @size_change.setter
   def size_change(self, value):
+    if value <= 0: ValueError('Size change must be greater than 0')
     self._size_change = value
     
   # add definition of low_price property here
   @property
   def low_price(self):
-    if (self._mid_price is None):
-      raise ValueError('cannot compute low price, mid price not set')
-    if (self._high_price is None):
-      raise ValueError('cannot compute low price, high price not set')
-    return (2 * self._mid_price) - self._high_price
+    return _low_price
+
+  @low_price.setter
+  def low_price(self, value):
+    self._low_price = low_price
 
   # add definition of mid_price property here
   @property
@@ -83,21 +118,26 @@ class TradingTerms():
 
   @mid_price.setter
   def mid_price(self, value):
-    self._mid_price = round(value, self._p_round)
+    self._mid_price = round(value, self.p_round)
 
   # add definition of high_price property here
   @property
   def high_price(self):
-    return self._high_price
+    if (self.mid_price is None):
+      raise ValueError('cannot compute high price, mid price not set')
+    if (self.low_price is None):
+      raise ValueError('cannot compute high price, low price not set')
+    return round(
+      (2 * self.mid_price) - self.low_price,
+      self.p_round
+    )
 
-  @high_price.setter
-  def high_price(self, value):
-    self._high_price = round(value, self._p_round)
 
   # add definition of max_trades property here
   @property
   def max_trades(self):
-    '''Using a budget in terms of the denominator of a trading pair (USD for
+    '''
+    Using a budget in terms of the denominator of a trading pair (USD for
     BTC-USD), min_size and size_change of trade amounts, and a price range
     for trade values in terms of low_price and high_price this function will 
     give you the maximoum possible trades that can be used in a sequence of 
@@ -108,10 +148,10 @@ class TradingTerms():
     '''
 
     # ensure required properties are set
-    if (self.size_change is None): raise ValueError('size change not set')
-    if (self.high_price is None): raise ValueError('high price not set')
-    if (self.min_size is None): raise ValueError('min price not set')
-    if (self.budget is None): raise ValueError('budget not set')
+    if (self._size_change is None): raise ValueError('size change not set')
+    if (self._high_price is None): raise ValueError('high price not set')
+    if (self._min_size is None): raise ValueError('min price not set')
+    if (self._budget is None): raise ValueError('budget not set')
     
     # capturing into var to prevent duplicate recomputation, there's likely a better way to do this
     low_price = self.low_price
@@ -133,9 +173,6 @@ class TradingTerms():
     increment = (self.high_price - self.mid_price) / (self.max_trades / 2)
     return round(increment, self._p_round)
 
-  def __init__(self):
-    return
-  
   def __str__(self):
     output = "from: \t\t\t{}\n".format(self.pair_from)
     output += "to: \t\t\t{}\n".format(self.pair_to)

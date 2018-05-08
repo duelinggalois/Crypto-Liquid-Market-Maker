@@ -1,4 +1,4 @@
-import os
+simport os
 import readline
 from pick import pick
 from trading_terms import TradingTerms
