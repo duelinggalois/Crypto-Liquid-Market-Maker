@@ -1,11 +1,9 @@
 import os
 import readline
-from termcolor import colored
 from pick import pick
 from trading_terms import TradingTerms
 
 def _input_default(prompt, default):
-  prompt = colored(prompt, "white")
   def hook():
     readline.insert_text(default)
     readline.redisplay()
@@ -39,7 +37,6 @@ def _prompt_bool(title, default):
       continue
 
 def _prompt_list(title, list, default_index):
-  title = colored(title, "white")
   value, index = pick(list, title, default_index=default_index)
   print("\n"+title+"\n\n"+value+"\n\n")
   return value

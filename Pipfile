@@ -7,7 +7,6 @@ name = "pypi"
 requests = "*"
 websockets = "*"
 pick = "*"
-termcolor = "*"
 
 [dev-packages]
 
