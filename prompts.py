@@ -1,7 +1,7 @@
-import trading_algorithm
 import os
 import readline
 from pick import pick
+from trading_terms import TradingTerms
 
 def _input_default(prompt, default):
   def hook():
@@ -15,10 +15,10 @@ def _input_default(prompt, default):
 def _prompt_float(title, default):
   while True:
     try:
-      value = _input_default("\n"+title+"\n\n", default)
+      value = _input_default("\n"+title+"\n", default)
       value = float(value)
     except ValueError:
-      print("\nplease enter a valid float value (e.g. .01, 1.75)\n\n")
+      print("\nplease enter a valid float value (e.g. .01, 1.75)\n")
       continue
     else:
       break
@@ -26,14 +26,14 @@ def _prompt_float(title, default):
 
 def _prompt_bool(title, default):
   while True:
-    value = _input_default("\n"+title+"  (y/n)\n\n", default)
+    value = _input_default("\n"+title+" (y/n)\n", default)
     value = value.lower()
     if value=='y':
       return True
     elif value=='n':
       return False
     else:
-      print("\nplease type 'y' or 'n'\n\n")
+      print("\nplease type 'y' or 'n'\n")
       continue
 
 def _prompt_list(title, list, default_index):
@@ -52,66 +52,75 @@ def show_intro():
   # clear screen
   os.system('clear')
 
-def prompt_user():
-  #Prompts User for input to start algorithm, returns trading_terms.
+def prompt_trading_terms():
 
-  show_intro()
+  terms = TradingTerms()
 
-  supported_pairs = ["BTC-USD", "ETH-USD", "LTC-USD", "BCH-USD", "BTC-ETH", "LTC-BTC", "BCH-BTC"]
-  pair = _prompt_list(
+  terms.pair = _prompt_list(
     "What trading pair would you like to use?",
-    supported_pairs,
-    6
+    TradingTerms.supported_pairs,
+    TradingTerms.default_pair_index
   )
   
-  budget = _prompt_float(
-    ("What is the value of {0} would you like to allocate in terms of {1}?").format(pair[:3],pair[4:]),
+  terms.budget = _prompt_float(
+    ("What is the value of {0} would you like to allocate in terms of {1}?").format(
+      terms.pair_from,
+      terms.pair_to
+    ),
     ".075"
   )
 
-  min_size = _prompt_float(
+  terms.min_size = _prompt_float(
     "What is the minimum trade size for this pair?",
     ".01"
   )
 
-  size_change = _prompt_float(
+  terms.size_change = _prompt_float(
     "How much should each trade in the sequence of buys and sells increase by?",
     ".000025"
   )
   
   current_price = _prompt_float(
-    ("What is the estimated price of {0} in terms of {1}?").format(pair[:3], pair[4:]),
+    ("What is the estimated price of {0} in terms of {1}?").format(
+      terms.pair_from,
+      terms.pair_to
+    ),
     ".15185"
   )
 
   use_current_price = _prompt_bool(
-    ("Would you like to use {0} {1}/{2} as the the midpoint of the trading algorithm?").format(current_price, pair[4:], pair[:3]),
+    ("Would you like to use {0} {1}/{2} as the the midpoint of the trading algorithm?").format(
+      current_price,
+      terms.pair_to,
+      terms.pair_from
+    ),
     "y"
   )
   
   if not use_current_price:
-    mid_price = _prompt_float("What midpoint price would you like to use?")
+    terms.mid_price = _prompt_float("What midpoint price would you like to use?")
   else:
-    mid_price = current_price
+    terms.mid_price = current_price
   
-  high_price = _prompt_float(
+  terms.high_price = _prompt_float(
     "What is the highest price to be sold at?",
     ".3"
   )
 
-  low_price = 2* mid_price - high_price
+  return terms
 
-  trading_terms = trading_algorithm.TradingTerms(pair, budget, low_price, mid_price, min_size, size_change)
+def confirm_trading_terms(terms):
+  print("here are your selections:\n")
+  terms.toString()
+  print("\n\n")
 
-  return trading_terms
+  return _prompt_bool("would you like to proceed using these terms?", "y")
 
 def prompt_ready_to_trade():
-  list_trades = _prompt_bool("Would you like trades to be listed?", "n")
-  if list_trades:  
+  if _prompt_bool("Would you like trades to be listed?", "n"):  
     return True
   else:
-    change_input = _prompt_bool("Would you like to change your input?", "n")
-    return change_input
+    return _prompt_bool("Would you like to change your input?", "n")
 
 def prompt_to_return_class():
   return _prompt_bool("Would you like to return trades as a class?", "n")
