@@ -19,7 +19,9 @@ def run_main():
     # reprompt for input
     terms = prompts.prompt_trading_terms()
   
-  sequence = Trading_Sequence(terms)
+  #Create initial sequence for trading
+  buy_sequence = Trading_Sequence(terms, side='buy')
+  sell_sequence = Trading_Sequence(terms, side='sell' )
 
   print(sequence.orders)
 
