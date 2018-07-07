@@ -1,27 +1,13 @@
-from trading_order import Trading_Order
+from trading_order import TradingOrder
 
-class Trading_Sequence():
-
-  # add definition of orders property here
-  @property
-  def orders(self):
-    return self._orders
-
-  # add definition of terms property here
-  @property
-  def terms(self):
-    return self._terms
-
-  @terms.setter
-  def terms(self, value):
-    self._terms = value
+class TradingSequence():
 
   def __init__(self, terms):
 
-    self._terms = terms
-    self._orders = []
+    self.terms = terms
+    self.orders = []
 
-    first_sell_order = Trading_Order(
+    first_order = TradingOrder(
       "sell",
       terms.min_size,
       terms.mid_price + terms.price_change,
@@ -39,6 +25,20 @@ class Trading_Sequence():
     self._orders.append(first_buy_order)
 
     return
+
+    # add definition of orders property here
+  @property
+  def orders(self):
+    return self._orders
+
+  # add definition of terms property here
+  @property
+  def terms(self):
+    return self._terms
+
+  @terms.setter
+  def terms(self, value):
+    self._terms = value
     
   def toString(self):
        

@@ -102,8 +102,8 @@ def prompt_trading_terms():
   else:
     terms.mid_price = current_price
   
-  terms.high_price = _prompt_float(
-    "What is the highest price to be sold at?",
+  terms.low_price = _prompt_float(
+    "What is the low price to be sold at?",
     ".3"
   )
 

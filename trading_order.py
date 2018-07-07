@@ -1,6 +1,7 @@
 class TradingOrder():
   
-  def __init__(self, side, size, price, num_trades):
+  def __init__(self, pair, side, size, price, num_trades):
+    self.pair = pair
     self.side = side
     self.size = size
     self.price = price

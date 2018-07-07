@@ -1,6 +1,6 @@
 import os
 import prompts
-from trading_sequence import Trading_Sequence
+from trading_sequence import TradingSequence
 
 # Start main program
 def run_main():

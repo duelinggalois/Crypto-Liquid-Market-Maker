@@ -1,5 +1,58 @@
 import authorize, requests, config
 
+## TODO: Robust Order Error Handling
+
+def send_order(Order):
+  auth = authorize.run_GdaxAuth()
+  json_order = {
+    "size": str(Order.size),
+    "price": str(Order.price),
+    "side": Order.side,
+    "product_id": Order.pair
+  }
+  order_post = requests.post(
+    api_url + 'orders', 
+    json=json_order, 
+    auth=auth
+  )
+
+  Order.history.append(order_post.json())
+  print_order_post(order_post)
+
+
+  if order_post.status_code == 200:
+    Order.status = order_post.json()["status"]
+    Order.id = order_post.json()["id"]
+
+def cancel_order(Order):
+  auth = authorize.run_GdaxAuth()
+  order_delete = requests.delete(
+    api_url + 'orders/' + Order.id, 
+    auth=auth)
+  print_order_delete(order_delete)
+
+  if order_delete.status_code == 200:
+    Order.status="Canceled"
+
+def print_order_post(order_post):
+  print_order_response(order_post, "Post")
+
+def print_order_delete(order_delete):
+  print_order_response(order_post, "Delete")
+
+def print_order_response(order_response, r_type):
+  print(("{} - Response: {}, Message {}, Price: {}, Size: {}").format(
+    r_type,
+    str(order_post.status_code),
+    order_post.json()["message"],
+    Order.price,
+    Order.size
+    )
+  )
+
+
+
+
 def send_trade_list(
   pair, 
   side, 
@@ -40,6 +93,8 @@ def send_trade_list(
   
   print("\n-- Listing New {}s --".format(trade["side"].title()))
   # While loop to list each trade in sequence
+  
+
   while n < trade_count:
     trade["size"] = str(
       round(first_trade_size + size_increase * n, 10) 
@@ -57,7 +112,7 @@ def send_trade_list(
         str(t.status_code),
         t.json()["message"],
         trade["price"],
-        trade["size"],
+        trade["size"]
         )
       )
       
