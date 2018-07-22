@@ -3,7 +3,7 @@ from trading_order import TradingOrder
 class TradingSequence():
 
   def __init__(self, terms):
-
+asdf
     self.terms = terms
     self.orders = []
 
