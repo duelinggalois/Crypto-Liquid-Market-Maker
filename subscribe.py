@@ -1,4 +1,4 @@
-import config, process
+import process
 import asyncio, websockets, time, base64, hmac, json, hashlib
 import sys, os
 import logging
@@ -11,14 +11,14 @@ import trading
 class Subscribe():
   '''Subscription Class to interact with GDAX websocket.
   '''
-  
-  def __init__(self, product_ids=[], channel=[], url="", 
+
+  def __init__(self, product_ids=[], channel=[], url="",
     subscription='subscribe', auth=False, file_path=None,
     trading_algorithm=None):
-    
+
     if url == "":
       self.url = config.socket
-    self.product_ids = product_ids 
+    self.product_ids = product_ids
     self.auth = auth
     self.channel = channel
     self.subscription = subscription
@@ -30,16 +30,16 @@ class Subscribe():
 
     if self.channel == []:
       self.sub_params = {
-        'type': subscription, 
+        'type': subscription,
         'product_ids': self.product_ids}
     else:
       self.sub_params = {
-        'type': subscription, 
-        'product_ids': self.product_ids, 
+        'type': subscription,
+        'product_ids': self.product_ids,
         'channels': self.channel
         }
 
-  def auth_stamp(self):     
+  def auth_stamp(self):
     self.api_key = config.api_key
     self.api_secret = config.api_secret
     self.api_passphrase= config.api_pass
@@ -60,15 +60,15 @@ class Subscribe():
       self.auth_stamp()
     self.ws = self._connect()
 
-    asyncio.get_event_loop().run_until_complete(self.ws)  
+    asyncio.get_event_loop().run_until_complete(self.ws)
 
 
   async def _connect(self):
     async with websockets.connect(self.url) as ws:
       await ws.send( json.dumps( self.sub_params ))
       await self._listen(ws)
-      
-    
+
+
   async def _listen(self, ws):
     while True:
       try:
@@ -89,19 +89,19 @@ class Subscribe():
           except:
             print("\n-- No Pong --")
             break
-        
+
       except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         print(exc_type, fname, exc_tb.tb_lineno)
         self.on_error(e, msg)
-      
+
 
   def on_open(self, msg):
     # Not using
     return None
-    
-  def on_message(self, msg): 
+
+  def on_message(self, msg):
     self.trading_algorithm.process_message(msg)
 
   def on_error(self, e, data=None):
@@ -112,16 +112,16 @@ class Subscribe():
     # Need to disconnect socket when error
     print("\n-- Error => Canceling Trades --")
     for trade in [
-      { "id": trade["id"], 
-        "size": trade["size"], 
+      { "id": trade["id"],
+        "size": trade["size"],
         "price": trade["price"],
         "side": trade["side"]
-      } 
-      for trade 
+      }
+      for trade
       in self.trading_algorithm.book
     ]:
       trading.cancel_id(trade)
-    
+
   def on_close(self):
     print("\n-- Socket Closed --")
 
@@ -139,10 +139,10 @@ if __name__== "__main__":
       main_file_path = None
   except:
     auth = False
-  
+
   sock = Subscribe(
-    product_ids, 
-    channels, 
+    product_ids,
+    channels,
     auth=auth,
     subscription=subscription,
     file_path=main_file_path)

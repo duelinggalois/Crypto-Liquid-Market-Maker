@@ -1,8 +1,11 @@
-#GDAX API Keys
+# Coinbase Pro API Keys
 api_pass = ""
 api_key = ""
 api_secret = ""
 
-#GDAX URLs
-url = 'https://api.gdax.com/'
+# Coinbase Pro URLs
+rest_api_url = 'https://api.gdax.com/'
 socket = "wss://ws-feed.gdax.com"
+
+# Coinbase Pro test URLs
+test_rest_api_url = 'https://api-public.sandbox.pro.coinbase.com'

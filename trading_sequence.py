@@ -2,12 +2,16 @@ from trading_order import TradingOrder
 
 class TradingSequence():
 
-  def __init__(self, terms):
-asdf
+  def __init__(self, terms, side):
+
     self.terms = terms
     self.orders = []
 
-    first_order = TradingOrder(
+    make_orders(side)
+
+    # Major jump in functionality with remoiving counts
+
+    TradingOrder(
       "sell",
       terms.min_size,
       terms.mid_price + terms.price_change,
@@ -40,6 +44,9 @@ asdf
   def terms(self, value):
     self._terms = value
     
+  def make_orders(self, side):
+
+
   def toString(self):
        
     strings = {'buy' : [], 'sell' : []}
@@ -85,3 +92,4 @@ asdf
       )
 
     return output
+

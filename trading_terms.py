@@ -3,15 +3,22 @@ import math
 class TradingTerms():
 
   def __init__(
-    self, 
-    pair=None, 
-    budget=None, 
+    self,
+    pair=None,
+    budget=None,
     min_size=None,
     size_change=None,
     low_price=None,
     mid_price=None):
 
-    self.supported_pairs = ["BTC-USD", "ETH-USD", "LTC-USD", "BCH-USD", "ETH-BTC", "LTC-BTC", "BCH-BTC"]
+    self.supported_pairs = [
+      "BTC-USD",
+      "ETH-USD",
+      "LTC-USD",
+      "BCH-USD",
+      "ETH-BTC",
+      "LTC-BTC",
+      "BCH-BTC"]
     self.default_pair_index = 0
     self.pair = pair
     self.budget = budget
@@ -30,7 +37,7 @@ class TradingTerms():
     if value not in self.supported_pairs:
       raise ValueError("supplied pair '{}' is not supported".format(value))
     self._pair = value
-    
+
     # split pair into pertinent parts
     self._pair_from = self._pair[:3]
     self._pair_to = self._pair[4:]
@@ -101,7 +108,7 @@ class TradingTerms():
   def size_change(self, value):
     if value <= 0: ValueError('Size change must be greater than 0')
     self._size_change = value
-    
+
   # add definition of low_price property here
   @property
   def low_price(self):
@@ -139,10 +146,10 @@ class TradingTerms():
     '''
     Using a budget in terms of the denominator of a trading pair (USD for
     BTC-USD), min_size and size_change of trade amounts, and a price range
-    for trade values in terms of low_price and high_price this function will 
-    give you the maximoum possible trades that can be used in a sequence of 
-    alternating increasing buy and sell trades. 
-    
+    for trade values in terms of low_price and high_price this function will
+    give you the maximoum possible trades that can be used in a sequence of
+    alternating increasing buy and sell trades.
+
     >>> get_max_trades(193, .01, .005, 500, 1300)
     8
     '''
@@ -152,15 +159,15 @@ class TradingTerms():
     if (self._high_price is None): raise ValueError('high price not set')
     if (self._min_size is None): raise ValueError('min price not set')
     if (self._budget is None): raise ValueError('budget not set')
-    
+
     # capturing into var to prevent duplicate recomputation, there's likely a better way to do this
     low_price = self.low_price
 
     # determine coefficients
     A = 12 * self.size_change * self.mid_price
     B = 3 * ( self.mid_price * ( 4 * self.min_size - 3 * self.size_change) + self.size_change * low_price )
-    C = -3 * ( self.size_change * ( self.high_price - self.mid_price ) + 2 * self.budget ) 
-    
+    C = -3 * ( self.size_change * ( self.high_price - self.mid_price ) + 2 * self.budget )
+
     # grind it through quadratic formula
     trades = ( - B + math.sqrt( B ** 2 - 4 * A * C))  / (2*A)
 

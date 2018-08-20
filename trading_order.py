@@ -1,11 +1,14 @@
 class TradingOrder():
-  
+
+
   def __init__(self, pair, side, size, price, num_trades):
     self.pair = pair
     self.side = side
     self.size = size
     self.price = price
     self.num_trades = num_trades
+
+
 
   # add definition of side property here
   @property
@@ -49,7 +52,7 @@ class TradingOrder():
   # add definition of pos_neg property here
   @property
   def pos_neg(self):
-    return -1 if self._side == 'buy' else  1
+    return -1 if self._side == 'buy' else 1
 
   def __str__(self):
     return "\{side: {}, size: {}, price: {}, num_trades: {}\}".format(self.side, self.size, self.price, self.num_trades)
