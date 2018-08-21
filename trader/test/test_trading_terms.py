@@ -6,12 +6,12 @@ from ..sequence.trading_terms import TradingTerms
 class test_trading_terms(unittest.TestCase):
 
   def test_terms_init(self):
-    terms = TradingTerms()
+    terms = TradingTerms(test=True)
 
     self.assertEqual(config.CB_SUPPORTED_PAIRS, terms.supported_pairs)
 
   def test_terms_pair(self):
-    terms = TradingTerms()
+    terms = TradingTerms(test=True)
     terms.pair = "BTC-USD"
 
     self.assertEqual(terms.pair, "BTC-USD")
@@ -25,7 +25,7 @@ class test_trading_terms(unittest.TestCase):
     with self.assertRaises(ValueError):
       terms.pair = 6
 
-    terms = TradingTerms("LTC-BTC")
+    terms = TradingTerms("LTC-BTC", test=True)
 
     self.assertEqual(terms.pair, "LTC-BTC")
     self.assertEqual(terms.min_size, .1)
@@ -37,7 +37,7 @@ class test_trading_terms(unittest.TestCase):
       terms.base_pair = "USD"
 
   def test_terms_budget(self):
-    terms = TradingTerms()
+    terms = TradingTerms(test=True)
     terms.budget = 100
 
     self.assertEqual(terms.budget, 100)
@@ -47,10 +47,16 @@ class test_trading_terms(unittest.TestCase):
       terms.budget = -1
 
   def test_terms_size_change(self):
-    terms = TradingTerms()
+    terms = TradingTerms(test=True)
     terms.size_change = .0001
     self.assertEqual(terms.size_change, .0001)
     with self.assertRaises(ValueError):
       terms.size_change = -.0001
+
+  def test_terms_prices(self):
+    terms = TradingTerms("BTC-USD", test=True)
+
+    terms.low_price = 2500
+
 
 

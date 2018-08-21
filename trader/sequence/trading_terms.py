@@ -1,5 +1,6 @@
 import math
 import config
+from ..exchange import trading
 
 
 class TradingTerms():
@@ -11,11 +12,12 @@ class TradingTerms():
     min_size=None,
     size_change=None,
     low_price=None,
-    mid_price=None):
+    test=False):
 
     self.supported_pairs = config.CB_SUPPORTED_PAIRS
     self.default_pair_index = 0
     self.pair = pair
+    self.test = test
 
   @property
   def pair(self):
@@ -83,7 +85,7 @@ class TradingTerms():
   @budget.setter
   def budget(self, value):
     if value <= 0:
-      ValueError('Budget must be greater than 0')
+      raise ValueError('Budget must be greater than 0')
     self._budget = value
 
   # add definition of min_size property here
@@ -94,7 +96,7 @@ class TradingTerms():
   @min_size.setter
   def min_size(self, value):
     if self.base_pair == "LTC" and value < .1:
-      ValueError(
+      raise ValueError(
         "Minimum trade size for {} is .1".fromat(
           self.pair
         )
@@ -116,38 +118,56 @@ class TradingTerms():
   @size_change.setter
   def size_change(self, value):
     if value < 0:
-      ValueError('Size change must be greater than or equal to 0')
+      raise ValueError('Size change must be greater than or equal to 0')
     self._size_change = value
 
   # add definition of low_price property here
   @property
   def low_price(self):
-    return self._low_price
+    if self._low_price is None:
+      raise ValueError("Low price has yet to be assigned.")
+    else:
+      return self._low_price
 
   @low_price.setter
-  def low_price(self, value):
-    self._low_price = value
+  def low_price(self, low_price):
+    if low_price < self.mid_price:
+      self._low_price = low_price
+      self._high_price = 2 * self.mid_price - low_price
+    else:
+      raise ValueError("Low price {} is higher than mid price {}".format(
+        low_price, self.mid_price)
+      )
 
   # add definition of mid_price property here
   @property
   def mid_price(self):
+    if self.pair is None:
+      raise ValueError(
+        "Cannot establish prices without first establishing a pair")
+    else:
+      self._mid_price = trading.get_mid_market_price(self.pair, test=self.test)
     return self._mid_price
-
-  @mid_price.setter
-  def mid_price(self, value):
-    self._mid_price = round(value, self.price_decimals)
 
   # add definition of high_price property here
   @property
   def high_price(self):
-    if (self.mid_price is None):
-      raise ValueError('cannot compute high price, mid price not set')
-    if (self.low_price is None):
-      raise ValueError('cannot compute high price, low price not set')
-    return round(
-      (2 * self.mid_price) - self.low_price,
-      self.price_decimals
-    )
+    if self._high_price is None:
+      raise ValueError("High price has yet to be assigned.")
+    else:
+      return self._high_price
+
+  @high_price.setter
+  def high_price(self, high_price):
+    if self.mid_price < high_price:
+      self._high_price = high_price
+      self._low_price = 2 * self.mid_price - high_price
+    else:
+      raise ValueError(
+        "High price {} must be greater than mid _price {}".format(
+          high_price, self. mid_price
+        )
+      )
 
   # add definition of max_trades property here
   @property

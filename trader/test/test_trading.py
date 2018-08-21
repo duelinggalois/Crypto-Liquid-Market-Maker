@@ -6,10 +6,7 @@ import unittest
 class test_trading(unittest.TestCase):
 
   def set_up(self):
-    book = trading.get_book("BTC-USD", 1, test=True)
-    ask = float(book["asks"][0][0])
-    bid = float(book["bids"][0][0])
-    mid = (ask + bid) / 2
+    mid = trading.get_mid_market_price("BTC-USD", test=True)
     self.test_price = round(mid - 3.14, 2)
 
     self.test_order = order.Order("BTC-USD",

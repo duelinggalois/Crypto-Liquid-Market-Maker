@@ -1,4 +1,4 @@
-import authorize
+from . import authorize
 import requests
 import config
 import logging
@@ -87,6 +87,13 @@ def get_book(pair, level, test=False):
     auth=auth)
 
   return get_book.json()
+
+
+def get_mid_market_price(pair, test=False):
+  book = get_book(pair, 1, test=test)
+  ask = float(book["asks"][0][0])
+  bid = float(book["bids"][0][0])
+  return (ask + bid) / 2
 
 
 def get_open_orders(test=False):
