@@ -9,7 +9,6 @@ class TradingSequence():
 
     make_orders(side)
 
-    # Major jump in functionality with remoiving counts
 
     TradingOrder(
       "sell",
@@ -43,26 +42,26 @@ class TradingSequence():
   @terms.setter
   def terms(self, value):
     self._terms = value
-    
+
   def make_orders(self, side):
 
 
   def toString(self):
-       
+
     strings = {'buy' : [], 'sell' : []}
     budgets = {'buy' : 0 , 'sell' : 0}
-    
+
     # Header
     output = 'buys'+'\t'*5+'sells\n'
-    
+
     # Build strings "size BOT @ price TOP / BOT" where pair = TOP-BOT
     for order in self.orders:
       # for loop through trade counts = i['n']
       for j in range(0, order.num_trades-1):
-            
+
         size = round( order.size * self.terms.size_change * 2 , 5)
         price = round( order.price + order.pos_neg * j * self.terms.price_change, 5)
-        
+
         strings[order.side].append(
           "{0} {1} @ {2} {3}/{1}".format(
             order.size,
@@ -71,12 +70,12 @@ class TradingSequence():
             self.terms.pair_to
           )
         )
-        
+
         if order.side == 'buy':
           budgets['buy'] += order.size * order.price
         else:
           budgets['sell'] += order.size
-      
+
     # Print strings expect out of range error if sizes are unequal
     for i in range(0, len(strings['buy'])):
       output += strings['buy'][i] + '\t' * 2 + strings['sell'][i] + '\n'
@@ -86,7 +85,7 @@ class TradingSequence():
         round(budgets['buy'], self.terms.p_round),
         self.terms.pair_to,
         round(budgets['sell'], self.terms.p_round),
-        self.terms.pair_from, 
+        self.terms.pair_from,
         round(budgets['sell'] * self.terms.mid_price, self.terms.p_round),
         self.terms.mid_price
       )
