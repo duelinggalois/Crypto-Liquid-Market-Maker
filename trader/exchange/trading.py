@@ -50,28 +50,22 @@ def cancel_order(Order):
     url = config.rest_api_url
     auth = authorize.run_coinbase_pro_auth()
 
-  open_orders = get_open_orders(test=Order.test)
-  open_order_ids = [order["id"] for order in open_orders]
+  order_delete = requests.delete(url + "orders/" + Order.id, auth=auth)
+  response = order_delete.json()
+  logging.debug("Response: " + str(response))
 
-  if Order.id in open_order_ids:
-    order_delete = requests.delete(url + "orders/" + Order.id, auth=auth)
-    response = order_delete.json()
-    logging.debug("Response: " + str(response))
-
-    if (Order.id in response):
-      Order.responses.append({"deleted": response})
-      Order.update_history("deleted")
-      logging.info("Order Deleted with id:" + str(response))
-    elif("message" in response):
-      Order.responses.append(response["message"])
-      Order.update_history("Error deleting order")
-      logging.error(
-        "When deleting order recieved message: " + response["message"])
-    else:
-      logging.error(
-        "Order id was found before deleting but was found in delete response")
+  if Order.id in response:
+    Order.responses.append({"deleted": response})
+    Order.update_history("deleted")
+    logging.info("Order Deleted with id:" + str(response))
+  elif "message" in response:
+    Order.responses.append(response["message"])
+    Order.update_history("Error deleting order")
+    logging.error(
+      "When deleting order recieved message: " + response["message"])
   else:
-    logging.info("Order id is not posted: " + Order.id)
+    logging.error(
+        "Order id was found before deleting but was found in delete response")
 
 
 def get_book(pair, level, test=False):

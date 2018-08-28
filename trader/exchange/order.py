@@ -1,6 +1,7 @@
 from . import trading
 import time
 import logging
+import config
 
 
 logging.basicConfig(filename='info.log', level=logging.INFO)
@@ -28,11 +29,18 @@ class Order():
 
   @pair.setter
   def pair(self, value):
-    if value not in ["BTC-USD", "ETH-USD", "LTC-USD", "BCH-USD", "ETH-BTC",
-                     "LTC-USD", "BCH-USD"]:
+    if value not in config.CB_SUPPORTED_PAIRS:
       raise ValueError("%s is an invalid trading pair." % value)
 
     self._pair = value
+    self.base_pair = self.pair[:3]
+    self.quote_pair = self.pair[4:]
+
+    # Set Price rounding for USD pairs and non USD pairs
+    if self.quote_pair == 'USD':
+      self.price_decimals = 2
+    else:
+      self.price_decimals = 5
 
   @property
   def side(self):
@@ -65,7 +73,7 @@ class Order():
     if type(value) not in [float, int]:
       raise TypeError("{} is not a number".format(value))
 
-    self._price = value
+    self._price = round(value, self.price_decimals)
 
   def __str__(self):
     return "pair: {}, side: {}, size: {}, price: {}".format(
@@ -81,9 +89,3 @@ class Order():
 
   def allow_market_trade(self):
     self.post_only = False
-
-  def send_order(self):
-    trading.send_order(self)
-
-  def cancel_placed_order(self):
-    trading.cancel_order(self)

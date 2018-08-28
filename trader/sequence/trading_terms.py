@@ -14,10 +14,25 @@ class TradingTerms():
     low_price=None,
     test=False):
 
+    self._base_pair = None
+    self._quote_pair = None
+    self._pair = None
+    self._price_decimals = None
+    self._budget = None
+    self._min_size = None
+    self._size_change = None
+    self._low_price = None
+    self._mid_price = None
+    self._high_price = None
+
+    self.test = test
     self.supported_pairs = config.CB_SUPPORTED_PAIRS
     self.default_pair_index = 0
     self.pair = pair
-    self.test = test
+    self.budget = budget
+    self.min_size = min_size
+    self.size_change = size_change
+    self.low_price = low_price
 
   @property
   def pair(self):
@@ -80,46 +95,59 @@ class TradingTerms():
   # add definition of budget property here
   @property
   def budget(self):
+    if self._budget is None:
+      raise ValueError("Budget has not been set yet")
     return self._budget
 
   @budget.setter
   def budget(self, value):
-    if value <= 0:
-      raise ValueError('Budget must be greater than 0')
-    self._budget = value
+    if value or value == 0:
+      if value <= 0:
+        raise ValueError('Budget must be greater than 0')
+      self._budget = value
 
   # add definition of min_size property here
   @property
   def min_size(self):
-    return self._min_size
+    if self._min_size is not None:
+      return self._min_size
+    else:
+      raise ValueError("Can't get minimum size without knowing pair")
 
   @min_size.setter
   def min_size(self, value):
-    if self.base_pair == "LTC" and value < .1:
-      raise ValueError(
-        "Minimum trade size for {} is .1".fromat(
-          self.pair
+    if value:
+      if self.base_pair is None:
+        raise ValueError("Can't set minimum size without knowing pair")
+      elif self.base_pair == "LTC" and value < .1:
+        raise ValueError(
+          "Minimum trade size for {} is .1".format(
+            self.pair
+          )
         )
-      )
-    elif value < .01:
-      ValueError(
-        'Miminum size trade for {} is .01'.format(
-          self.pair
+      elif value < .01:
+        raise ValueError(
+          'Miminum size trade for {} is .01'.format(
+            self.pair
+          )
         )
-      )
-    self._min_size = value
+      else:
+        self._min_size = value
 
   # add definition of size_change property here
   @property
   def size_change(self):
+    if self._size_change is None:
+      raise ValueError("Size has not been set yet")
     return self._size_change
 
   # not sure if size_change can be 0
   @size_change.setter
   def size_change(self, value):
-    if value < 0:
-      raise ValueError('Size change must be greater than or equal to 0')
-    self._size_change = value
+    if value:
+      if value < 0:
+        raise ValueError('Size change must be greater than or equal to 0')
+      self._size_change = value
 
   # add definition of low_price property here
   @property
@@ -127,17 +155,18 @@ class TradingTerms():
     if self._low_price is None:
       raise ValueError("Low price has yet to be assigned.")
     else:
-      return self._low_price
+      return round(self._low_price, self.price_decimals)
 
   @low_price.setter
   def low_price(self, low_price):
-    if low_price < self.mid_price:
-      self._low_price = low_price
-      self._high_price = 2 * self.mid_price - low_price
-    else:
-      raise ValueError("Low price {} is higher than mid price {}".format(
-        low_price, self.mid_price)
-      )
+    if low_price:
+      if low_price < self.mid_price:
+        self._low_price = low_price
+        self._high_price = 2 * self.mid_price - low_price
+      else:
+        raise ValueError("Low price {} is higher than mid price {}".format(
+          low_price, self.mid_price)
+        )
 
   # add definition of mid_price property here
   @property
@@ -145,9 +174,17 @@ class TradingTerms():
     if self.pair is None:
       raise ValueError(
         "Cannot establish prices without first establishing a pair")
+    elif self._mid_price is None:
+      self.set_mid_price()
+      return round(self._mid_price, self.price_decimals)
     else:
+      return round(self._mid_price, self.price_decimals)
+
+  def set_mid_price(self):
+    if self.pair:
       self._mid_price = trading.get_mid_market_price(self.pair, test=self.test)
-    return self._mid_price
+    else:
+      raise ValueError("Pair required to get mid market price.")
 
   # add definition of high_price property here
   @property
@@ -155,78 +192,55 @@ class TradingTerms():
     if self._high_price is None:
       raise ValueError("High price has yet to be assigned.")
     else:
-      return self._high_price
+      return round(self._high_price, self.price_decimals)
 
   @high_price.setter
   def high_price(self, high_price):
-    if self.mid_price < high_price:
-      self._high_price = high_price
-      self._low_price = 2 * self.mid_price - high_price
-    else:
-      raise ValueError(
-        "High price {} must be greater than mid _price {}".format(
-          high_price, self. mid_price
+    if high_price:
+      if self.mid_price < high_price:
+        self._high_price = high_price
+        self._low_price = 2 * self.mid_price - high_price
+      else:
+        raise ValueError(
+          "High price {} must be greater than mid _price {}".format(
+            high_price, self. mid_price
+          )
         )
-      )
 
   # add definition of max_trades property here
   @property
-  def max_trades(self):
-    '''
-    Using a budget in terms of the denominator of a trading pair (USD for
-    BTC-USD), min_size and size_change of trade amounts, and a price range
-    for trade values in terms of low_price and high_price this function will
-    give you the maximoum possible trades that can be used in a sequence of
-    alternating increasing buy and sell trades.
-
-    >>> get_max_trades(193, .01, .005, 500, 1300)
-    8
-    '''
-
-    # ensure required properties are set
-    if (self._size_change is None):
-      raise ValueError('size change not set')
-    if (self._high_price is None):
-      raise ValueError('high price not set')
-    if (self._min_size is None):
-      raise ValueError('min price not set')
-    if (self._budget is None):
-      raise ValueError('budget not set')
-
-    # capturing into var to prevent duplicate recomputation, there's likely a
-    # better way to do this
-    low_price = self.low_price
-
-    # determine coefficients
-    A = 12 * self.size_change * self.mid_price
-    B = 3 * (self.mid_price *
-             (4 * self.min_size - 3 * self.size_change) +
-             self.size_change * low_price)
-    C = -3 * (self.size_change *
-              (self.high_price - self.mid_price) +
-              2 * self.budget)
-
-    # grind it through quadratic formula
-    trades = (-B + math.sqrt(B ** 2 - 4 * A * C)) / (2 * A)
-
-    # double the result to account for both buys/sells
-    return 2 * int(trades)
+  def trade_count(self):
+    return find_count(self.min_size, self.size_change, self.low_price,
+                           self.mid_price, self.high_price, self.budget)
 
   # add definition of price_change property here
   @property
   def price_change(self):
-    increment = (self.high_price - self.mid_price) / (self.max_trades / 2)
+    increment = (self.high_price - self.mid_price) / (self.trade_count)
     return round(increment, self._price_decimals)
 
   def __str__(self):
-    output = "from: \t\t\t{}\n".format(self.base_pair)
-    output += "to: \t\t\t{}\n".format(self.quote_pair)
-    output += "budget: \t\t{}\n".format(self.budget)
-    output += "min size: \t\t{}\n".format(self.min_size)
-    output += "size change: \t\t{}\n".format(self.size_change)
-    output += "low price: \t\t{}\n".format(self.low_price)
-    output += "mid price: \t\t{}\n".format(self.mid_price)
-    output += "high price: \t\t{}\n".format(self.high_price)
-    output += "max trades: \t\t{}\n".format(self.max_trades)
-    output += "price change: \t\t{}\n".format(self.price_change)
+    output = (
+      "base currency: \t\t\t{}\nquote currency: \t\t\t{}\nbudget: \t\t{}\n"
+      "min size: \t\t{}\nsize change: \t\t{}\nlow price: \t\t{}\n"
+      "mid price: \t\t{}\nhigh price: \t\t\t{}\ntrade_count: \t\t\t{}\n"
+      "price change: \t\t{}\n"
+    ).format(
+        self.base_pair, self.quote_pair, self.budget, self.min_size,
+        self.size_change, self.low_price, self.mid_price, self.high_price,
+        self.trade_count, self.price_change)
     return output
+
+
+def find_count(S0, SD, PM, PL, PH, BU):
+  A = (SD * (3 * PH ** 2 * PM - 3 * PH * PL ** 2 - 3 * PH * PM ** 2 +
+             PL ** 3 + 3 * PL ** 2 * PM - 3 * PL * PM ** 2 + 2 * PM ** 3))
+
+  B = (3 * (PH - PL) * (PH * PL * SD + 2 * PH * PM * S0 - 2 * PH * PM * SD +
+                        -PL ** 2 * S0 + PL ** 2 * SD - 2 * PL * PM * SD +
+                        -PM ** 2 * S0 + 2 * PM ** 2 * SD))
+
+  C = (-6 * BU * (PH - PL) ** 2 +
+       (PH - PL) ** 2 * (PL - PM) * (3 * S0 - 4 * SD))
+
+  return (-B + math.sqrt(B ** 2 - 4 * A * C)) / (2 * A)

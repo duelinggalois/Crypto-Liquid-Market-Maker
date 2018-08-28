@@ -2,6 +2,11 @@ from ..exchange import order
 from ..exchange import trading
 import unittest
 
+# TODO: write tests for "message" responses from api
+# and mock non testing methods
+# Name                                Stmts   Miss  Cover   Missing
+# -----------------------------------------------------------------
+# trader/exchange/trading.py             64     16    75%   15-16, 41-42, 50-51, 65-74, 82-83, 104-105
 
 class test_trading(unittest.TestCase):
 
@@ -23,8 +28,8 @@ class test_trading(unittest.TestCase):
     self.assertEqual(response["side"], "buy")
     self.assertEqual(response["post_only"], True)
     self.assertEqual(response["type"], "limit")
-    self.assertEqual(response["size"], "0.05000000")
-    self.assertEqual(response["price"], str(self.test_price) + "000000")
+    self.assertEqual(response["size"], "{:.8f}".format(0.05))
+    self.assertEqual(response["price"], "{:.8f}".format(self.test_price))
     self.assertEqual(response["product_id"], "BTC-USD")
     self.assertEqual(response["status"], "pending")
     self.assertEqual(self.test_order.history[0]["status"], "Created")

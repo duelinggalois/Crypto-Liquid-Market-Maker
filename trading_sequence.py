@@ -43,10 +43,8 @@ class TradingSequence():
   def terms(self, value):
     self._terms = value
 
-  def make_orders(self, side):
 
-
-  def toString(self):
+  def __str__(self):
 
     strings = {'buy' : [], 'sell' : []}
     budgets = {'buy' : 0 , 'sell' : 0}
