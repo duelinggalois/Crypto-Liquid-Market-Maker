@@ -1,11 +1,27 @@
-# Coinbase Pro API Keys
-api_pass = ""
+# Coinbase Pro keys
+api_passphrase = ""
 api_key = ""
 api_secret = ""
 
 # Coinbase Pro URLs
-rest_api_url = 'https://api.gdax.com/'
-socket = "wss://ws-feed.gdax.com"
+rest_api_url = 'https://api.pro.coinbase.com'
+socket = "wss://ws-feed.pro.coinbase.com"
+
+# Coinbaise Pro test keys
+
+test_api_passphrase = ""
+test_api_key = ""
+test_api_secret = ""
 
 # Coinbase Pro test URLs
-test_rest_api_url = 'https://api-public.sandbox.pro.coinbase.com'
+test_rest_api_url = 'https://api-public.sandbox.pro.coinbase.com/'
+
+# Coinbase Pro Supported Pairs
+CB_SUPPORTED_PAIRS = [
+  "BTC-USD",
+  "ETH-USD",
+  "LTC-USD",
+  "BCH-USD",
+  "ETH-BTC",
+  "LTC-BTC",
+  "BCH-BTC"]
