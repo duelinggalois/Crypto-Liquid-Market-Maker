@@ -8,14 +8,19 @@ class Book_Manager():
     self.terms = terms
     self.book = Book(terms.pair, test)
 
-    half_count = int(terms.trade_count / 2)
+    count = terms.trade_count
+    buy_count = int(
+      (terms.mid_price - terms.low_price) /
+      (terms.high_price - terms.low_price) * count
+    )
+    sell_count = count - buy_count
     first_buy_size = terms.min_size + terms.size_change
     first_sell_size = terms.min_size
     first_buy_price = terms.mid_price - terms.price_change
     first_sell_price = terms.mid_price + terms.price_change
 
-    self.add_orders("buy", half_count, first_buy_size, first_buy_price)
-    self.add_orders("sell", half_count, first_sell_size, first_sell_price)
+    self.add_orders("buy", buy_count, first_buy_size, first_buy_price)
+    self.add_orders("sell", sell_count, first_sell_size, first_sell_price)
 
   def add_orders(self, side, count, first_size, first_price):
     price = first_price

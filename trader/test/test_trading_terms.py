@@ -2,10 +2,6 @@ import unittest
 import config
 from ..sequence.trading_terms import TradingTerms
 
-# Name                                Stmts   Miss  Cover   Missing
-# -----------------------------------------------------------------
-# trader/sequence/trading_terms.py      125     17    86%   213-215, 217-239, 244-245, 248-269
-
 
 class test_trading_terms(unittest.TestCase):
 
@@ -25,6 +21,8 @@ class test_trading_terms(unittest.TestCase):
     self.assertEqual(self.terms._low_price, None)
     self.assertEqual(self.terms._mid_price, None)
     self.assertEqual(self.terms._high_price, None)
+    with self.assertRaises(ValueError):
+      self.terms.set_mid_price()
 
   def test_terms_pair(self):
     self.terms = TradingTerms(test=True)
@@ -116,12 +114,20 @@ class test_trading_terms(unittest.TestCase):
     self.assertEqual(low, self.terms.low_price)
     self.assertEqual(high, self.terms.high_price)
 
-    low = round(self.terms.mid_price - 9.98, 2)
-    high = round(self.terms.mid_price + 9.98, 2)
-    self.terms.low_price = low
-    self.terms.high_price = high
+    low_2 = round(self.terms.mid_price - 9.98, 2)
+    high_2 = round(self.terms.mid_price + 9.98, 2)
+
+    self.terms.high_price = high_2
     self.assertEqual(high, self.terms.high_price)
+
+    self.terms._low_price = None
+    self.terms.high_price = high_2
+    self.assertEqual(high_2, self.terms.high_price)
+    self.assertEqual(low_2, self.terms.low_price)
+
+    self.terms.low_price = low
     self.assertEqual(low, self.terms.low_price)
+    self.assertEqual(high, self.terms.high_price)
 
     high = self.terms.mid_price - 1
     low = self.terms.mid_price + 1

@@ -53,21 +53,30 @@ class test_skew(unittest.TestCase):
     self.bth_D = 2000 * (2 + 4 + 6)
     self.budget_D = self.blm_D + self.bmt_D + self.bth_D
 
-  def test_find_count(self):
+  def test_find_count_A(self):
     count_A = find_count(self.minimum_size_A, self.size_change_A,
                          self.low_price_A, self.mid_price_A,
                          self.high_price_A, self.budget_A)
+
+    self.assertEqual(self.count_A, count_A)
+
+  def test_find_count_B(self):
     count_B = find_count(self.minimum_size_B, self.size_change_B,
                          self.low_price_B, self.mid_price_B,
                          self.high_price_B, self.budget_B)
+
+    self.assertEqual(self.count_B, count_B)
+
+  def test_find_count_C(self):
     count_C = find_count(self.minimum_size_C, self.size_change_C,
                          self.low_price_C, self.mid_price_C,
                          self.high_price_C, self.budget_C)
+
+    self.assertEqual(self.count_C, count_C)
+
+  def test_find_count_D(self):
     count_D = find_count(self.minimum_size_D, self.size_change_D,
                          self.low_price_D, self.mid_price_D,
                          self.high_price_D, self.budget_D)
 
-    self.assertEqual(self.count_A, count_A)
-    self.assertEqual(self.count_B, count_B)
-    self.assertEqual(self.count_C, count_C)
     self.assertEqual(self.count_D, count_D)

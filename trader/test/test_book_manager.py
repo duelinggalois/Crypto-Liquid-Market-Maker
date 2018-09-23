@@ -17,7 +17,7 @@ class TestBookManager(unittest.TestCase):
 
     book = self.book_manager.book
     self.assertEqual(book.pair, "ETH-USD")
-    self.assertEqual(len(book.unsent_orders), 38)
+    self.assertEqual(len(book.unsent_orders), 39)
 
     buy_list = [order.price * order.size for order in book.unsent_orders
                 if order.side == "buy"]
@@ -38,6 +38,6 @@ class TestBookManager(unittest.TestCase):
     book = self.book_manager.book
 
     self.assertEqual(book.unsent_orders, [])
-    self.assertEqual(len(book.open_orders), 38)
+    self.assertEqual(len(book.open_orders), 39)
 
     trading.get_open_orders(test=True)

@@ -2,15 +2,14 @@ from ..exchange import order
 from ..exchange import trading
 import unittest
 
-# TODO: write tests for "message" responses from api
-# and mock non testing methods
 # Name                                Stmts   Miss  Cover   Missing
 # -----------------------------------------------------------------
-# trader/exchange/trading.py             64     16    86%   15-16, 50-51, 67, 76-77, 98-99
+# trader/exchange/trading.py             63      1    98%   67
+
 
 class test_trading(unittest.TestCase):
 
-  def set_up(self):
+  def setUp(self):
     mid = trading.get_mid_market_price("BTC-USD", test=True)
     self.test_price = round(mid - 3.14, 2)
 
@@ -21,7 +20,6 @@ class test_trading(unittest.TestCase):
                                   test=True)
 
   def test_send_order(self):
-    self.set_up()
     trading.send_order(self.test_order)
     response = self.test_order.responses[0]
 
@@ -38,7 +36,6 @@ class test_trading(unittest.TestCase):
     trading.cancel_order(self.test_order)
 
   def test_cancel_order(self):
-    self.set_up()
     trading.send_order(self.test_order)
     trading.cancel_order(self.test_order)
     response = self.test_order.responses[1]
@@ -46,7 +43,6 @@ class test_trading(unittest.TestCase):
     self.assertTrue(self.test_order.id not in response)
 
   def test_get_open_orders(self):
-    self.set_up()
     orders = trading.get_open_orders(pair="BTC-USD", test=True)
     starting_order_ids = {order["id"] for order in orders}
     print("Starting with {} orders".format(len(starting_order_ids)))
