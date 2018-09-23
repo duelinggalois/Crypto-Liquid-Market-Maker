@@ -110,14 +110,15 @@ class test_trading_terms(unittest.TestCase):
       self.terms.low_price
 
     self.terms.set_mid_price()
-    low = self.terms.mid_price - 6.67
-    high = self.terms.mid_price + 6.67
+    high = self.terms.mid_price + 16.67
+    low = self.terms.mid_price - 16.67
     self.terms.low_price = low
     self.assertEqual(low, self.terms.low_price)
     self.assertEqual(high, self.terms.high_price)
 
-    high = round(self.terms.mid_price + 9.98, 2)
     low = round(self.terms.mid_price - 9.98, 2)
+    high = round(self.terms.mid_price + 9.98, 2)
+    self.terms.low_price = low
     self.terms.high_price = high
     self.assertEqual(high, self.terms.high_price)
     self.assertEqual(low, self.terms.low_price)

@@ -55,16 +55,16 @@ class test_skew(unittest.TestCase):
 
   def test_find_count(self):
     count_A = find_count(self.minimum_size_A, self.size_change_A,
-                         self.mid_price_A, self.low_price_A,
+                         self.low_price_A, self.mid_price_A,
                          self.high_price_A, self.budget_A)
     count_B = find_count(self.minimum_size_B, self.size_change_B,
-                         self.mid_price_B, self.low_price_B,
+                         self.low_price_B, self.mid_price_B,
                          self.high_price_B, self.budget_B)
     count_C = find_count(self.minimum_size_C, self.size_change_C,
-                         self.mid_price_C, self.low_price_C,
+                         self.low_price_C, self.mid_price_C,
                          self.high_price_C, self.budget_C)
     count_D = find_count(self.minimum_size_D, self.size_change_D,
-                         self.mid_price_D, self.low_price_D,
+                         self.low_price_D, self.mid_price_D,
                          self.high_price_D, self.budget_D)
 
     self.assertEqual(self.count_A, count_A)

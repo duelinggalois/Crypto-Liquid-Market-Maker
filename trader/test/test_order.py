@@ -40,6 +40,18 @@ class Test_Order(unittest.TestCase):
     with self.assertRaises(ValueError):
       order.Order("ZZZ-USD", "buy", .05, 3, test=True)
 
+  def test_wrong_side(self):
+    with self.assertRaises(ValueError):
+      order.Order("BTC-USD", "but", .05, 3, test=True)
+
+  def test_wrong_size(self):
+    with self.assertRaises(TypeError):
+      order.Order("BTC-USD", "buy", ".05", 3, test=True)
+
+  def test_wrong_price(self):
+    with self.assertRaises(TypeError):
+      order.Order("BTC-USD", "buy", .05, "3", test=True)
+
   def test_allow_market_trades(self):
     test_order = order.Order("BTC-USD", "buy", 1, 1, test=True)
 

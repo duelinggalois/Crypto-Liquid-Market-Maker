@@ -24,8 +24,10 @@ class Book_Manager():
     for i in range(count):
       self.book.add_order(side, size, price)
 
-      size += self.terms.size_change * 2
-      price += plus_or_minus * self.terms.price_change
+      new_size = size + self.terms.size_change * 2
+      size = round(new_size, 8)
+      new_price = price + plus_or_minus * self.terms.price_change
+      price = round(new_price, self.terms.price_decimals)
 
   def send_orders(self):
     self.book.send_orders()
@@ -36,4 +38,3 @@ class Book_Manager():
     self.add_orders(side, count, first_size, first_price)
     self.send_orders()
     self.book.unsent_orders = existing_unsent_orders
-

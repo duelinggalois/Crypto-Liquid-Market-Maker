@@ -139,9 +139,8 @@ class TradingTerms():
   def size_change(self):
     if self._size_change is None:
       raise ValueError("Size has not been set yet")
-    return self._size_change
+    return round(self._size_change, 8)
 
-  # not sure if size_change can be 0
   @size_change.setter
   def size_change(self, value):
     if value:
@@ -162,7 +161,15 @@ class TradingTerms():
     if low_price:
       if low_price < self.mid_price:
         self._low_price = low_price
-        self._high_price = 2 * self.mid_price - low_price
+        print("With mid price of {} low price was set to {}"
+              .format(self.mid_price, self.low_price))
+        if self._high_price is None:
+          self._high_price = 2 * self.mid_price - low_price
+          print("No high price so it was set to {}".format(self.high_price))
+        elif self.mid_price - low_price >= self._high_price - self.mid_price:
+          self._high_price = 2 * self.mid_price - low_price
+          print("Raised high price to {} based on low and mid price"
+                .format(self.high_price))
       else:
         raise ValueError("Low price {} is higher than mid price {}".format(
           low_price, self.mid_price)
@@ -183,6 +190,7 @@ class TradingTerms():
   def set_mid_price(self):
     if self.pair:
       self._mid_price = trading.get_mid_market_price(self.pair, test=self.test)
+      print("{} currently trading at {}".format(self.pair, self.mid_price))
     else:
       raise ValueError("Pair required to get mid market price.")
 
@@ -198,8 +206,19 @@ class TradingTerms():
   def high_price(self, high_price):
     if high_price:
       if self.mid_price < high_price:
-        self._high_price = high_price
-        self._low_price = 2 * self.mid_price - high_price
+        if self._low_price is None:
+          self._high_price = high_price
+          self._low_price = 2 * self.mid_price - high_price
+          print("With mid price of {} high price was set to {}"
+                .format(self.mid_price, self.high_price))
+          print("No low price so it was set to {}".format(self.low_price))
+        elif self.mid_price - self.low_price <= high_price - self.mid_price:
+          self._high_price = high_price
+          print("With mid price of {} high price was set to {}")
+        else:
+          self._high_price = 2 * self.mid_price - self._low_price
+          print("high price was raised to {} based on mid and low price."
+                .format(self.high_price))
       else:
         raise ValueError(
           "High price {} must be greater than mid _price {}".format(
@@ -207,13 +226,11 @@ class TradingTerms():
           )
         )
 
-  # add definition of max_trades property here
   @property
   def trade_count(self):
     return find_count(self.min_size, self.size_change, self.low_price,
-                           self.mid_price, self.high_price, self.budget)
+                      self.mid_price, self.high_price, self.budget)
 
-  # add definition of price_change property here
   @property
   def price_change(self):
     increment = (self.high_price - self.mid_price) / (self.trade_count)
@@ -232,7 +249,7 @@ class TradingTerms():
     return output
 
 
-def find_count(S0, SD, PM, PL, PH, BU):
+def find_count(S0, SD, PL, PM, PH, BU):
   A = (SD * (3 * PH ** 2 * PM - 3 * PH * PL ** 2 - 3 * PH * PM ** 2 +
              PL ** 3 + 3 * PL ** 2 * PM - 3 * PL * PM ** 2 + 2 * PM ** 3))
 
@@ -243,4 +260,4 @@ def find_count(S0, SD, PM, PL, PH, BU):
   C = (-6 * BU * (PH - PL) ** 2 +
        (PH - PL) ** 2 * (PL - PM) * (3 * S0 - 4 * SD))
 
-  return (-B + math.sqrt(B ** 2 - 4 * A * C)) / (2 * A)
+  return int((-B + math.sqrt(B ** 2 - 4 * A * C)) / (2 * A))

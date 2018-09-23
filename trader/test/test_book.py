@@ -88,4 +88,5 @@ class Test_Book(unittest.TestCase):
     self.assertEqual(order_id, filled_order.id)
 
   def get_ids(self):
-    return [order["id"] for order in trading.get_open_orders("LTC-USD")]
+    return [order["id"] for order in trading
+    .get_open_orders(pair="LTC-USD", test=True)]

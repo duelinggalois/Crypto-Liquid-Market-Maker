@@ -10,7 +10,7 @@ logging.basicConfig(filename='info.log', level=logging.INFO)
 def send_order(Order):
   if Order.test:
     url = config.test_rest_api_url
-    auth = authorize.test_run_GdaxAuth()
+    auth = authorize.test_run_coinbase_pro_auth()
   else:
     url = config.rest_api_url
     auth = authorize.run_coinbase_pro_auth()
@@ -45,7 +45,7 @@ def send_order(Order):
 def cancel_order(Order):
   if Order.test:
     url = config.test_rest_api_url
-    auth = authorize.test_run_GdaxAuth()
+    auth = authorize.test_run_coinbase_pro_auth()
   else:
     url = config.rest_api_url
     auth = authorize.run_coinbase_pro_auth()
@@ -71,7 +71,7 @@ def cancel_order(Order):
 def get_book(pair, level, test=False):
   if test:
     url = config.test_rest_api_url
-    auth = authorize.test_run_GdaxAuth()
+    auth = authorize.test_run_coinbase_pro_auth()
   else:
     url = config.rest_api_url
     auth = authorize.run_coinbase_pro_auth()
@@ -90,14 +90,17 @@ def get_mid_market_price(pair, test=False):
   return (ask + bid) / 2
 
 
-def get_open_orders(test=False):
+def get_open_orders(pair=None, test=False):
   if test:
     url = config.test_rest_api_url
-    auth = authorize.test_run_GdaxAuth()
+    auth = authorize.test_run_coinbase_pro_auth()
   else:
     url = config.rest_api_url
     auth = authorize.run_coinbase_pro_auth()
+  if pair is None:
+    query_params = "?status=open"
+  else:
+    query_params = "?status=open&product_id=" + pair
 
-  get_orders = requests.get(url + "orders/", auth=auth)
-
+  get_orders = requests.get(url + "orders" + query_params, auth=auth)
   return get_orders.json()

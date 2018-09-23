@@ -2,14 +2,14 @@
 
 I created this strategy in an attempt to automate small gains repeatedly. A set amount is intended to be allocated to the stategry and as pairs of buys and sells execute over time, profit is generated. As a price is dropping, this strategy will repeatedly buy more crypto, as prices rise, it sells more. If the range of price breaks out of the trading range that is set, no more trades will execute unless the price returns to the range. This is not financial advice and this program can result in losses. Use at your own risk.
 
-This program will list a sequence of buy and sell trades on GDAX.com based on the following parameters:  
+This program will list a sequence of buy and sell trades on pro.coinbase.com based on the following parameters:
 * trading pair (BTC-USD, ETH-USD, LTC-USD, BCH-USD, BTC-ETH, LTC-BTC, BCH-BTC)
 * budget
 * minimum trade size
 * trade increase increment
 * estimated trade price
-* midpoint (optional)
-* highest sale price
+* low sale price
+* high sale price
 
 **Recommended Installation**
 * [Install Python3](http://docs.python-guide.org/en/latest/starting/install3)
@@ -17,21 +17,26 @@ This program will list a sequence of buy and sell trades on GDAX.com based on th
 * `git clone https://github.com/rev3ks/Crypto-Liquid-Market-Maker`
 * `cd Crypto-Liquid-Market-Maker`
 * `cp config.py.default config.py`
-* Add GDAX API passphrase, keys, and secret to `config.py`
+* Add Coinbase Pro API passphrase, keys, and secret to `config.py`
 * `pipenv install` (dependencies managed by `Pipfile` in project root)
 * `pipenv run python -m main`
+
+**Running Tests**
+Please note that one test will create a limit buy order at a fraction of the current market rate of BTC-USD and then cancel it. When the market rate is $10,000/BTC the order would be 0.01 BTC at a rate of $100 and would reqire a balance of $1.03 (Limit trades remove from your balance the value of the trade plus the market fee in case they execute immediately as a market trade). All other tests execute in the Coinbase Sandbox for fake crypto and fake money. If you do not want this test to send a trade, don't add live keys, the test will then fail when trying to connect to coinbase.
+* Add Coinbase Pro Sandbox API passphrase, keys, and secret to `config.py`
+* `nosetests --with-coverage --cover-package=trader`
 
 **Example of Using Main**
 
 See below if you would like python shell instructions to import modules.
 
-`What trading pair would you like to list?` **ETH-BTC**  
-`What is the value of BCH would you like to allocate in terms of BTC?` **0.8**  
-`What is the minimum trade size for this pair?` **.01**  
-`How much should each trade in the sequnce of buys and sells increase by?` **.0005**  
-`What is the estimated price of ETH in terms of BTC?` **.0786**  
+`What trading pair would you like to list?` **ETH-BTC**
+`What is the value of BCH would you like to allocate in terms of BTC?` **0.8**
+`What is the minimum trade size for this pair?` **.01**
+`How much should each trade in the sequnce of buys and sells increase by?` **.0005**
+`What is the estimated price of ETH in terms of BTC?` **.0786**
 `Would you like to use 0.1125 BTC/BCH as the the midpoint of the trading algorithm? (y or n)` **y**
-`What is the highest price to be sold at?` **.12835**  
+`What is the highest price to be sold at?` **.12835**
 
 **Printed Trades for Review**
 ```
@@ -60,7 +65,7 @@ buys					sells
 0.0985 ETH @ 0.02965 BTC/ETH		0.098 ETH @ 0.12755 BTC/ETH
 0.0995 ETH @ 0.0291 BTC/ETH		0.099 ETH @ 0.1281 BTC/ETH
 
-Buy budget: 0.23179 BTC, Sell budget 4.905 ETH roughly worth 0.38553 BTC based on 
+Buy budget: 0.23179 BTC, Sell budget 4.905 ETH roughly worth 0.38553 BTC based on
 0.0786 BTC/ETH midmarket price.
 
 Would you like trades to be listed? (y or n)
@@ -69,14 +74,14 @@ y
 
 **Output**
 ```
--- Last Match -- 
+-- Last Match --
 < 2018-05-03T04:41:43.620000Z - ETH-BTC - trade id: 4699790 - side: sell size: 1.52318962 price: 0.07863000
 
 -- Subscribed --
 Channel: matches		Pair: ['ETH-BTC']
 
 
---Listing Trades-- 
+--Listing Trades--
 
 --Listing sells--
 ETH-BTC, Size: 0.01000000, Price: 0.07915000
@@ -131,7 +136,7 @@ Ping socket everyonce in a while when trading is low to keep alive.
 **Alternative use from a python shell**
 
 ```
->>> from trading_algorithm import TradingTerms 
+>>> from trading_algorithm import TradingTerms
 >>> ETH_BTC = TradingTerms(pair, budget, low_price, mid_price, min_size, size_change)
 >>> ETH_BTC.print_trades()
 ```
@@ -145,7 +150,7 @@ See *Output* for `start_ws_trade()` output.
 
 Trading manually on GDAX for two years was a great inspiration to learn python. I still have a lot to learn and this is an outline of what I am currently working on:
 
-* Storing trading data into a database for analysis and computing tax basis and procedes automatically. 
+* Storing trading data into a database for analysis and computing tax basis and procedes automatically.
 * Cleaning up my code to be better organized and easier to understand.
 * Implementing unit testing.
 * Implementing new ideas into strategy.

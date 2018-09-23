@@ -14,13 +14,9 @@ class GdaxAuth(AuthBase):
     self.passphrase = passphrase
 
   def __call__(self, request):
-    timestamp = str(time.time())
-    message = (timestamp +
-               request.method +
-               request.path_url +
-               (request.body or '')
-               )
-    message = message.encode()
+    timestamp = str(time.time()).encode()
+    message = timestamp + request.method.encode() + request.path_url.encode()
+    message += (request.body or b'')
     hmac_key = base64.b64decode(self.secret_key)
     signature = hmac.new(hmac_key, message, hashlib.sha256)
     signature_b64 = base64.b64encode(signature.digest())
@@ -39,10 +35,10 @@ class GdaxAuth(AuthBase):
 def run_coinbase_pro_auth():
   return GdaxAuth(config.api_key,
                   config.api_secret,
-                  config.api_passhrase)
+                  config.api_passphrase)
 
 
-def test_run_GdaxAuth():
+def test_run_coinbase_pro_auth():
   return GdaxAuth(config.test_api_key,
                   config.test_api_secret,
                   config.test_api_passphrase)
