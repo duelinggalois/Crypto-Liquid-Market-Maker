@@ -7,8 +7,11 @@ name = "pypi"
 requests = "*"
 websockets = "*"
 pick = "*"
+coverage = "*"
+nose = "*"
+
 
 [dev-packages]
 
 [requires]
-python_version = "3.5.3"
+python_version = "3.6"

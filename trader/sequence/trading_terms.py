@@ -228,12 +228,13 @@ class TradingTerms():
 
   @property
   def trade_count(self):
+    budget_considering_fee = self.budget / (1 + config.CB_FEE)
     return find_count(self.min_size, self.size_change, self.low_price,
-                      self.mid_price, self.high_price, self.budget)
+                      self.mid_price, self.high_price, budget_considering_fee)
 
   @property
   def price_change(self):
-    increment = (self.high_price - self.mid_price) / (self.trade_count)
+    increment = (self.high_price - self.low_price) / (self.trade_count)
     return round(increment, self._price_decimals)
 
   def __str__(self):

@@ -66,6 +66,7 @@ def cancel_order(Order):
   else:
     logging.error(
         "Order id was found before deleting but was found in delete response")
+    this = 2 + 2
 
 
 def get_book(pair, level, test=False):

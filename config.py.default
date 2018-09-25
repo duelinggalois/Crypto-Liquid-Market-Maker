@@ -25,3 +25,5 @@ CB_SUPPORTED_PAIRS = [
   "ETH-BTC",
   "LTC-BTC",
   "BCH-BTC"]
+
+CB_FEE = 0.003
