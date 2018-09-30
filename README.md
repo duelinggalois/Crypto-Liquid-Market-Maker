@@ -24,7 +24,7 @@ This program will list a sequence of buy and sell trades on pro.coinbase.com bas
 **Running Tests**
 Please note that one test will create a limit buy order at a fraction of the current market rate of BTC-USD and then cancel it. When the market rate is $10,000/BTC the order would be 0.01 BTC at a rate of $100 and would reqire a balance of $1 All other tests execute in the Coinbase Sandbox for fake crypto and fake money. If you do not want this test to send a trade, don't add your keys and the test will then fail when trying to send the order to coinbase.
 * Add Coinbase Pro Sandbox API passphrase, keys, and secret to `config.py`
-* `nosetests --with-coverage --cover-package=trader`
+* `pipenv run nosetests --with-coverage --cover-package=trader`
 
 **Example of Using Main**
 

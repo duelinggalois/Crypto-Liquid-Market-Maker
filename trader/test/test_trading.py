@@ -11,11 +11,11 @@ class test_trading(unittest.TestCase):
 
   def setUp(self):
     mid = trading.get_mid_market_price("BTC-USD", test=True)
-    self.test_price = round(mid - 3.14, 2)
+    self.test_price = round(mid*.1, 2)
 
     self.test_order = order.Order("BTC-USD",
                                   "buy",
-                                  .05,
+                                  .011,
                                   self.test_price,
                                   test=True)
 
@@ -26,7 +26,7 @@ class test_trading(unittest.TestCase):
     self.assertEqual(response["side"], "buy")
     self.assertEqual(response["post_only"], True)
     self.assertEqual(response["type"], "limit")
-    self.assertEqual(response["size"], "{:.8f}".format(0.05))
+    self.assertEqual(response["size"], "{:.8f}".format(0.011))
     self.assertEqual(response["price"], "{:.8f}".format(self.test_price))
     self.assertEqual(response["product_id"], "BTC-USD")
     self.assertEqual(response["status"], "pending")

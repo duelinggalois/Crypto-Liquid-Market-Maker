@@ -17,9 +17,8 @@ class TestBookManager(unittest.TestCase):
 
     book = self.book_manager.book
     self.assertEqual(book.pair, "ETH-USD")
-    #self.assertEqual(len(book.unsent_orders), 39)
 
-    buy_list = [order.price * order.size for order in book.unsent_orders
+    buy_list = [round(order.price * order.size, 2) for order in book.unsent_orders
                 if order.side == "buy"]
     buy_budget = round(sum(buy_list), 2)
 
@@ -28,17 +27,27 @@ class TestBookManager(unittest.TestCase):
     sell_budget = sum(sell_list) * self.terms.mid_price
     sell_budget = round(sell_budget, 2)
     budget = sell_budget + buy_budget
-    upper_bound = 1000
-    lower_bound = 1000 * (self.terms.trade_count - 1) / self.terms.trade_count
+    upper_bound = self.terms.budget
+    rounded_off_buy_trade = ((book.unsent_orders[25].size - self.terms.size_change) *
+                             (book.unsent_orders[25].price + self.terms.price_change))
+    rounded_off_sell_trade = (book.unsent_orders[51].size + self.terms.size_change) * self.terms.mid_price
+    lower_bound = 1000 - rounded_off_buy_trade - rounded_off_sell_trade - 10 # TODO: understand errror trerm, guessing it has to do with price distribution.
     self.assertLessEqual(budget, upper_bound)
-    self.assertGreaterEqual(upper_bound, budget)
+    self.assertGreaterEqual(budget, lower_bound)
 
   def test_book_manager_send_orders(self):
 
+    starting_orders = {order["id"] for order in trading.get_open_orders("ETH-USD", test=True)}
+    while len(starting_orders) != 0:
+      cancel_orders = [trading.cancel_order_by_id(order, test=True) for order in starting_orders]
+      starting_orders = {order["id"] for order in trading.get_open_orders("ETH-USD", test=True)}
     self.book_manager.send_orders()
-    book = self.book_manager.book
 
-    self.assertEqual(book.unsent_orders, [])
-    #self.assertEqual(len(book.open_orders), 39)
+    self.assertEqual(self.book_manager.book.unsent_orders, [])
+    sent_order_ids = {order.id for order in self.book_manager.book.open_orders}
+    ending_order_ids = {order["id"] for order in trading.get_open_orders("ETH-USD", test=True)}
+    self.assertEqual(ending_order_ids, sent_order_ids)
 
-    trading.get_open_orders(test=True)
+
+
+

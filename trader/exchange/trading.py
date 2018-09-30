@@ -43,16 +43,7 @@ def send_order(Order):
 
 
 def cancel_order(Order):
-  if Order.test:
-    url = config.test_rest_api_url
-    auth = authorize.test_run_coinbase_pro_auth()
-  else:
-    url = config.rest_api_url
-    auth = authorize.run_coinbase_pro_auth()
-
-  order_delete = requests.delete(url + "orders/" + Order.id, auth=auth)
-  response = order_delete.json()
-  logging.debug("Response: " + str(response))
+  response = cancel_order_by_id(Order.id, test=Order.test)
 
   if Order.id in response:
     Order.responses.append({"deleted": response})
@@ -66,7 +57,20 @@ def cancel_order(Order):
   else:
     logging.error(
         "Order id was found before deleting but was found in delete response")
-    this = 2 + 2
+
+
+def cancel_order_by_id(id, test=False):
+  if test:
+    url = config.test_rest_api_url
+    auth = authorize.test_run_coinbase_pro_auth()
+  else:
+    url = config.rest_api_url
+    auth = authorize.run_coinbase_pro_auth()
+
+  order_delete = requests.delete(url + "orders/" + id, auth=auth)
+  response = order_delete.json()
+  logging.debug("Response: " + str(response))
+  return response
 
 
 def get_book(pair, level, test=False):
