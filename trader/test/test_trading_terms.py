@@ -129,6 +129,10 @@ class test_trading_terms(unittest.TestCase):
     self.assertEqual(low, self.terms.low_price)
     self.assertEqual(high, self.terms.high_price)
 
+    highest = round(self.terms.mid_price + 21, 2)
+    self.terms.high_price = highest
+    self.assertEqual(highest, self.terms.high_price)
+
     high = self.terms.mid_price - 1
     low = self.terms.mid_price + 1
     with self.assertRaises(ValueError):

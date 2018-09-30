@@ -9,8 +9,12 @@ class TestBookManager(unittest.TestCase):
   def setUp(self):
     mid_price = trading.get_mid_market_price("ETH-USD", test=True)
     low_price = mid_price * .5
-    self.terms = TradingTerms("ETH-USD", 1000, .01, .005, low_price, test=True)
+    self.terms = TradingTerms("ETH-USD", 1000, .01, .15, low_price, test=True)
     self.book_manager = Book_Manager(self.terms, test=True)
+    starting_orders = {order["id"] for order in trading.get_open_orders("ETH-USD", test=True)}
+    while len(starting_orders) != 0:
+      [trading.cancel_order_by_id(id, test=True) for id in starting_orders]
+      starting_orders = {order["id"] for order in trading.get_open_orders("ETH-USD", test=True)}
 
   def test_book_manager_init(self):
     self.assertEqual(self.terms, self.book_manager.terms)
@@ -28,19 +32,20 @@ class TestBookManager(unittest.TestCase):
     sell_budget = round(sell_budget, 2)
     budget = sell_budget + buy_budget
     upper_bound = self.terms.budget
-    rounded_off_buy_trade = ((book.unsent_orders[25].size - self.terms.size_change) *
-                             (book.unsent_orders[25].price + self.terms.price_change))
-    rounded_off_sell_trade = (book.unsent_orders[51].size + self.terms.size_change) * self.terms.mid_price
-    lower_bound = 1000 - rounded_off_buy_trade - rounded_off_sell_trade - 10 # TODO: understand errror trerm, guessing it has to do with price distribution.
+    last_buy = int(self.book_manager.count/2 - 1)
+    last_sell = int(self.book_manager.count - 1)
+    rounded_off_buy_trade = ((book.unsent_orders[last_buy].size -
+                              self.terms.size_change) *
+                             (book.unsent_orders[last_buy].price +
+                              self.terms.price_change))
+    rounded_off_sell_trade = (book.unsent_orders[last_sell].size +
+                              self.terms.size_change) * self.terms.mid_price
+    lower_bound = 1000 - rounded_off_buy_trade - rounded_off_sell_trade - 10
+    # TODO: understand need for error term of 10, guessing it has to do with price distribution.
     self.assertLessEqual(budget, upper_bound)
     self.assertGreaterEqual(budget, lower_bound)
 
   def test_book_manager_send_orders(self):
-
-    starting_orders = {order["id"] for order in trading.get_open_orders("ETH-USD", test=True)}
-    while len(starting_orders) != 0:
-      cancel_orders = [trading.cancel_order_by_id(order, test=True) for order in starting_orders]
-      starting_orders = {order["id"] for order in trading.get_open_orders("ETH-USD", test=True)}
     self.book_manager.send_orders()
 
     self.assertEqual(self.book_manager.book.unsent_orders, [])
@@ -48,6 +53,27 @@ class TestBookManager(unittest.TestCase):
     ending_order_ids = {order["id"] for order in trading.get_open_orders("ETH-USD", test=True)}
     self.assertEqual(ending_order_ids, sent_order_ids)
 
+    canceled_order_ids = {trading.cancel_order_by_id(id, test=True)[0] for id in sent_order_ids}
+    self.assertEqual(sent_order_ids, canceled_order_ids)
+    no_orders_left = {order["id"] for order in trading.get_open_orders("ETH-USD", test=True)}
+    self.assertEqual(set(), no_orders_left)
+
+  def test_book_manager_add_and_send_order(self):
+    self.book_manager.send_orders()
+    first_size = self.terms.min_size
+    first_price = round(self.terms.mid_price - self.terms.price_change * .75)
+    count = int(self.terms.trade_count / 4)
+    self.book_manager.add_and_send_orders("buy", count, first_size, first_price, self.terms.size_change)
+
+    sent_order_ids = {order.id for order in self.book_manager.book.open_orders}
+    ending_order_ids = {order["id"] for order in trading.get_open_orders("ETH-USD", test=True)}
+
+    self.assertEqual(sent_order_ids, ending_order_ids)
+
+    canceled_order_ids = {trading.cancel_order_by_id(id, test=True)[0] for id in sent_order_ids}
+    self.assertEqual(sent_order_ids, canceled_order_ids)
+    no_orders_left = {order["id"] for order in trading.get_open_orders("ETH-USD", test=True)}
+    self.assertEqual(set(), no_orders_left)
 
 
 

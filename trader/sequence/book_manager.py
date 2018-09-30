@@ -8,24 +8,25 @@ class Book_Manager():
     self.terms = terms
     self.book = Book(terms.pair, test)
 
-    count = terms.trade_count
-    buy_count = int(
+    self.initial_count = terms.trade_count
+    self.buy_count = int(
       (terms.mid_price - terms.low_price) /
-      (terms.high_price - terms.low_price) * count
+      (terms.high_price - terms.low_price) * self.initial_count
     )
-    sell_count = int(
+    self.sell_count = int(
       (terms.high_price - terms.mid_price) / 
-      (terms.high_price - terms.low_price) * count
+      (terms.high_price - terms.low_price) * self.initial_count
     )
+    self.count = self.buy_count + self.sell_count
     first_buy_size = terms.min_size
     first_sell_size = terms.min_size + terms.size_change
     first_buy_price = terms.mid_price - terms.price_change
     first_sell_price = terms.mid_price + terms.price_change
-    print("Count {} buys {} sells {}".format(count, buy_count, sell_count))
-    self.add_orders("buy", buy_count, first_buy_size, first_buy_price)
-    self.add_orders("sell", sell_count, first_sell_size, first_sell_price)
+    print("Count {} buys {} sells {}".format(self.initial_count, self.buy_count, self.sell_count))
+    self.add_orders("buy", self.buy_count, first_buy_size, first_buy_price, self.terms.size_change * 2)
+    self.add_orders("sell", self.sell_count, first_sell_size, first_sell_price, self.terms.size_change * 2)
 
-  def add_orders(self, side, count, first_size, first_price):
+  def add_orders(self, side, count, first_size, first_price, size_change):
     price = first_price
     size = first_size
     plus_or_minus = -1 if side == "buy" else 1
@@ -34,7 +35,7 @@ class Book_Manager():
       print("Adding a {} {} order size {} and price {}". format(
         side, self.terms.pair, size, price))
 
-      new_size = size + self.terms.size_change * 2
+      new_size = size + size_change
       size = round(new_size, 8)
       new_price = price + plus_or_minus * self.terms.price_change
       price = round(new_price, self.terms.price_decimals)
@@ -42,9 +43,9 @@ class Book_Manager():
   def send_orders(self):
     self.book.send_orders()
 
-  def add_and_send_orders(self, side, count, first_size, first_price):
-    existing_unsent_orders = self.book.unsent_ordrs
-    self.book.unsent_oders = []
-    self.add_orders(side, count, first_size, first_price)
+  def add_and_send_orders(self, side, count, first_size, first_price, size_change):
+    existing_unsent_orders = self.book.unsent_orders
+    self.book.unsent_orders = []
+    self.add_orders(side, count, first_size, first_price, size_change)
     self.send_orders()
     self.book.unsent_orders = existing_unsent_orders

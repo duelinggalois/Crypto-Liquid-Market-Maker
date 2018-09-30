@@ -11,7 +11,9 @@ class test_trading(unittest.TestCase):
 
   def setUp(self):
     mid = trading.get_mid_market_price("BTC-USD", test=True)
-    self.test_price = round(mid*.1, 2)
+    if mid > 100000:
+      mid = 6000
+    self.test_price = round(mid*.5, 2)
 
     self.test_order = order.Order("BTC-USD",
                                   "buy",
