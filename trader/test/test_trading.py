@@ -2,10 +2,6 @@ from ..exchange import order
 from ..exchange import trading
 import unittest
 
-# Name                                Stmts   Miss  Cover   Missing
-# -----------------------------------------------------------------
-# trader/exchange/trading.py             63      1    98%   67
-
 
 class test_trading(unittest.TestCase):
 
@@ -13,7 +9,7 @@ class test_trading(unittest.TestCase):
     mid = trading.get_mid_market_price("BTC-USD", test=True)
     if mid > 100000:
       mid = 6000
-    self.test_price = round(mid*.5, 2)
+    self.test_price = round(mid * .5, 2)
 
     self.test_order = order.Order("BTC-USD",
                                   "buy",

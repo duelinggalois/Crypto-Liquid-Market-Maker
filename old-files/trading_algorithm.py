@@ -1,17 +1,20 @@
 import requests, math, json
 import trading, subscribe, process
 
+
 def start_ws_trade(self):
   self.ready_to_send = True
   self.start_ws()
 
+
 def start_ws(self):
   self.socket = subscribe.Subscribe(
-    [self.pair], 
-    ["matches"], 
-    trading_algorithm=self
+      [self.pair],
+      ["matches"],
+      trading_algorithm=self
   )
   self.socket.start()
+
 
 def list_trades(self):
   """Used to send trading sequences in new_sequences to be listed

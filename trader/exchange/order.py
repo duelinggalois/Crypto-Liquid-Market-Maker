@@ -1,4 +1,3 @@
-from . import trading
 import time
 import logging
 import config

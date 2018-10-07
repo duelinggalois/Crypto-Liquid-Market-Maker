@@ -1,11 +1,18 @@
-import process
-import asyncio, websockets, time, base64, hmac, json, hashlib
-import sys, os
-import logging
+import asyncio
+import base64
+import config
+import hashlib
+import hmac
+import json
+import os
+import sys
+import time
 import trading
+import websockets
+import logging
 
-#PYTHONASYNCIODEBUG = 1
-#logging.basicConfig(level=logging.DEBUG)
+PYTHONASYNCIODEBUG = 1
+logging.basicConfig(level=logging.DEBUG)
 
 
 class Subscribe():
@@ -13,8 +20,8 @@ class Subscribe():
   '''
 
   def __init__(self, product_ids=[], channel=[], url="",
-    subscription='subscribe', auth=False, file_path=None,
-    trading_algorithm=None):
+               subscription='subscribe', auth=False, file_path=None,
+               trading_algorithm=None):
 
     if url == "":
       self.url = config.socket
@@ -25,24 +32,24 @@ class Subscribe():
     self.error = None
     self.file_path = file_path
     self.ws = websockets.connect(self.url)
-    self.stop= False
+    self.stop = False
     self.trading_algorithm = trading_algorithm
 
     if self.channel == []:
       self.sub_params = {
-        'type': subscription,
-        'product_ids': self.product_ids}
+          'type': subscription,
+          'product_ids': self.product_ids}
     else:
       self.sub_params = {
-        'type': subscription,
-        'product_ids': self.product_ids,
-        'channels': self.channel
-        }
+          'type': subscription,
+          'product_ids': self.product_ids,
+          'channels': self.channel
+      }
 
   def auth_stamp(self):
     self.api_key = config.api_key
-    self.api_secret = config.api_secret
-    self.api_passphrase= config.api_pass
+    self.api_secretd = config.api_secret
+    self.api_passphrase = config.api_pass
     timestamp = str(time.time())
     message = timestamp + 'GET' + '/users/self/verify'
     message = message.encode()
@@ -62,15 +69,13 @@ class Subscribe():
 
     asyncio.get_event_loop().run_until_complete(self.ws)
 
-
-  async def _connect(self):
+  async def connect(self):
     async with websockets.connect(self.url) as ws:
-      await ws.send( json.dumps( self.sub_params ))
+      await ws.send(json.dumps(self.sub_params))
       await self._listen(ws)
 
-
   async def _listen(self, ws):
-    while True:
+    while True:  # killing true may end loop when there is an error.
       try:
         msg = await asyncio.wait_for(ws.recv(), timeout=30)
         self.on_message(msg)
@@ -96,13 +101,12 @@ class Subscribe():
         print(exc_type, fname, exc_tb.tb_lineno)
         self.on_error(e, msg)
 
-
   def on_open(self, msg):
     # Not using
     return None
 
-  def on_message(self, msg):
-    self.trading_algorithm.process_message(msg)
+#  def on_message(self, msg):
+#    self.trading_algorithm.process_message(msg)
 
   def on_error(self, e, data=None):
     print('{}: {} , {} - data: {}'.format(type(e), e, e.args, data))
@@ -111,23 +115,24 @@ class Subscribe():
   def _disconnect(self):
     # Need to disconnect socket when error
     print("\n-- Error => Canceling Trades --")
-    for trade in [
-      { "id": trade["id"],
-        "size": trade["size"],
-        "price": trade["price"],
-        "side": trade["side"]
-      }
-      for trade
-      in self.trading_algorithm.book
+    '''for trade in [
+        {"id": trade["id"],
+         "size": trade["size"],
+         "price": trade["price"],
+         "side": trade["side"]
+         }
+        for trade
+        in self.trading_algorithm.book
     ]:
-      trading.cancel_id(trade)
+    trading.cancel_id(trade)'''
 
   def on_close(self):
     print("\n-- Socket Closed --")
 
 # Run as main option used for debugging websocket
 
-if __name__== "__main__":
+
+if __name__ == "__main__":
   subscription = sys.argv[1]
   product_ids = sys.argv[2].split(',')
   channels = sys.argv[3].split(',')
@@ -141,9 +146,9 @@ if __name__== "__main__":
     auth = False
 
   sock = Subscribe(
-    product_ids,
-    channels,
-    auth=auth,
-    subscription=subscription,
-    file_path=main_file_path)
+      product_ids,
+      channels,
+      auth=auth,
+      subscription=subscription,
+      file_path=main_file_path)
   sock.start()

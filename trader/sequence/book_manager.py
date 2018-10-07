@@ -14,7 +14,7 @@ class Book_Manager():
       (terms.high_price - terms.low_price) * self.initial_count
     )
     self.sell_count = int(
-      (terms.high_price - terms.mid_price) / 
+      (terms.high_price - terms.mid_price) /
       (terms.high_price - terms.low_price) * self.initial_count
     )
     self.count = self.buy_count + self.sell_count
@@ -22,9 +22,19 @@ class Book_Manager():
     first_sell_size = terms.min_size + terms.size_change
     first_buy_price = terms.mid_price - terms.price_change
     first_sell_price = terms.mid_price + terms.price_change
-    print("Count {} buys {} sells {}".format(self.initial_count, self.buy_count, self.sell_count))
-    self.add_orders("buy", self.buy_count, first_buy_size, first_buy_price, self.terms.size_change * 2)
-    self.add_orders("sell", self.sell_count, first_sell_size, first_sell_price, self.terms.size_change * 2)
+    print("Count {} buys {} sells {}".format(self.initial_count,
+                                             self.buy_count,
+                                             self.sell_count))
+    self.add_orders("buy",
+                    self.buy_count,
+                    first_buy_size,
+                    first_buy_price,
+                    self.terms.size_change * 2)
+    self.add_orders("sell",
+                    self.sell_count,
+                    first_sell_size,
+                    first_sell_price,
+                    self.terms.size_change * 2)
 
   def add_orders(self, side, count, first_size, first_price, size_change):
     price = first_price

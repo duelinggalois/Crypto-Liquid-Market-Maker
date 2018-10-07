@@ -95,13 +95,13 @@ class test_trading_terms(unittest.TestCase):
   def test_terms_mid_price(self):
     with self.assertRaises(ValueError):
       self.terms.mid_price
-    self.terms.pair = "ETH-USD"
+    self.terms.pair = "BTC-USD"
 
     self.terms.set_mid_price()
     self.assertEqual(round(self.terms._mid_price, 2), self.terms.mid_price)
 
   def test_terms_prices(self):
-    self.terms.pair = "ETH-USD"
+    self.terms.pair = "BTC-USD"
     with self.assertRaises(ValueError):
       self.terms.high_price
     with self.assertRaises(ValueError):
@@ -141,7 +141,7 @@ class test_trading_terms(unittest.TestCase):
       self.terms.low_price = low
 
   def test_terms_str(self):
-    self.terms.pair = "ETH-USD"
+    self.terms.pair = "BTC-USD"
     self.terms.budget = 10000
     self.terms.size_change = .001
     self.terms.set_mid_price()

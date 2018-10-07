@@ -1,7 +1,6 @@
 import hmac
 import hashlib
 import time
-import requests
 import base64
 from requests.auth import AuthBase
 import config
