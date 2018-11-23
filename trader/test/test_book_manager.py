@@ -9,7 +9,7 @@ class TestBookManager(unittest.TestCase):
   def setUp(self):
     mid_price = trading.get_mid_market_price("BTC-USD", test=True)
     low_price = mid_price * .5
-    self.terms = TradingTerms("BTC-USD", 1000, .01, .15, low_price, test=True)
+    self.terms = TradingTerms("BTC-USD", 10000000, .01, .15, low_price, test=True)
     self.book_manager = Book_Manager(self.terms, test=True)
     starting_orders = {order["id"] for order in trading.get_open_orders("BTC-USD", test=True)}
     while len(starting_orders) != 0:
@@ -33,7 +33,7 @@ class TestBookManager(unittest.TestCase):
     sell_budget = round(sell_budget, 2)
     budget = sell_budget + buy_budget
     upper_bound = self.terms.budget
-    last_buy = int(self.book_manager.count/2 - 1)
+    last_buy = int(self.book_manager.count / 2 - 1)
     last_sell = int(self.book_manager.count - 1)
     rounded_off_buy_trade = ((book.unsent_orders[last_buy].size -
                               self.terms.size_change) *

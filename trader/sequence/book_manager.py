@@ -13,10 +13,12 @@ class Book_Manager():
       (terms.mid_price - terms.low_price) /
       (terms.high_price - terms.low_price) * self.initial_count
     )
+    print("rounded buy count to {}".format(self.buy_count))
     self.sell_count = int(
       (terms.high_price - terms.mid_price) /
       (terms.high_price - terms.low_price) * self.initial_count
     )
+    print("rounded sell count to {}".format(self.sell_count))
     self.count = self.buy_count + self.sell_count
     first_buy_size = terms.min_size
     first_sell_size = terms.min_size + terms.size_change

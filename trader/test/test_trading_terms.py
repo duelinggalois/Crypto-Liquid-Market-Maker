@@ -158,7 +158,7 @@ class test_trading_terms(unittest.TestCase):
       "min size: \t\t{}\nsize change: \t\t{}\nlow price: \t\t{}\n"
       "mid price: \t\t{}\nhigh price: \t\t\t{}\ntrade_count: \t\t\t{}\n"
       "price change: \t\t{}\n"
-    ).format("ETH", "USD", 10000, .01, .001, low, mid, high, count,
+    ).format("BTC", "USD", 10000, .01, .001, low, mid, high, count,
              price_change)
 
     self.assertEqual(str(self.terms), test_output)

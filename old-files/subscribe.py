@@ -65,7 +65,7 @@ class Subscribe():
 
     if self.auth:
       self.auth_stamp()
-    self.ws = self._connect()
+    self.ws = self.connect()
 
     asyncio.get_event_loop().run_until_complete(self.ws)
 
