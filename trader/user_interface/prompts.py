@@ -1,7 +1,7 @@
 import os
 import readline
 from pick import pick
-from trading_terms import TradingTerms
+from ..sequence.trading_terms import TradingTerms
 
 
 def _input_default(prompt, default):
@@ -14,7 +14,7 @@ def _input_default(prompt, default):
   return result
 
 
-def _prompt_float(title, default):
+def _prompt_float(title, default=""):
   while True:
     try:
       value = _input_default("\n" + title + "\n", default)
@@ -51,7 +51,7 @@ def show_intro():
   print(
     "** Crypto Liquid Market Maker - By William P. Fey **\n"
     "This program will list a sequence of buy and sell trades on \n"
-    "GDAX.com based on pertinent user input.\n\n"
+    "pro.coinbase.com based on pertinent user input.\n\n"
   )
   input("Press return to continue...")
   # clear screen
@@ -64,22 +64,21 @@ def prompt_trading_terms():
 
   terms.pair = _prompt_list(
     "What trading pair would you like to use?",
-    TradingTerms.supported_pairs,
-    TradingTerms.default_pair_index
+    terms.supported_pairs,
+    0
   )
 
   terms.budget = _prompt_float(
     ("What is the value of {0} would you like to allocate in terms of {1}?"
      ).format(
-      terms.pair_from,
-      terms.pair_to
-    ),
-    ".075"
+      terms.base_pair,
+      terms.quote_pair,
+    )
   )
 
   terms.min_size = _prompt_float(
     "What is the minimum trade size for this pair?",
-    ".01"
+    terms.min_size
   )
 
   terms.size_change = _prompt_float(
@@ -88,34 +87,15 @@ def prompt_trading_terms():
     ".000025"
   )
 
-  current_price = _prompt_float(
-    ("What is the estimated price of {0} in terms of {1}?").format(
-      terms.pair_from,
-      terms.pair_to
-    ),
-    ".15185"
+  print("This pair is currently trading at {0} {1}/{2}, would you like to continue?"
+        .format(terms.mid_price,
+                 terms.base_pair,
+                 terms.quote_pair
+        )
   )
-
-  use_current_price = _prompt_bool(
-    ("Would you like to use {0} {1}/{2} as the the midpoint of the trading "
-     "algorithm?"
-     ).format(
-      current_price,
-      terms.pair_to,
-      terms.pair_from
-    ),
-    "y"
-  )
-
-  if not use_current_price:
-    terms.mid_price = _prompt_float("What midpoint price would you like to "
-                                    "use?")
-  else:
-    terms.mid_price = current_price
 
   terms.low_price = _prompt_float(
-    "What is the low price to be sold at?",
-    ".3"
+    "What is the low price to be sold at?"
   )
 
   return terms
@@ -129,7 +109,7 @@ def confirm_trading_terms(terms):
 
 
 def prompt_ready_to_trade():
-  if _prompt_bool("Would you like trades to be listed?", "n"):
+  if _prompt_bool("Would you like trades to be listed?", "y"):
     return True
   else:
     return _prompt_bool("Would you like to change your input?", "n")
