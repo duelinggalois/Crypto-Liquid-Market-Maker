@@ -1,6 +1,13 @@
 from ..exchange import order
 from ..exchange import trading
 import unittest
+import config
+import logging
+import logging.config
+
+
+logging.config.dictConfig(config.log_config)
+logger = logging.getLogger(__name__)
 
 
 class test_trading(unittest.TestCase):
@@ -43,16 +50,16 @@ class test_trading(unittest.TestCase):
   def test_get_open_orders(self):
     orders = trading.get_open_orders(pair="BTC-USD", test=True)
     starting_order_ids = {order["id"] for order in orders}
-    print("Starting with {} orders".format(len(starting_order_ids)))
+    logger.debug("Starting with {} orders".format(len(starting_order_ids)))
 
     trading.send_order(self.test_order)
     orders = trading.get_open_orders(pair="BTC-USD", test=True)
-    print("New order {}".format(self.test_order.id))
+    logger.debug("New order {}".format(self.test_order.id))
     new_order_ids = {order["id"] for order in orders}
-    print("Ending with {} orders".format(len(new_order_ids)))
+    logger.debug("Ending with {} orders".format(len(new_order_ids)))
 
     union_order_ids = starting_order_ids | {self.test_order.id}
-    print("Union has {} orders".format(len(union_order_ids)))
+    logger.debug("Union has {} orders".format(len(union_order_ids)))
 
     self.assertEqual(new_order_ids, union_order_ids)
 
@@ -68,16 +75,16 @@ class test_trading(unittest.TestCase):
     self.live_test_order = order.Order("BTC-USD", "buy", .01, half_mid)
     orders = trading.get_open_orders(pair="BTC-USD")
     starting_order_ids = {order["id"] for order in orders}
-    print("Starting with {} orders".format(len(starting_order_ids)))
+    logger.debug("Starting with {} orders".format(len(starting_order_ids)))
 
     trading.send_order(self.live_test_order)
     orders = trading.get_open_orders(pair="BTC-USD")
-    print("New order {}".format(self.live_test_order.id))
+    logger.debug("New order {}".format(self.live_test_order.id))
     new_order_ids = {order["id"] for order in orders}
-    print("Ending with {} orders".format(len(new_order_ids)))
+    logger.debug("Ending with {} orders".format(len(new_order_ids)))
 
     union_order_ids = starting_order_ids | {self.live_test_order.id}
-    print("Union has {} orders".format(len(union_order_ids)))
+    logger.debug("Union has {} orders".format(len(union_order_ids)))
 
     self.assertEqual(new_order_ids, union_order_ids)
 

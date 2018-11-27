@@ -1,4 +1,11 @@
 from ..exchange.book import Book
+import config
+import logging
+import logging.config
+
+
+logging.config.dictConfig(config.log_config)
+logger = logging.getLogger(__name__)
 
 
 class Book_Manager():
@@ -13,20 +20,20 @@ class Book_Manager():
       (terms.mid_price - terms.low_price) /
       (terms.high_price - terms.low_price) * self.initial_count
     )
-    print("rounded buy count to {}".format(self.buy_count))
+    logger.info("rounded buy count to {}".format(self.buy_count))
     self.sell_count = int(
       (terms.high_price - terms.mid_price) /
       (terms.high_price - terms.low_price) * self.initial_count
     )
-    print("rounded sell count to {}".format(self.sell_count))
+    logger.info("rounded sell count to {}".format(self.sell_count))
     self.count = self.buy_count + self.sell_count
     first_buy_size = terms.min_size
     first_sell_size = terms.min_size + terms.size_change
     first_buy_price = terms.mid_price - terms.price_change
     first_sell_price = terms.mid_price + terms.price_change
-    print("Count {} buys {} sells {}".format(self.initial_count,
-                                             self.buy_count,
-                                             self.sell_count))
+    logger.info("Count {} buys {} sells {}".format(self.initial_count,
+                                                   self.buy_count,
+                                                   self.sell_count))
     self.add_orders("buy",
                     self.buy_count,
                     first_buy_size,
@@ -44,7 +51,7 @@ class Book_Manager():
     plus_or_minus = -1 if side == "buy" else 1
     for i in range(count):
       self.book.add_order(side, size, price)
-      print("Adding a {} {} order size {} and price {}". format(
+      logger.info("Adding a {} {} order size {} and price {}". format(
         side, self.terms.pair, size, price))
 
       new_size = size + size_change

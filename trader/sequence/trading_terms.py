@@ -1,6 +1,13 @@
 import math
 import config
 from ..exchange import trading
+import config
+import logging
+import logging.config
+
+
+logging.config.dictConfig(config.log_config)
+logger = logging.getLogger(__name__)
 
 
 class TradingTerms():
@@ -161,14 +168,14 @@ class TradingTerms():
     if low_price:
       if low_price < self.mid_price:
         self._low_price = low_price
-        print("With mid price of {} low price was set to {}"
+        logger.info("With mid price of {} low price was set to {}"
               .format(self.mid_price, self.low_price))
         if self._high_price is None:
           self._high_price = 2 * self.mid_price - low_price
-          print("No high price so it was set to {}".format(self.high_price))
+          logger.info("No high price so it was set to {}".format(self.high_price))
         elif self.mid_price - low_price >= self._high_price - self.mid_price:
           self._high_price = 2 * self.mid_price - low_price
-          print("Raised high price to {} based on low and mid price"
+          logger.warn("Raised high price to {} based on low and mid price"
                 .format(self.high_price))
       else:
         raise ValueError("Low price {} is higher than mid price {}".format(
@@ -190,7 +197,7 @@ class TradingTerms():
   def set_mid_price(self):
     if self.pair:
       self._mid_price = trading.get_mid_market_price(self.pair, test=self.test)
-      print("{} currently trading at {}".format(self.pair, self.mid_price))
+      logger.info("{} currently trading at {}".format(self.pair, self.mid_price))
     else:
       raise ValueError("Pair required to get mid market price.")
 
@@ -209,15 +216,15 @@ class TradingTerms():
         if self._low_price is None:
           self._high_price = high_price
           self._low_price = 2 * self.mid_price - high_price
-          print("With mid price of {} high price was set to {}"
+          logger.info("With mid price of {} high price was set to {}"
                 .format(self.mid_price, self.high_price))
-          print("No low price so it was set to {}".format(self.low_price))
+          logger.info("No low price so it was set to {}".format(self.low_price))
         elif self.mid_price - self.low_price <= high_price - self.mid_price:
           self._high_price = high_price
-          print("With mid price of {} high price was set to {}")
+          logger.info("With mid price of {} high price was set to {}")
         else:
           self._high_price = 2 * self.mid_price - self._low_price
-          print("high price was raised to {} based on mid and low price."
+          logger.warn("high price was raised to {} based on mid and low price."
                 .format(self.high_price))
       else:
         raise ValueError(
@@ -228,11 +235,11 @@ class TradingTerms():
 
   @property
   def trade_count(self):
-    print("Calculating trade count with budget of {}".format(self.budget))
+    logger.info("Calculating trade count with budget of {}".format(self.budget))
     budget_considering_fee = self.budget / (1 + config.CB_FEE)
     count = find_count(self.min_size, self.size_change, self.low_price,
                       self.mid_price, self.high_price, budget_considering_fee)
-    print("Count set to {}".format(count))
+    logger.info("Count set to {}".format(count))
     return count
 
   @property
