@@ -27,3 +27,43 @@ CB_SUPPORTED_PAIRS = [
   "BCH-BTC"]
 
 CB_FEE = 0.003
+
+log_config = {
+  'version': 1,
+  'disable_existing_loggers': False,
+  'formatters': {
+    'standard': {
+      'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    },
+  },
+  'handlers': {
+    'console': {
+      'level': 'INFO',
+      'formatter': 'standard',
+      'class': 'logging.StreamHandler',
+    },
+    'error': {
+      'level': 'ERROR',
+      'formatter': 'standard',
+      'class': 'logging.FileHandler',
+      'filename': 'error.log',
+    },
+    'debug': {
+      'level': 'DEBUG',
+      'formatter': 'standard',
+      'class': 'logging.StreamHandler',
+    },
+  },
+  'loggers': {
+    '': {
+      'handlers': ['console', 'error'],
+      'level': 'INFO',
+      'propagate': True,
+    },
+    'debug': {
+      'handlers': ['debug'],
+      'level': 'DEBUG',
+      'propagate': True,
+    },
+  },
+}

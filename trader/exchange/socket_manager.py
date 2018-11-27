@@ -1,17 +1,23 @@
 import asyncio
-import config
 import base64
+import config
 import hashlib
 import hmac
 import json
+import logging
+import logging.config
 import time
+import traceback
 import websockets
+
+
+logging.config.dictConfig(config.log_config)
+logger = logging.getLogger(__name__)
 
 
 class SocketManager():
 
   def __init__(self,
-               loop=None,
                auth=False,
                url="",
                action='subscribe',
@@ -19,8 +25,6 @@ class SocketManager():
                channel=[]
                ):
 
-    self.loop = asyncio.get_event_loop() if loop is None else loop
-    self.thing = "thing"
     self.auth = auth
     self.url = config.socket if url == "" else url
     self.channel = channel
@@ -36,7 +40,7 @@ class SocketManager():
           'product_ids': self.product_ids,
           'channels': self.channel
       }
-    self.protocol = websockets.connect(self.url)
+    self.protocol = ""
 
   def auth_stamp(self):
     self.api_key = config.api_key
@@ -56,99 +60,71 @@ class SocketManager():
   def run(self):
     if self.auth:
       self.auth_stamp()
-    self.ws = self.connect()
-    self.loop.run_until_complete(self.ws)
+    self.run = True
+    loop = asyncio.get_event_loop()
+    while self.run:
+      try:
+        loop.run_until_complete(self.connect())
+
+      except asyncio.TimeoutError:
+        logger.warn("Ping Timeout, Restarting Websocket")
+
+      except websockets.exceptions.ConnectionClosed:
+        logger.warn("Connection Closed, Restarting Websocket")
+
+      except KeyboardInterrupt:
+        logger.error("Keyboard Interuption, stopping socket")
+        raise
+
+      except Exception:
+        logger.error("last message recieved "
+                     f"{self.last_time_watch()} seconds ago\n"
+                     f"{traceback.format_exc()}")
+        logger.warn("Restarting Websocket")
 
   async def connect(self):
-    async with self.protocol as ws:
-      await self.send(ws, json.dumps(self.sub_params))
-      await self.listen(ws)
+    async with websockets.connect(self.url) as self.ws:
+      await self.send(json.dumps(self.sub_params))
+      await self.listen()
 
-  async def send(self, ws, message):
-    await ws.send(message)
-    print(f"{time.strftime('%x %X')} > {message}")
+  async def send(self, message):
+    await self.ws.send(message)
+    logger.info(f" > {message}")
 
-  async def listen(self, ws):
-    running = True
-    self.update = False
-    while running:
-      # if self.update:
-        # ws.send(json.dumps(update_message()))
+  async def listen(self):
+    listen = True
+    while listen:
       try:
-        recieved = await ws.recv()
+        recieved = await asyncio.wait_for(self.ws.recv(), timeout=50)
         if "type" in json.loads(recieved).keys():
-          print(f"{time.strftime('%x %X')} < {json.loads(recieved)}")
-        last_time = time.time()
-      except Exception:
-        running = False
-        print(f"{time.strftime('%x %X')} >< {time.time() - last_time}")
+          logger.info(f" < {json.loads(recieved)}")
+        self.last_time = time.time()
+
+      except asyncio.TimeoutError:
+        await self.ping_socket()
+
+      except websockets.exceptions.ConnectionClosed:
+        listen = False
+        logging.warn("Connection Closed Exception after "
+                     f"{round(self.last_time_watch(), 2)} seconds")
+        raise websockets.exceptions.ConnectionClosed(
+          1006,
+          "1 minute without messages")
+
+      except KeyboardInterrupt:
+        listen = False
         raise
-      finally:
-        ws.close()
 
-  def send_update(self, new_params):
-    asyncio.get_event_loop().call_soon(self.update(new_params))
-    print(f"> {new_params}")
+      except Exception:
+        listen = False
+        logger.exception("Socket had a general excetption, last message "
+                         f"recieved {self.last_time_watch()} seconds ago")
+        raise
 
-  async def check_for_update(self):
-    self.update = True
+  async def ping_socket(self):
+    logger.info("Pinging Socket")
+    pong_socket = await self.ws.ping()
+    await asyncio.wait_for(pong_socket, timeout=10)
 
-  def update_message(self):
-    return self.updated
-
-""">>> sock.protocol.ws_client
-sock.protocol.ws_client
->>> sock.protocol.ws_client.c
-sock.protocol.ws_client.client_connected(
-sock.protocol.ws_client.close(
-sock.protocol.ws_client.close_code
-sock.protocol.ws_client.close_connection(
-sock.protocol.ws_client.close_connection_task
-sock.protocol.ws_client.close_reason
-sock.protocol.ws_client.closed
-sock.protocol.ws_client.connection_lost(
-sock.protocol.ws_client.connection_lost_waiter
-sock.protocol.ws_client.connection_made(
-sock.protocol.ws_client.connection_open(
->>> sock.protocol.ws_client.close()
-<generator object WebSocketCommonProtocol.close at 0x7f22f43451a8>
->>> sock.protocol.ws_client
-sock.protocol.ws_client
->>> sock.protocol.ws_client.recv()
-<generator object WebSocketCommonProtocol.recv at 0x7f22f0777728>
->>> 
-"""
-
-"""Traceback (most recent call last):
-  File "/home/rev3ks/Documents/Crypto-Liquid-Market-Maker/lib/python3.6/site-packages/websockets/protocol.py", line 528, in transfer_data
-    msg = yield from self.read_message()
-  File "/home/rev3ks/Documents/Crypto-Liquid-Market-Maker/lib/python3.6/site-packages/websockets/protocol.py", line 580, in read_message
-    frame = yield from self.read_data_frame(max_size=self.max_size)
-  File "/home/rev3ks/Documents/Crypto-Liquid-Market-Maker/lib/python3.6/site-packages/websockets/protocol.py", line 645, in read_data_frame
-    frame = yield from self.read_frame(max_size)
-  File "/home/rev3ks/Documents/Crypto-Liquid-Market-Maker/lib/python3.6/site-packages/websockets/protocol.py", line 710, in read_frame
-    extensions=self.extensions,
-  File "/home/rev3ks/Documents/Crypto-Liquid-Market-Maker/lib/python3.6/site-packages/websockets/framing.py", line 100, in read
-    data = yield from reader(2)
-  File "/usr/lib/python3.6/asyncio/streams.py", line 672, in readexactly
-    raise IncompleteReadError(incomplete, n)
-asyncio.streams.IncompleteReadError: 0 bytes read on a total of 2 expected bytes
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-  File "/home/rev3ks/Documents/Crypto-Liquid-Market-Maker/trader/exchange/socket_manager.py", line 61, in run
-    self.loop.run_until_complete(self.ws)
-  File "/usr/lib/python3.6/asyncio/base_events.py", line 468, in run_until_complete
-    return future.result()
-  File "/home/rev3ks/Documents/Crypto-Liquid-Market-Maker/trader/exchange/socket_manager.py", line 66, in connect
-    print(f"> {self.sub_params}")
-  File "/home/rev3ks/Documents/Crypto-Liquid-Market-Maker/trader/exchange/socket_manager.py", line 75, in listen
-    try:
-  File "/home/rev3ks/Documents/Crypto-Liquid-Market-Maker/lib/python3.6/site-packages/websockets/protocol.py", line 350, in recv
-    yield from self.ensure_open()
-  File "/home/rev3ks/Documents/Crypto-Liquid-Market-Maker/lib/python3.6/site-packages/websockets/protocol.py", line 501, in ensure_open
-    self.close_code, self.close_reason) from self.transfer_data_exc
-websockets.exceptions.ConnectionClosed: WebSocket connection is closed: code = 1006 (connection closed abnormally [internal]), no reason
-"""
+  def last_time_watch(self):
+    return time.time() - self.last_time
