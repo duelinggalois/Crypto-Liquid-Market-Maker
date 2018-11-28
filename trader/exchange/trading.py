@@ -1,10 +1,13 @@
+import logging
+import logging.config
+
 from . import authorize
 import requests
 import config
-import logging
 
 
-logging.basicConfig(filename='info.log', level=logging.INFO)
+logging.config.dictConfig(config.log_config)
+logger = logging.getLogger(__name__)
 
 
 def send_order(Order):
@@ -35,11 +38,11 @@ def send_order(Order):
     Order.responses.append(response)
     Order.id = response["id"]
     Order.update_history(response["status"])
-    logging.info("Order Posted:" + str(order_post.json()))
+    logger.info("Order Posted:" + str(order_post.json()))
 
   else:
     Order.update_history(response["message"])
-    logging.error("API sent message: " + response["message"])
+    logger.error("API sent message: " + response["message"])
 
 
 def cancel_order(Order):
@@ -48,14 +51,14 @@ def cancel_order(Order):
   if Order.id in response:
     Order.responses.append({"deleted": response})
     Order.update_history("deleted")
-    logging.info("Order Deleted with id:" + str(response))
+    logger.info("Order Deleted with id:" + str(response))
   elif "message" in response:
     Order.responses.append(response["message"])
     Order.update_history("Error deleting order")
-    logging.error(
+    logger.error(
       "When deleting order recieved message: " + response["message"])
   else:
-    logging.error(
+    logger.error(
         "Order id was found before deleting but was found in delete response")
 
 
@@ -69,7 +72,7 @@ def cancel_order_by_id(id, test=False):
 
   order_delete = requests.delete(url + "orders/" + id, auth=auth)
   response = order_delete.json()
-  logging.debug("Response: " + str(response))
+  logger.debug("Response: " + str(response))
   return response
 
 

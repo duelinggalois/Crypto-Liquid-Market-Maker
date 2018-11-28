@@ -24,7 +24,8 @@ def run():
 
   book = Book_Manager(terms)
 
+
 try:
   run()
 except Exception:
-  logger.exception("error running trader") 
+  logger.exception("error running trader")

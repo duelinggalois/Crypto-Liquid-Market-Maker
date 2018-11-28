@@ -89,7 +89,7 @@ class SocketManager():
 
   async def send(self, message):
     await self.ws.send(message)
-    logger.info(f" > {message}")
+    logger.info(f"> {message}")
 
   async def listen(self):
     listen = True
@@ -97,7 +97,7 @@ class SocketManager():
       try:
         recieved = await asyncio.wait_for(self.ws.recv(), timeout=50)
         if "type" in json.loads(recieved).keys():
-          logger.info(f" < {json.loads(recieved)}")
+          logger.info(f"< {json.loads(recieved)}")
         self.last_time = time.time()
 
       except asyncio.TimeoutError:
@@ -108,8 +108,7 @@ class SocketManager():
         logging.warn("Connection Closed Exception after "
                      f"{round(self.last_time_watch(), 2)} seconds")
         raise websockets.exceptions.ConnectionClosed(
-          1006,
-          "1 minute without messages")
+          1006, "1 minute without messages")
 
       except KeyboardInterrupt:
         listen = False
@@ -122,9 +121,8 @@ class SocketManager():
         raise
 
   async def ping_socket(self):
-    logger.info("Pinging Socket")
-    pong_socket = await self.ws.ping()
-    await asyncio.wait_for(pong_socket, timeout=10)
+    logger.info("> ping")
+    await self.ws.ping()
 
   def last_time_watch(self):
     return time.time() - self.last_time

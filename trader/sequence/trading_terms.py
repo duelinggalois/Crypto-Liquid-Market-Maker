@@ -1,10 +1,9 @@
 import math
-import config
-from ..exchange import trading
-import config
 import logging
 import logging.config
 
+import config
+from ..exchange import trading
 
 logging.config.dictConfig(config.log_config)
 logger = logging.getLogger(__name__)
