@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class SocketManager():
 
-  def __init__(self,
+  def __init__(self, reader,
                auth=False,
                url="",
                action='subscribe',
@@ -25,6 +25,7 @@ class SocketManager():
                channel=[]
                ):
 
+    self.reader = reader
     self.auth = auth
     self.url = config.socket if url == "" else url
     self.channel = channel
@@ -45,7 +46,7 @@ class SocketManager():
   def auth_stamp(self):
     self.api_key = config.api_key
     self.api_secretd = config.api_secret
-    self.api_passphrase = config.api_pass
+    self.api_passphrase = config.api_passphrase
     timestamp = str(time.time())
     message = timestamp + 'GET' + '/users/self/verify'
     message = message.encode()
@@ -96,8 +97,9 @@ class SocketManager():
     while listen:
       try:
         recieved = await asyncio.wait_for(self.ws.recv(), timeout=50)
-        if "type" in json.loads(recieved).keys():
-          logger.info(f"< {json.loads(recieved)}")
+        message = json.loads(recieved)
+        logger.info(f"< {message}")
+        self.reader.new(message)
         self.last_time = time.time()
 
       except asyncio.TimeoutError:

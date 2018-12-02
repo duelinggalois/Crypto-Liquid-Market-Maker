@@ -4,6 +4,8 @@ import logging.config
 import os
 from .user_interface import prompts
 from .sequence.book_manager import Book_Manager
+from .socket.manager import SocketManager
+from .socket.reader import Reader
 
 logging.config.dictConfig(config.log_config)
 logger = logging.getLogger("trader")
@@ -22,7 +24,9 @@ def run():
     # reprompt for input
     terms = prompts.prompt_trading_terms()
 
-  book = Book_Manager(terms)
+  book_manager = Book_Manager(terms)
+  reader = Reader(book_manager)
+  socket_manager = SocketManager(reader)
 
 
 try:

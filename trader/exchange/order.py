@@ -1,9 +1,12 @@
 import time
 import logging
+from decimal import Decimal
+
 import config
 
 
-logging.basicConfig(filename='info.log', level=logging.INFO)
+logging.config.dictConfig(config.log_config)
+logger = logging.getLogger(__name__)
 
 
 class Order():
@@ -11,7 +14,7 @@ class Order():
   def __init__(self, pair, side, size, price, test=False):
     self.pair = pair
     self.side = side
-    self.size = size
+    self.size = Decimal(size)
     self.price = price
     self.status = "created"
     self.id = ""
@@ -19,6 +22,7 @@ class Order():
     self.responses = []
     self.test = test
     self.post_only = True
+    self.filled = Decimal()
 
     self.update_history("Created")
 
@@ -58,10 +62,7 @@ class Order():
 
   @size.setter
   def size(self, value):
-    if type(value) not in [float, int]:
-      raise TypeError("{} is not a number.".format(value))
-
-    self._size = value
+    self._size = Decimal(value)
 
   @property
   def price(self):

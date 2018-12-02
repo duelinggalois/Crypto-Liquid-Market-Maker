@@ -1,8 +1,9 @@
-from ..exchange.book import Book
-import config
+from decimal import Decimal
 import logging
 import logging.config
 
+from ..exchange.book import Book
+import config
 
 logging.config.dictConfig(config.log_config)
 logger = logging.getLogger(__name__)
@@ -62,7 +63,32 @@ class Book_Manager():
   def send_orders(self):
     self.book.send_orders()
 
-  def add_and_send_orders(self, side, count, first_size, first_price, size_change):
+  def check_match(self, match):
+    if self.matched_book_order(match):
+      order = next(
+        o for o in self.book.open_orders if o.id == match["id"]
+      )
+
+      if self.full_match(match, order):
+        side = "buy" if order.side == "sell" else "sell"
+        count = (order.size - self.terms.min_size) / self.terms.size_change
+        first_size = self.terms.min_size
+        first_price = self.terms.first_price
+        self.add_and_send_orders(side, count, first_size, first_price)
+
+      else:
+        order.filled += Decimal(match["size"])
+
+  def matched_book_order(self, match):
+    return match["maker_order_id"] in {
+      order["id"] for order in self.book.open_orders
+    }
+
+  def full_match(match, order):
+    return match['size'] == order.size - order.filled
+
+  def add_and_send_orders(self, side, count, first_size, first_price,
+                          size_change):
     existing_unsent_orders = self.book.unsent_orders
     self.book.unsent_orders = []
     self.add_orders(side, count, first_size, first_price, size_change)

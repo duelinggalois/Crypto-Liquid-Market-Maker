@@ -35,3 +35,4 @@ class Book():
     ][0]
     self.open_orders.remove(filled_order)
     self.filled_orders.append(filled_order)
+    return filled_order
