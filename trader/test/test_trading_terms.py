@@ -10,7 +10,6 @@ class test_trading_terms(unittest.TestCase):
 
   def test_terms_init(self):
 
-    self.assertEqual(config.CB_SUPPORTED_PAIRS, self.terms.supported_pairs)
     self.assertEqual(self.terms._base_pair, None)
     self.assertEqual(self.terms._quote_pair, None)
     self.assertEqual(self.terms._pair, None)

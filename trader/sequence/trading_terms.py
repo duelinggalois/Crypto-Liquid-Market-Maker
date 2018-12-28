@@ -76,7 +76,7 @@ class TradingTerms():
 
   @base_pair.setter
   def base_pair(self, value):
-    if value not in [pair[:3] for pair in config.CB_SUPPORTED_PAIRS]:
+    if value not in [pair[:3] for pair in self.supported_pairs]:
       raise ValueError("Base currency {} not supported".format(value))
     self._base_pair = value
 
@@ -87,7 +87,7 @@ class TradingTerms():
 
   @quote_pair.setter
   def quote_pair(self, value):
-    if value not in [pair[4:] for pair in config.CB_SUPPORTED_PAIRS]:
+    if value not in [pair[4:] for pair in self.supported_pairs]:
       raise ValueError("Quote currency {} not supported".format(value))
     self._quote_pair = value
 

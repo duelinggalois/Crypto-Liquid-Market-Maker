@@ -32,8 +32,6 @@ class Order():
 
   @pair.setter
   def pair(self, value):
-    if value not in config.CB_SUPPORTED_PAIRS:
-      raise ValueError("%s is an invalid trading pair." % value)
 
     self._pair = value
     self.base_pair = self.pair[:3]

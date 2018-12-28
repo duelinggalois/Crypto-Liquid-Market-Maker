@@ -65,6 +65,8 @@ class Book_Manager():
 
   def check_match(self, match):
     if self.matched_book_order(match):
+      logger.info("****MATCHED TRADE*****")
+      import pdb; pdb.set_trace()
       order = next(
         o for o in self.book.open_orders if o.id == match["id"]
       )

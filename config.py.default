@@ -19,16 +19,6 @@ test_rest_api_url = 'https://api-public.sandbox.pro.coinbase.com/'
 # Coinbase Pro test websocket
 test_socket = 'wss://ws-feed-public.sandbox.pro.coinbase.com/'
 
-# Coinbase Pro Supported Pairs
-CB_SUPPORTED_PAIRS = [
-  'BTC-USD',
-  'ETH-USD',
-  'LTC-USD',
-  'BCH-USD',
-  'ETH-BTC',
-  'LTC-BTC',
-  'BCH-BTC']
-
 CB_FEE = 0.003
 
 log_config = {
