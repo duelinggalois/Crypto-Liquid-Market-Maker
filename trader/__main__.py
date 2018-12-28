@@ -11,7 +11,7 @@ logging.config.dictConfig(config.log_config)
 logger = logging.getLogger("trader")
 
 
-def run():
+def run(test=True):
   os.system('clear')
   logger.info("Running Trader")
   prompts.show_intro()
@@ -22,11 +22,13 @@ def run():
   # Confirm user selections
   while not prompts.confirm_trading_terms(terms):
     # reprompt for input
-    terms = prompts.prompt_trading_terms()
+    terms = prompts.prompt_trading_terms(test)
 
-  book_manager = Book_Manager(terms)
+  book_manager = Book_Manager(terms, test=test)
   reader = Reader(book_manager)
-  socket_manager = SocketManager(reader)
+  socket_manager = SocketManager(reader, product_ids=[terms.pair],
+                                 send_trades=True)
+  socket_manager.run()
 
 
 try:

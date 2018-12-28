@@ -22,11 +22,21 @@ class SocketManager():
                url="",
                action='subscribe',
                product_ids=[],
-               channel=[]
+               channel=[],
+               send_trades=False
                ):
 
     self.reader = reader
     self.auth = auth
+
+    if url == "":
+      if reader.book_manager.test:
+        self.url = config.test_socket
+      else:
+        self.url = config.socket
+    else:
+      self.url = url
+
     self.url = config.socket if url == "" else url
     self.channel = channel
     self.product_ids = product_ids
@@ -41,6 +51,7 @@ class SocketManager():
           'product_ids': self.product_ids,
           'channels': self.channel
       }
+    self.send_trades = send_trades
     self.protocol = ""
 
   def auth_stamp(self):
@@ -56,7 +67,6 @@ class SocketManager():
     self.sub_params['signature'] = signature_b64
     self.sub_params['key'] = self.api_key
     self.sub_params['passphrase'] = self.api_passphrase
-    self.sub_params['timestamp'] = timestamp
 
   def run(self):
     if self.auth:
@@ -101,6 +111,9 @@ class SocketManager():
         logger.info(f"< {message}")
         self.reader.new(message)
         self.last_time = time.time()
+        if self.send_trades:
+          self.reader.book_manager.send_orders()
+          self.send_trades = False
 
       except asyncio.TimeoutError:
         await self.ping_socket()

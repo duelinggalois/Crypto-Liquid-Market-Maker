@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 class Book_Manager():
 
   def __init__(self, terms, test=False):
-
     self.terms = terms
+    self.test = test
     self.book = Book(terms.pair, test)
 
     self.initial_count = terms.trade_count
@@ -81,7 +81,7 @@ class Book_Manager():
 
   def matched_book_order(self, match):
     return match["maker_order_id"] in {
-      order["id"] for order in self.book.open_orders
+      order.id for order in self.book.open_orders
     }
 
   def full_match(match, order):

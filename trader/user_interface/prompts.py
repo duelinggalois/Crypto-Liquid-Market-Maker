@@ -1,6 +1,9 @@
 import os
+from decimal import Decimal
 import readline
+
 from pick import pick
+
 from ..sequence.trading_terms import TradingTerms
 
 
@@ -14,13 +17,13 @@ def _input_default(prompt, default):
   return result
 
 
-def _prompt_float(title, default=""):
+def _prompt_decimal(title, default=""):
   while True:
     try:
       value = _input_default("\n" + title + "\n", default)
-      value = float(value)
+      value = Decimal(value)
     except ValueError:
-      print("\nplease enter a valid float value (e.g. .01, 1.75)\n")
+      print("\nplease enter a valid value (e.g. .01, 1.75)\n")
       continue
     else:
       break
@@ -68,7 +71,7 @@ def prompt_trading_terms():
     0
   )
 
-  terms.budget = _prompt_float(
+  terms.budget = _prompt_decimal(
     ("What is the value of {0} would you like to allocate in terms of {1}?"
      ).format(
       terms.base_pair,
@@ -76,26 +79,26 @@ def prompt_trading_terms():
     )
   )
 
-  terms.min_size = _prompt_float(
+  terms.min_size = _prompt_decimal(
     "What is the minimum trade size for this pair?",
     terms.min_size
   )
 
-  terms.size_change = _prompt_float(
+  terms.size_change = _prompt_decimal(
     "How much should each trade in the sequence of buys and sells increase "
     "by?",
     ".000025"
   )
 
-  print("This pair is currently trading at {0} {1}/{2}, would you like to continue?"
+  print("This pair is currently trading at {0} {1}/{2}."
         .format(terms.mid_price,
-                 terms.base_pair,
-                 terms.quote_pair
+                terms.base_pair,
+                terms.quote_pair
+                )
         )
-  )
 
-  terms.low_price = _prompt_float(
-    "What is the low price to be sold at?"
+  terms.low_price = _prompt_decimal(
+    "What is the low price to buy at?"
   )
 
   return terms

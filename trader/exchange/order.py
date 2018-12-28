@@ -70,10 +70,10 @@ class Order():
 
   @price.setter
   def price(self, value):
-    if type(value) not in [float, int]:
+    if type(value) not in [float, int, Decimal]:
       raise TypeError("{} is not a number".format(value))
 
-    self._price = round(value, self.price_decimals)
+    self._price = Decimal(round(value, self.price_decimals))
 
   def __str__(self):
     return "pair: {}, side: {}, size: {}, price: {}".format(

@@ -1,5 +1,6 @@
 import logging
 import logging.config
+from decimal import Decimal
 
 from . import authorize
 import requests
@@ -11,12 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 def send_order(Order):
-  if Order.test:
-    url = config.test_rest_api_url
-    auth = authorize.test_run_coinbase_pro_auth()
-  else:
-    url = config.rest_api_url
-    auth = authorize.run_coinbase_pro_auth()
+
+  url, auth = get_url_auth(Order.test)
 
   json_order = {
     "size": str(Order.size),
@@ -63,12 +60,8 @@ def cancel_order(Order):
 
 
 def cancel_order_by_id(id, test=False):
-  if test:
-    url = config.test_rest_api_url
-    auth = authorize.test_run_coinbase_pro_auth()
-  else:
-    url = config.rest_api_url
-    auth = authorize.run_coinbase_pro_auth()
+  
+  url, auth = get_url_auth(test)
 
   order_delete = requests.delete(url + "orders/" + id, auth=auth)
   response = order_delete.json()
@@ -77,12 +70,8 @@ def cancel_order_by_id(id, test=False):
 
 
 def get_book(pair, level, test=False):
-  if test:
-    url = config.test_rest_api_url
-    auth = authorize.test_run_coinbase_pro_auth()
-  else:
-    url = config.rest_api_url
-    auth = authorize.run_coinbase_pro_auth()
+  
+  url, auth = get_url_auth(test)
 
   get_book = requests.get(
     url + "products/" + pair + "/book",
@@ -93,18 +82,13 @@ def get_book(pair, level, test=False):
 
 def get_mid_market_price(pair, test=False):
   book = get_book(pair, 1, test=test)
-  ask = float(book["asks"][0][0])
-  bid = float(book["bids"][0][0])
+  ask = Decimal(book["asks"][0][0])
+  bid = Decimal(book["bids"][0][0])
   return (ask + bid) / 2
 
 
 def get_open_orders(pair=None, test=False):
-  if test:
-    url = config.test_rest_api_url
-    auth = authorize.test_run_coinbase_pro_auth()
-  else:
-    url = config.rest_api_url
-    auth = authorize.run_coinbase_pro_auth()
+  url, auth = get_url_auth(test)
   if pair is None:
     query_params = "?status=open"
   else:
@@ -112,3 +96,18 @@ def get_open_orders(pair=None, test=False):
 
   get_orders = requests.get(url + "orders" + query_params, auth=auth)
   return get_orders.json()
+
+
+def get_products(test=False):
+  url, auth = get_url_auth(test)
+  response = requests.get(url + "products")
+  return [product['id'] for product in response.json()]
+
+def get_url_auth(test):
+  if test:
+    url = config.test_rest_api_url
+    auth = authorize.test_run_coinbase_pro_auth()
+  else:
+    url = config.rest_api_url
+    auth = authorize.run_coinbase_pro_auth()
+  return url, auth

@@ -16,6 +16,9 @@ test_api_secret = ''
 # Coinbase Pro test URLs
 test_rest_api_url = 'https://api-public.sandbox.pro.coinbase.com/'
 
+# Coinbase Pro test websocket
+test_socket = 'wss://ws-feed-public.sandbox.pro.coinbase.com/'
+
 # Coinbase Pro Supported Pairs
 CB_SUPPORTED_PAIRS = [
   'BTC-USD',
