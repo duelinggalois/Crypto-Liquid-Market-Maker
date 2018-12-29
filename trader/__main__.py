@@ -17,12 +17,12 @@ def run(test=True):
   prompts.show_intro()
 
   # Get initial input from user
-  terms = prompts.prompt_trading_terms()
+  terms = prompts.prompt_trading_terms(test=test)
 
   # Confirm user selections
   while not prompts.confirm_trading_terms(terms):
     # reprompt for input
-    terms = prompts.prompt_trading_terms(test)
+    terms = prompts.prompt_trading_terms(test=test)
 
   book_manager = Book_Manager(terms, test=test)
   reader = Reader(book_manager)

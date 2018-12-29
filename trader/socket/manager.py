@@ -37,7 +37,6 @@ class SocketManager():
     else:
       self.url = url
 
-    self.url = config.socket if url == "" else url
     self.channel = channel
     self.product_ids = product_ids
     if self.channel == []:
@@ -108,7 +107,7 @@ class SocketManager():
       try:
         recieved = await asyncio.wait_for(self.ws.recv(), timeout=50)
         message = json.loads(recieved)
-        logger.info(f"< {message}")
+        logger.debug(f"< {message}")
         self.reader.new(message)
         self.last_time = time.time()
         if self.send_trades:

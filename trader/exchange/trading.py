@@ -35,7 +35,12 @@ def send_order(Order):
     Order.responses.append(response)
     Order.id = response["id"]
     Order.update_history(response["status"])
-    logger.info("Order Posted:" + str(order_post.json()))
+    logger.info("Order Posted: {} {} {} {}".format(response["product_id"],
+                                                   response["side"],
+                                                   response["size"],
+                                                   response["price"]
+                                                   )
+                )
 
   else:
     Order.update_history(response["message"])

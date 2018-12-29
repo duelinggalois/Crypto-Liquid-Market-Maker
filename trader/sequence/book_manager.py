@@ -66,19 +66,22 @@ class Book_Manager():
   def check_match(self, match):
     if self.matched_book_order(match):
       logger.info("****MATCHED TRADE*****")
-      import pdb; pdb.set_trace()
       order = next(
-        o for o in self.book.open_orders if o.id == match["id"]
+        o for o in self.book.open_orders if o.id == match["maker_order_id"]
       )
 
       if self.full_match(match, order):
-        side = "buy" if order.side == "sell" else "sell"
-        count = (order.size - self.terms.min_size) / self.terms.size_change
+        logger.info("****FOUND FULL*****")
+        side, plus_minus = ("buy", -1) if order.side == "sell" else ("sell", 1)
+        count = int(1 + (order.size - self.terms.min_size) / self.terms.size_change)
         first_size = self.terms.min_size
-        first_price = self.terms.first_price
-        self.add_and_send_orders(side, count, first_size, first_price)
+        first_price = order.price + plus_minus * self.terms.size_change
+        self.cancel_orders_below_size(side, order.size)
+        self.add_and_send_orders(side, count, first_size, first_price,
+                                 self.terms.size_change)
 
       else:
+        logger.info("****NOT FULL*****")
         order.filled += Decimal(match["size"])
 
   def matched_book_order(self, match):
@@ -86,13 +89,21 @@ class Book_Manager():
       order.id for order in self.book.open_orders
     }
 
-  def full_match(match, order):
-    return match['size'] == order.size - order.filled
+  def full_match(self, match, order):
+    logger.info("****CHECK FULL*****")
+    return Decimal(match['size']) == order.size - order.filled
 
   def add_and_send_orders(self, side, count, first_size, first_price,
                           size_change):
+    logger.info("****SENDING ORDERS FOR ADJUSTMENT*****")
     existing_unsent_orders = self.book.unsent_orders
     self.book.unsent_orders = []
     self.add_orders(side, count, first_size, first_price, size_change)
     self.send_orders()
     self.book.unsent_orders = existing_unsent_orders
+
+  def cancel_orders_below_size(self, side, size):
+    logger.info("****CANCELING ORDERS FOR ADJUSTMNET*****")
+    orders_to_cancel = [o for o in self.book.open_orders
+                        if o.side == side and o.size <= size]
+    self.book.cancel_order_list(orders_to_cancel)

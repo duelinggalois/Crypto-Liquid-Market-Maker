@@ -61,9 +61,9 @@ def show_intro():
   os.system('clear')
 
 
-def prompt_trading_terms():
+def prompt_trading_terms(test=False):
 
-  terms = TradingTerms()
+  terms = TradingTerms(test=test)
 
   terms.pair = _prompt_list(
     "What trading pair would you like to use?",
