@@ -73,13 +73,6 @@ class Order():
 
     self._price = Decimal(round(value, self.price_decimals))
 
-  def __str__(self):
-    return "pair: {}, side: {}, size: {}, price: {}".format(
-      self.pair,
-      self.side,
-      self.size,
-      self.price)
-
   def update_history(self, message):
     self.history.append(
       {"time": time.time(), "status": message}
@@ -87,3 +80,28 @@ class Order():
 
   def allow_market_trade(self):
     self.post_only = False
+
+  def __str__(self):
+    return (
+      "pair: {:<12s}\n"
+      "side: {:<12s}\n"
+      "price: {:<12s}\n"
+      "size: {:<12s}\n"
+      "filled: {:<12s}\n"
+      "status: {:<12s}\n"
+      "id: {:<12s}\n"
+      "test: {:<12s}\n"
+      "history: {:<12s}\n"
+      "responses: {:<12s}\n"
+      "test").format(
+        self.pair,
+        self.side,
+        self.size,
+        self.price,
+        self.filled,
+        self.status,
+        self.id,
+        self.test,
+        self.history,
+        self.responses
+      )

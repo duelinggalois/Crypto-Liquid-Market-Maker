@@ -54,18 +54,24 @@ def cancel_order(Order):
     Order.responses.append({"deleted": response})
     Order.update_history("deleted")
     logger.info("Order Deleted with id:" + str(response))
+
   elif "message" in response:
     Order.responses.append(response["message"])
     Order.update_history("Error deleting order")
     logger.error(
-      "When deleting order recieved message: " + response["message"])
+      "When deleting order recieved message: {}\n{}".format(
+        response["message"],
+        str(Order)
+      )
+    )
+
   else:
     logger.error(
         "Order id was found before deleting but was found in delete response")
 
 
 def cancel_order_by_id(id, test=False):
-  
+
   url, auth = get_url_auth(test)
 
   order_delete = requests.delete(url + "orders/" + id, auth=auth)
@@ -107,6 +113,7 @@ def get_products(test=False):
   url, auth = get_url_auth(test)
   response = requests.get(url + "products")
   return [product['id'] for product in response.json()]
+
 
 def get_url_auth(test):
   if test:
