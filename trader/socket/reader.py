@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 class Reader():
 
-  def __init__(self, book_manager):
-    self.book_manager = book_manager
+  def __init__(self, BookManager):
+    self.BookManager = BookManager
 
   def new(self, msg):
     '''Chooose which process function to use to process message based on
@@ -60,7 +60,7 @@ class Reader():
                   msg["price"]
                 )
                 )
-    self.book_manager.check_match(msg)
+    self.BookManager.check_match(msg)
 
   def error(self, msg):
     logger.exception("< {} message: {}".format(

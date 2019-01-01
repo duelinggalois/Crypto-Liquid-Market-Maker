@@ -68,7 +68,8 @@ def cancel_order(Order):
 
   else:
     logger.error(
-        "Order id was found before deleting but was found in delete response \n{}"
+        ("Order id was found before deleting but was found in delete response"
+         " \n{}")
         .format(str(Order)))
 
 
@@ -83,7 +84,7 @@ def cancel_order_by_id(id, test=False):
 
 
 def get_book(pair, level, test=False):
-  
+
   url, auth = get_url_auth(test)
 
   get_book = requests.get(

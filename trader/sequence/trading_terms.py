@@ -175,11 +175,11 @@ class TradingTerms():
         logger.info("With mid price of {} low price was set to {}"
                     .format(self.mid_price, self.low_price))
         if self._high_price is None:
-          self._high_price = Decimal(2 * self.mid_price - low_price)
+          self._high_price = 2 * self.mid_price - Decimal(low_price)
           logger.info("No high price so it was set to {}"
                       .format(self.high_price))
         elif self.mid_price - low_price >= self._high_price - self.mid_price:
-          self._high_price = Decimal(2 * self.mid_price - low_price)
+          self._high_price = 2 * self.mid_price - Decimal(low_price)
           logger.warn("Raised high price to {} based on low and mid price"
                       .format(self.high_price))
       else:
@@ -220,12 +220,13 @@ class TradingTerms():
       if Decimal(self.mid_price) < high_price:
         if self._low_price is None:
           self._high_price = Decimal(high_price)
-          self._low_price = Decimal(2 * self.mid_price - high_price)
+          self._low_price = 2 * self.mid_price - self._high_price
           logger.info("With mid price of {} high price was set to {}"
                       .format(self.mid_price, self.high_price))
           logger.info("No low price so it was set to {}"
                       .format(self.low_price))
-        elif self.mid_price - self.low_price <= Decimal(high_price) - self.mid_price:
+        elif (self.mid_price - self.low_price <=
+              Decimal(high_price) - self.mid_price):
           self._high_price = Decimal(high_price)
           logger.info("With mid price of {} high price was set to {}")
         else:

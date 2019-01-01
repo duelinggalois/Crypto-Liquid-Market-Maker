@@ -9,7 +9,7 @@ logging.config.dictConfig(config.log_config)
 logger = logging.getLogger(__name__)
 
 
-class Book_Manager():
+class BookManager():
 
   def __init__(self, terms, test=False):
     self.terms = terms

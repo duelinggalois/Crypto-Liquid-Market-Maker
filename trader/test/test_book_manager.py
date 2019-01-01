@@ -1,5 +1,7 @@
 import unittest
-from ..sequence.book_manager import Book_Manager
+from decimal import Decimal
+
+from ..sequence.BookManager import BookManager
 from ..sequence.trading_terms import TradingTerms
 from ..exchange import trading
 
@@ -11,7 +13,7 @@ class TestBookManager(unittest.TestCase):
     low_price = mid_price / 2
     self.terms = TradingTerms("BTC-USD", "10000", ".01", ".15", low_price,
                               test=True)
-    self.book_manager = Book_Manager(self.terms, test=True)
+    self.BookManager = BookManager(self.terms, test=True)
     starting_orders = {order["id"] for order in trading
                        .get_open_orders("BTC-USD", test=True)
                        }
@@ -21,10 +23,10 @@ class TestBookManager(unittest.TestCase):
                          .get_open_orders("BTC-USD", test=True)
                          }
 
-  def test_book_manager_init(self):
-    self.assertEqual(self.terms, self.book_manager.terms)
+  def test_BookManager_init(self):
+    self.assertEqual(self.terms, self.BookManager.terms)
 
-    book = self.book_manager.book
+    book = self.BookManager.book
     self.assertEqual(book.pair, "BTC-USD")
 
     buy_list = [round(order.price * order.size, 2)
@@ -38,8 +40,8 @@ class TestBookManager(unittest.TestCase):
     sell_budget = round(sell_budget, 2)
     budget = sell_budget + buy_budget
     upper_bound = self.terms.budget
-    last_buy = int(self.book_manager.count / 2 - 1)
-    last_sell = int(self.book_manager.count - 1)
+    last_buy = int(self.BookManager.count / 2 - 1)
+    last_sell = int(self.BookManager.count - 1)
     rounded_off_buy_trade = ((book.unsent_orders[last_buy].size -
                               self.terms.size_change) *
                              (book.unsent_orders[last_buy].price +
@@ -52,11 +54,11 @@ class TestBookManager(unittest.TestCase):
     self.assertLessEqual(budget, upper_bound)
     self.assertGreaterEqual(budget, lower_bound)
 
-  def test_book_manager_send_orders(self):
-    self.book_manager.send_orders()
+  def test_BookManager_send_orders(self):
+    self.BookManager.send_orders()
 
-    self.assertEqual(self.book_manager.book.unsent_orders, [])
-    sent_order_ids = {order.id for order in self.book_manager.book.open_orders}
+    self.assertEqual(self.BookManager.book.unsent_orders, [])
+    sent_order_ids = {order.id for order in self.BookManager.book.open_orders}
     ending_order_ids = {order["id"] for order in trading
                         .get_open_orders("BTC-USD", test=True)}
     self.assertEqual(ending_order_ids, sent_order_ids)
@@ -68,19 +70,26 @@ class TestBookManager(unittest.TestCase):
                       .get_open_orders("BTC-USD", test=True)}
     self.assertEqual(set(), no_orders_left)
 
-  def test_book_manager_add_and_send_order(self):
-    self.book_manager.send_orders()
+  def test_BookManager_add_and_send_order(self):
+    self.BookManager.send_orders()
     first_size = self.terms.min_size
-    first_price = round(self.terms.mid_price - self.terms.price_change * .75)
+    first_price = round(self.terms.mid_price -
+                        self.terms.price_change * Decimal(".75"))
     count = int(self.terms.trade_count / 4)
-    self.book_manager.add_and_send_orders("buy", count, first_size, first_price, self.terms.size_change)
+    self.BookManager.add_and_send_orders("buy",
+                                         count, first_size,
+                                         first_price,
+                                         self.terms.size_change)
 
-    sent_order_ids = {order.id for order in self.book_manager.book.open_orders}
-    ending_order_ids = {order["id"] for order in trading.get_open_orders("BTC-USD", test=True)}
+    sent_order_ids = {order.id for order in self.BookManager.book.open_orders}
+    ending_order_ids = {order["id"] for order in trading
+                        .get_open_orders("BTC-USD", test=True)}
 
     self.assertEqual(sent_order_ids, ending_order_ids)
 
-    canceled_order_ids = {trading.cancel_order_by_id(id, test=True)[0] for id in sent_order_ids}
+    canceled_order_ids = {trading.cancel_order_by_id(id, test=True)[0]
+                          for id in sent_order_ids}
     self.assertEqual(sent_order_ids, canceled_order_ids)
-    no_orders_left = {order["id"] for order in trading.get_open_orders("BTC-USD", test=True)}
+    no_orders_left = {order["id"] for order in
+                      trading.get_open_orders("BTC-USD", test=True)}
     self.assertEqual(set(), no_orders_left)

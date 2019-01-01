@@ -30,7 +30,7 @@ class SocketManager():
     self.auth = auth
 
     if url == "":
-      if reader.book_manager.test:
+      if reader.BookManager.test:
         self.url = config.test_socket
       else:
         self.url = config.socket
@@ -111,7 +111,7 @@ class SocketManager():
         self.reader.new(message)
         self.last_time = time.time()
         if self.send_trades:
-          self.reader.book_manager.send_orders()
+          self.reader.BookManager.send_orders()
           self.send_trades = False
 
       except asyncio.TimeoutError:

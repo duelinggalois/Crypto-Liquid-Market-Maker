@@ -9,8 +9,6 @@ websockets = "*"
 pick = "*"
 coverage = "*"
 nose = "*"
-pymongo = "*"
-
 
 [dev-packages]
 

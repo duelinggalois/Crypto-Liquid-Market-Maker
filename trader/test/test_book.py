@@ -64,7 +64,7 @@ class Test_Book(unittest.TestCase):
 
     self.assertEqual(book_ids, sent_ids)
 
-    self.book.cancel_orders()
+    self.book.cancel_all_orders()
 
     self.assertEqual(self.book.open_orders, [])
     self.assertEqual(len(self.book.canceled_orders), 3)

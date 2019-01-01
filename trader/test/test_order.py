@@ -24,7 +24,7 @@ class Test_Order(unittest.TestCase):
                       "responses: {}").format("BTC-USD",
                                               "buy",
                                               "6666.67",
-                                              ".05",
+                                              "0.05",
                                               "0",
                                               "created",
                                               "",

@@ -3,7 +3,7 @@ import logging
 import logging.config
 import os
 from .user_interface import prompts
-from .sequence.book_manager import Book_Manager
+from .sequence.BookManager import BookManager
 from .socket.manager import SocketManager
 from .socket.reader import Reader
 
@@ -24,7 +24,7 @@ def run(test=True):
     # reprompt for input
     terms = prompts.prompt_trading_terms(test=test)
 
-  book_manager = Book_Manager(terms, test=test)
+  book_manager = BookManager(terms, test=test)
   reader = Reader(book_manager)
   socket_manager = SocketManager(reader, product_ids=[terms.pair],
                                  send_trades=True)

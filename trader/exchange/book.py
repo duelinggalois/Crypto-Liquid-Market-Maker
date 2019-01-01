@@ -24,13 +24,13 @@ class Book():
     self.unsent_orders = []
 
   def cancel_all_orders(self):
-    self.canceled_orders(self.open_orders)
+    self.cancel_order_list(self.open_orders)
 
   def cancel_order_list(self, order_list):
     for order in order_list:
       trading.cancel_order(order)
       self.canceled_orders.append(order)
-      self.open_orders.remove(order)
+    self.open_orders = [o for o in self.open_orders if o not in order_list]
 
   def order_filled(self, order_id):
     filled_order = [
