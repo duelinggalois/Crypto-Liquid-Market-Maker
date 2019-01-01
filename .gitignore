@@ -3,3 +3,5 @@ __pycache__
 config.py
 .pytest_cache
 .python-version
+*.log
+

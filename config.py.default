@@ -1,8 +1,62 @@
-#GDAX API Keys
-api_pass = ""
-api_key = ""
-api_secret = ""
+# Coinbase Pro keys
+api_passphrase = ''
+api_key = ''
+api_secret = ''
 
-#GDAX URLs
-url = 'https://api.gdax.com/'
-socket = "wss://ws-feed.gdax.com"
+# Coinbase Pro URLs
+rest_api_url = 'https://api.pro.coinbase.com/'
+socket = 'wss://ws-feed.pro.coinbase.com/'
+
+# Coinbaise Pro test keys
+
+test_api_passphrase = ''
+test_api_key = ''
+test_api_secret = ''
+
+# Coinbase Pro test URLs
+test_rest_api_url = 'https://api-public.sandbox.pro.coinbase.com/'
+
+# Coinbase Pro test websocket
+test_socket = 'wss://ws-feed-public.sandbox.pro.coinbase.com/'
+
+CB_FEE = 0.003
+
+log_config = {
+  'version': 1,
+  'disable_existing_loggers': False,
+  'formatters': {
+    'standard': {
+      'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    },
+  },
+  'handlers': {
+    'console': {
+      'level': 'INFO',
+      'formatter': 'standard',
+      'class': 'logging.StreamHandler',
+    },
+    'error': {
+      'level': 'ERROR',
+      'formatter': 'standard',
+      'class': 'logging.FileHandler',
+      'filename': 'logs/error.log',
+    },
+    'debug': {
+      'level': 'DEBUG',
+      'formatter': 'standard',
+      'class': 'logging.StreamHandler',
+    },
+  },
+  'loggers': {
+    '': {
+      'handlers': ['console', 'error'],
+      'level': 'INFO',
+      'propagate': True,
+    },
+    'debug': {
+      'handlers': ['debug'],
+      'level': 'DEBUG',
+      'propagate': True,
+    },
+  },
+}
