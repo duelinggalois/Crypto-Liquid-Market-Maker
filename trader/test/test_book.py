@@ -40,7 +40,7 @@ class Test_Book(unittest.TestCase):
 
   def test_book_send_orders(self):
     price = round(1 + self.market_price, 2)
-    self.book.add_order("sell", .11, price)
+    self.book.add_order("sell", ".11", price)
     self.book.send_orders()
 
     self.assertEqual(self.book.unsent_orders, [])
@@ -51,8 +51,8 @@ class Test_Book(unittest.TestCase):
 
     self.assertTrue(send_id in sent_ids)
 
-    self.book.add_order("buy", .1, self.market_price - 1)
-    self.book.add_order("sell", .2, self.market_price + 2)
+    self.book.add_order("buy", ".1", self.market_price - 1)
+    self.book.add_order("sell", ".2", self.market_price + 2)
     self.book.send_orders()
 
     self.assertEqual(self.book.unsent_orders, [])
@@ -75,7 +75,7 @@ class Test_Book(unittest.TestCase):
 
   def test_order_filled(self):
     price = round(1 + self.market_price, 2)
-    self.book.add_order("sell", .11, price)
+    self.book.add_order("sell", ".11", price)
     self.book.send_orders()
     order_id = self.book.open_orders[0].id
     self.book.order_filled(order_id)
@@ -89,4 +89,4 @@ class Test_Book(unittest.TestCase):
 
   def get_ids(self):
     return [order["id"] for order in trading
-    .get_open_orders(pair="LTC-USD", test=True)]
+            .get_open_orders(pair="LTC-USD", test=True)]

@@ -44,7 +44,8 @@ def send_order(Order):
 
   else:
     Order.update_history(response["message"])
-    logger.error("API sent message: " + response["message"])
+    logger.error("API sent message: {}\n{}".format(response["message"],
+                                                   str(Order)))
 
 
 def cancel_order(Order):
@@ -67,7 +68,8 @@ def cancel_order(Order):
 
   else:
     logger.error(
-        "Order id was found before deleting but was found in delete response")
+        "Order id was found before deleting but was found in delete response \n{}"
+        .format(str(Order)))
 
 
 def cancel_order_by_id(id, test=False):
@@ -112,7 +114,9 @@ def get_open_orders(pair=None, test=False):
 def get_products(test=False):
   url, auth = get_url_auth(test)
   response = requests.get(url + "products")
-  return [product['id'] for product in response.json()]
+  product_ids = [product['id'] for product in response.json()]
+  product_ids.sort()
+  return product_ids
 
 
 def get_url_auth(test):

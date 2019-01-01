@@ -16,11 +16,11 @@ class test_trading(unittest.TestCase):
     mid = trading.get_mid_market_price("BTC-USD", test=True)
     if mid > 100000:
       mid = 6000
-    self.test_price = round(mid * .5, 2)
+    self.test_price = round(mid / 2, 2)
 
     self.test_order = order.Order("BTC-USD",
                                   "buy",
-                                  .011,
+                                  ".011",
                                   self.test_price,
                                   test=True)
 
@@ -72,7 +72,7 @@ class test_trading(unittest.TestCase):
   def test_live(self):
     mid = trading.get_mid_market_price("BTC-USD")
     half_mid = round(mid / 100, 2)
-    self.live_test_order = order.Order("BTC-USD", "buy", .01, half_mid)
+    self.live_test_order = order.Order("BTC-USD", "buy", ".01", half_mid)
     orders = trading.get_open_orders(pair="BTC-USD")
     starting_order_ids = {order["id"] for order in orders}
     logger.debug("Starting with {} orders".format(len(starting_order_ids)))

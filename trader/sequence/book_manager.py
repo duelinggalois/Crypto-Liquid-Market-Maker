@@ -73,9 +73,11 @@ class Book_Manager():
       if self.full_match(match, order):
         logger.info("****FOUND FULL*****")
         side, plus_minus = ("buy", -1) if order.side == "sell" else ("sell", 1)
-        count = int(1 + (order.size - self.terms.min_size) / self.terms.size_change)
+        count = int(1 +
+                    (order.size - self.terms.min_size) /
+                    self.terms.size_change)
         first_size = self.terms.min_size
-        first_price = order.price + plus_minus * self.terms.size_change
+        first_price = order.price + plus_minus * self.terms.price_change
         self.cancel_orders_below_size(side, order.size)
         self.add_and_send_orders(side, count, first_size, first_price,
                                  self.terms.size_change)

@@ -19,7 +19,8 @@ class TradingTerms():
     min_size=None,
     size_change=None,
     low_price=None,
-    test=False):
+    test=False
+  ):
 
     self._base_pair = None
     self._quote_pair = None
@@ -40,7 +41,9 @@ class TradingTerms():
     self.budget = budget
     self.min_size = min_size
     self.size_change = size_change
-    self.low_price = low_price
+    if low_price:
+      self.set_mid_price()
+      self.low_price = low_price
 
   @property
   def pair(self):
@@ -59,15 +62,15 @@ class TradingTerms():
 
       # Set Price rounding for USD pairs and non USD pairs
       if self.quote_pair == 'USD':
-        self.price_decimals = 2
+        self.price_decimals = "2"
       else:
-        self.price_decimals = 5
+        self.price_decimals = "5"
 
       # Assign min_price if None
       if self.base_pair == "LTC":
-        self.min_size = .1
+        self.min_size = ".1"
       else:
-        self.min_size = .01
+        self.min_size = ".01"
 
   # add definition of base_pair property here
   @property
@@ -110,7 +113,7 @@ class TradingTerms():
   @budget.setter
   def budget(self, value):
     if value or value == 0:
-      if value <= 0:
+      if Decimal(value) <= 0:
         raise ValueError('Budget must be greater than 0')
       self._budget = Decimal(value)
 
@@ -127,13 +130,13 @@ class TradingTerms():
     if value:
       if self.base_pair is None:
         raise ValueError("Can't set minimum size without knowing pair")
-      elif self.base_pair == "LTC" and value < Decimal(".1"):
+      elif self.base_pair == "LTC" and Decimal(value) < Decimal(".1"):
         raise ValueError(
           "Minimum trade size for {} is .1".format(
             self.pair
           )
         )
-      elif value < Decimal(".01"):
+      elif Decimal(value) < Decimal(".01"):
         raise ValueError(
           'Miminum size trade for {} is .01'.format(
             self.pair
@@ -152,7 +155,7 @@ class TradingTerms():
   @size_change.setter
   def size_change(self, value):
     if value:
-      if value < 0:
+      if Decimal(value) < 0:
         raise ValueError('Size change must be greater than or equal to 0')
       self._size_change = Decimal(value)
 
@@ -167,17 +170,18 @@ class TradingTerms():
   @low_price.setter
   def low_price(self, low_price):
     if low_price:
-      if low_price < self._mid_price:
-        self._low_price = low_price
+      if Decimal(low_price) < self._mid_price:
+        self._low_price = Decimal(low_price)
         logger.info("With mid price of {} low price was set to {}"
                     .format(self.mid_price, self.low_price))
         if self._high_price is None:
-          self._high_price = 2 * self.mid_price - low_price
-          logger.info("No high price so it was set to {}".format(self.high_price))
+          self._high_price = Decimal(2 * self.mid_price - low_price)
+          logger.info("No high price so it was set to {}"
+                      .format(self.high_price))
         elif self.mid_price - low_price >= self._high_price - self.mid_price:
-          self._high_price = 2 * self.mid_price - low_price
+          self._high_price = Decimal(2 * self.mid_price - low_price)
           logger.warn("Raised high price to {} based on low and mid price"
-                .format(self.high_price))
+                      .format(self.high_price))
       else:
         raise ValueError("Low price {} is higher than mid price {}".format(
           low_price, self.mid_price)
@@ -195,7 +199,8 @@ class TradingTerms():
 
   def set_mid_price(self):
     if self.pair:
-      self._mid_price = trading.get_mid_market_price(self.pair, test=self.test)
+      self._mid_price = Decimal(trading.get_mid_market_price(self.pair,
+                                                             test=self.test))
       logger.info("{} currently trading at {}"
                   .format(self.pair, self.mid_price))
     else:
@@ -212,19 +217,19 @@ class TradingTerms():
   @high_price.setter
   def high_price(self, high_price):
     if high_price:
-      if self.mid_price < high_price:
+      if Decimal(self.mid_price) < high_price:
         if self._low_price is None:
-          self._high_price = high_price
-          self._low_price = 2 * self.mid_price - high_price
+          self._high_price = Decimal(high_price)
+          self._low_price = Decimal(2 * self.mid_price - high_price)
           logger.info("With mid price of {} high price was set to {}"
                       .format(self.mid_price, self.high_price))
           logger.info("No low price so it was set to {}"
                       .format(self.low_price))
-        elif self.mid_price - self.low_price <= high_price - self.mid_price:
-          self._high_price = high_price
+        elif self.mid_price - self.low_price <= Decimal(high_price) - self.mid_price:
+          self._high_price = Decimal(high_price)
           logger.info("With mid price of {} high price was set to {}")
         else:
-          self._high_price = 2 * self.mid_price - self._low_price
+          self._high_price = Decimal(2 * self.mid_price - self._low_price)
           logger.warn("high price was raised to {} based on mid and low price."
                       .format(self.high_price))
       else:
@@ -249,7 +254,7 @@ class TradingTerms():
 
   @property
   def price_change(self):
-    increment = (self.high_price - self.low_price) / (self.trade_count)
+    increment = Decimal(self.high_price - self.low_price) / (self.trade_count)
     return round(increment, self._price_decimals)
 
   def __str__(self):
@@ -275,5 +280,12 @@ def find_count(S0, SD, PL, PM, PH, BU):
 
   C = (-6 * BU * (PH - PL) ** 2 +
        (PH - PL) ** 2 * (PL - PM) * (3 * S0 - 4 * SD))
-
+  logging.debug("A =  {} type: {}, B = {} type: {} C = {} type: {} ".format(
+      A,
+      type(A),
+      B,
+      type(B),
+      C,
+      type(C)
+    ))
   return int((-B + (B ** 2 - 4 * A * C).sqrt()) / (2 * A))

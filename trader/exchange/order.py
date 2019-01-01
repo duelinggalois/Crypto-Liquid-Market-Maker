@@ -1,5 +1,6 @@
 import time
 import logging
+import logging.config
 from decimal import Decimal
 
 import config
@@ -15,7 +16,7 @@ class Order():
     self.pair = pair
     self.side = side
     self.size = Decimal(size)
-    self.price = price
+    self.price = Decimal(price)
     self.status = "created"
     self.id = ""
     self.history = []
@@ -83,25 +84,25 @@ class Order():
 
   def __str__(self):
     return (
-      "pair: {:<12s}\n"
-      "side: {:<12s}\n"
-      "price: {:<12s}\n"
-      "size: {:<12s}\n"
-      "filled: {:<12s}\n"
-      "status: {:<12s}\n"
-      "id: {:<12s}\n"
-      "test: {:<12s}\n"
-      "history: {:<12s}\n"
-      "responses: {:<12s}\n"
-      "test").format(
-        self.pair,
-        self.side,
-        self.size,
-        self.price,
-        self.filled,
-        self.status,
-        self.id,
-        self.test,
-        self.history,
-        self.responses
-      )
+      "pair: {}\n"
+      "side: {}\n"
+      "price: {}\n"
+      "size: {}\n"
+      "filled: {}\n"
+      "status: {}\n"
+      "id: {}\n"
+      "test: {}\n"
+      "history: {}\n"
+      "responses: {}"
+    ).format(
+      self.pair,
+      self.side,
+      self.price,
+      self.size,
+      self.filled,
+      self.status,
+      self.id,
+      self.test,
+      self.history,
+      self.responses
+    )
