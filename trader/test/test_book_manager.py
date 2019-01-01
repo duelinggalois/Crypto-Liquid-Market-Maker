@@ -1,7 +1,7 @@
 import unittest
 from decimal import Decimal
 
-from ..sequence.BookManager import BookManager
+from ..sequence.book_manager import BookManager
 from ..sequence.trading_terms import TradingTerms
 from ..exchange import trading
 
