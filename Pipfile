@@ -1,4 +1,9 @@
 [[source]]
+url = "https://piwheels.org/simple"
+verify_ssl = true
+name = "piwheels"
+ 
+[[source]]
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
@@ -13,4 +18,4 @@ nose = "*"
 [dev-packages]
 
 [requires]
-python_version = "3.6"
+python_version = "3.5"

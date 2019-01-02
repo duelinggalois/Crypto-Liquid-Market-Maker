@@ -87,9 +87,9 @@ class SocketManager():
         raise
 
       except Exception:
-        logger.error("last message recieved "
-                     f"{self.last_time_watch()} seconds ago\n"
-                     f"{traceback.format_exc()}")
+        logger.error("last message received {} seconds ago/n{}"
+                     .format(self.last_time_watch(),
+                             traceback.format_exc()))
         logger.warn("Restarting Websocket")
 
   async def connect(self):
@@ -99,7 +99,7 @@ class SocketManager():
 
   async def send(self, message):
     await self.ws.send(message)
-    logger.info(f"> {message}")
+    logger.info("> {}".format(message))
 
   async def listen(self):
     listen = True
@@ -107,7 +107,7 @@ class SocketManager():
       try:
         recieved = await asyncio.wait_for(self.ws.recv(), timeout=50)
         message = json.loads(recieved)
-        logger.debug(f"< {message}")
+        logger.debug("< {}".format(message))
         self.reader.new(message)
         self.last_time = time.time()
         if self.send_trades:
@@ -119,8 +119,8 @@ class SocketManager():
 
       except websockets.exceptions.ConnectionClosed:
         listen = False
-        logging.warn("Connection Closed Exception after "
-                     f"{round(self.last_time_watch(), 2)} seconds")
+        logging.warn("Connection Closed Exception after {} seconds"
+                     .format(round(self.last_time_watch(), 2)))
         raise websockets.exceptions.ConnectionClosed(
           1006, "1 minute without messages")
 
@@ -131,7 +131,7 @@ class SocketManager():
       except Exception:
         listen = False
         logger.exception("Socket had a general excetption, last message "
-                         f"recieved {self.last_time_watch()} seconds ago")
+                         "recieved {} seconds ago".format(self.last_time_watch()))
         raise
 
   async def ping_socket(self):

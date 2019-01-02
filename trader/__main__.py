@@ -3,7 +3,7 @@ import logging
 import logging.config
 import os
 from .user_interface import prompts
-from .sequence.BookManager import BookManager
+from .sequence.book_manager import BookManager
 from .socket.manager import SocketManager
 from .socket.reader import Reader
 
