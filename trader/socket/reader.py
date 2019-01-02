@@ -34,7 +34,8 @@ class Reader():
     '''
     logger.info("Subscribed")
     for c in msg["channels"]:
-      logger.info(f"Channel: {c['name']}\t\tPair: {c['product_ids']}")
+      logger.info("Channel: {} \tPair: {}".format(c['name'],
+                                                  c['product_ids']))
 
   def last_match(self, msg):
     logger.info("Last Match")

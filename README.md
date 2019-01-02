@@ -16,7 +16,7 @@ This program will list a sequence of buy and sell trades on pro.coinbase.com bas
 * `cd Crypto-Liquid-Market-Maker`
 * `cp config.py.default config.py`
 * Add Coinbase Pro API passphrase, keys, and secret to `config.py`
-* `pipenv install` (dependencies managed by `Pipfile` in project root)
+* `sudo pipenv install` (dependencies managed by `Pipfile` in project root)
 * `pipenv run python -m trader`
 
 **Running Tests**
