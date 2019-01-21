@@ -40,8 +40,8 @@ class TestBookManager(unittest.TestCase):
     sell_budget = round(sell_budget, 2)
     budget = sell_budget + buy_budget
     upper_bound = self.terms.budget
-    last_buy = int(self.BookManager.count / 2 - 1)
-    last_sell = int(self.BookManager.count - 1)
+    last_buy = int(self.terms.count / 2 - 1)
+    last_sell = int(self.terms.count - 1)
     rounded_off_buy_trade = ((book.unsent_orders[last_buy].size -
                               self.terms.size_change) *
                              (book.unsent_orders[last_buy].price +

@@ -1,4 +1,3 @@
-import math
 import logging
 import logging.config
 from decimal import Decimal
@@ -19,6 +18,7 @@ class TradingTerms():
     min_size=None,
     size_change=None,
     low_price=None,
+    high_price=None,
     test=False
   ):
 
@@ -32,7 +32,15 @@ class TradingTerms():
     self._low_price = None
     self._mid_price = None
     self._high_price = None
+    self._price_change = None
+    self._initial_count = None
     self._count = None
+    self._sell_count = None
+    self._buy_count = None
+    self._skew = None
+    self._buy_budget = None
+    self._sell_budget = None
+    self._quote_sell_budget = None
 
     self.test = test
     self.supported_pairs = trading.get_products()
@@ -41,9 +49,8 @@ class TradingTerms():
     self.budget = budget
     self.min_size = min_size
     self.size_change = size_change
-    if low_price:
-      self.set_mid_price()
-      self.low_price = low_price
+    self.low_price = low_price
+    self.high_price = high_price
 
   @property
   def pair(self):
@@ -170,7 +177,7 @@ class TradingTerms():
   @low_price.setter
   def low_price(self, low_price):
     if low_price:
-      if Decimal(low_price) < self._mid_price:
+      if Decimal(low_price) < self.mid_price:
         self._low_price = Decimal(low_price)
         logger.info("With mid price of {} low price was set to {}"
                     .format(self.mid_price, self.low_price))
@@ -242,32 +249,120 @@ class TradingTerms():
 
   @property
   def trade_count(self):
-    if self._count:
-      return self._count
+    if self._initial_count:
+      return self._initial_count
     logger.info("Calculating trade count with budget of {}"
                 .format(self.budget))
     budget_considering_fee = self.budget / (1 + Decimal(config.CB_FEE))
-    self._count = find_count(self.min_size, self.size_change, self.low_price,
-                             self.mid_price, self.high_price,
-                             budget_considering_fee)
-    logger.info("Count set to {}".format(self._count))
-    return self._count
+    self._initial_count = find_count(
+      self.min_size, self.size_change, self.low_price, self.mid_price,
+      self.high_price, budget_considering_fee)
+
+    logger.info("Initial count set to {}".format(self._initial_count))
+    return self._initial_count
 
   @property
   def price_change(self):
-    increment = Decimal(self.high_price - self.low_price) / (self.trade_count)
-    return round(increment, self._price_decimals)
+    if self._price_change is None:
+      self._price_change = round(Decimal(
+        self.high_price - self.low_price
+      ) / (self.trade_count), self._price_decimals)
+
+    return self._price_change
+
+  @property
+  def count(self):
+    return self.buy_count + self.sell_count
+
+  @property
+  def buy_count(self):
+    if self._buy_count is None:
+      self._buy_count = int(
+        (self.mid_price - self.low_price) /
+        (self.high_price - self.low_price) * self.trade_count
+      )
+    return self._buy_count
+
+  @property
+  def sell_count(self):
+    if self._sell_count is None:
+      self._sell_count = int(
+        (self.high_price - self.mid_price) /
+        (self.high_price - self.low_price) * self.trade_count
+      )
+    return self._sell_count
+
+  @property
+  def skew(self):
+    if self._skew is None:
+      self._skew = self.sell_count - self.buy_count
+    return self._skew
+
+  @property
+  def buy_budget(self):
+    if self._buy_budget is None:
+      buy_price = self.mid_price - self.price_change
+      buy_size = self.min_size + self.size_change * self.skew
+      self._buy_budget = Decimal('0')
+      for i in range(self.buy_count):
+        self._buy_budget += buy_price * buy_size
+        logger.debug(
+          "i: {} buy_price: {} buy_size: {} buy: {} total: {}"
+          .format(i, buy_price, buy_size, buy_size * buy_price,
+                  self._buy_budget)
+        )
+        buy_price -= self.price_change
+        buy_size += 2 * self.size_change
+
+    return self._buy_budget
+
+  @property
+  def sell_budget(self):
+    if self._sell_budget is None:
+      total_size = 0
+      logger.debug(self.skew)
+      if self.skew > 0:
+        sell_size = self.min_size
+        for i in range(self.skew):
+          total_size += sell_size
+          logger.debug(
+            "i: {} total_size: {} sell_size {}"
+            .format(i, total_size, sell_size)
+          )
+          sell_size += self.size_change
+        sell_size += self.size_change
+      else:
+        sell_size = self.min_size + self.size_change
+      for i in range(self.sell_count - self.skew):
+        total_size += sell_size
+        logger.debug(
+          "i: {} total_size: {} sell_size {}"
+          .format(i, total_size, sell_size)
+        )
+        sell_size += 2 * self.size_change
+      self._sell_budget = total_size
+    return self._sell_budget
+
+  @property
+  def quote_sell_budget(self):
+    if self._quote_sell_budget is None:
+      self._quote_sell_budget = self.sell_budget * self.mid_price
+    return self._quote_sell_budget
 
   def __str__(self):
     output = (
-      "base currency: \t\t\t{}\nquote currency: \t\t{}\nbudget: \t\t\t{}\n"
-      "min size: \t\t\t{}\nsize change: \t\t\t{}\nlow price: \t\t\t{}\n"
-      "mid price: \t\t\t{}\nhigh price: \t\t\t{}\ntrade_count: \t\t\t{}\n"
-      "price change: \t\t\t{}"
+      "base currency: \t\t\t{0}\nquote currency: \t\t{1}\nbudget: \t\t\t{2}\n"
+      "buy_budget: \t\t\t{3} {1}\nsell_budget: \t\t\t{4} {0} or {5} {1}\n"
+      "min size: \t\t\t{6}\nsize change: \t\t\t{7}\nlow price: \t\t\t{8}\n"
+      "mid price: \t\t\t{9}\nhigh price: \t\t\t{10}\ntrade_count: \t\t\t{11}\n"
+      "skew: \t\t\t\t{13}\nprice change: \t\t\t{13}\ntest: \t\t\t\t{14}"
     ).format(
-        self.base_pair, self.quote_pair, self.budget, self.min_size,
-        self.size_change, self.low_price, self.mid_price, self.high_price,
-        self.trade_count, self.price_change)
+        self.base_pair, self.quote_pair, self.budget,
+        round(self.buy_budget, self.price_decimals), self.sell_budget,
+        round(self.quote_sell_budget, self.price_decimals),
+        self.min_size, self.size_change, self.low_price,
+        self.mid_price, self.high_price, self.count,
+        self.skew, self.price_change, self.test)
     return output
 
 

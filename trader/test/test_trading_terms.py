@@ -1,6 +1,7 @@
 import unittest
 from decimal import Decimal
 
+import config
 from ..sequence.trading_terms import TradingTerms
 
 
@@ -140,6 +141,29 @@ class test_trading_terms(unittest.TestCase):
     with self.assertRaises(ValueError):
       self.terms.low_price = low
 
+  def test_terms_budgets_skew(self):
+    self.terms.pair = "BTC-USD"
+    self.terms._mid_price = Decimal(400)
+    self.terms._high_price = Decimal(900)
+    self.terms._low_price = Decimal(100)
+    self.terms._size_change = 1
+    self.terms._min_size = 1
+    blm_A = Decimal(300 * 3 + 200 * 5 + 100 * 7)
+    bmt_A = Decimal(400 * (1 + 2))
+    bth_A = Decimal(400 * (4 + 6 + 8))
+    self.terms.budget = (
+      (1 + Decimal(config.CB_FEE)) *
+      (blm_A + bmt_A + bth_A)
+    )
+
+    expected_sell_budget = 1 + 2 + 4 + 6 + 8
+    expected_quote_sell_budget = 400 * expected_sell_budget
+    expected_buy_budget = blm_A
+
+    self.assertEqual(self.terms.sell_budget, expected_sell_budget)
+    self.assertEqual(self.terms.quote_sell_budget, expected_quote_sell_budget)
+    self.assertEqual(self.terms.buy_budget, expected_buy_budget)
+
   def test_terms_str(self):
     self.terms.pair = "BTC-USD"
     self.terms.budget = 10000
@@ -152,13 +176,19 @@ class test_trading_terms(unittest.TestCase):
     high = round(mid + 100, 2)
     count = self.terms.trade_count
     price_change = self.terms.price_change
+    skew = self.terms.skew
 
     test_output = (
-      "base currency: \t\t\t{}\nquote currency: \t\t{}\nbudget: \t\t\t{}\n"
-      "min size: \t\t\t{}\nsize change: \t\t\t{}\nlow price: \t\t\t{}\n"
-      "mid price: \t\t\t{}\nhigh price: \t\t\t{}\ntrade_count: \t\t\t{}\n"
-      "price change: \t\t\t{}"
-    ).format("BTC", "USD", "10000", "0.01", "0.00100000", low, mid, high, count,
-             price_change)
+      "base currency: \t\t\t{0}\nquote currency: \t\t{1}\nbudget: \t\t\t{2}\n"
+      "buy_budget: \t\t\t{3} {1}\nsell_budget: \t\t\t{4} {0} or {5} {1}\n"
+      "min size: \t\t\t{6}\nsize change: \t\t\t{7}\nlow price: \t\t\t{8}\n"
+      "mid price: \t\t\t{9}\nhigh price: \t\t\t{10}\ntrade_count: \t\t\t{11}\n"
+      "skew: \t\t\t\t{13}\nprice change: \t\t\t{13}\ntest: \t\t\t\t{14}"
+    ).format(
+      "BTC", "USD", "10000",
+      "4707.71", "0.33600000", "4933.77",
+      "0.01", "0.00100000", low,
+      mid, high, count,
+      skew, price_change, self.terms.test)
 
     self.assertEqual(str(self.terms), test_output)
