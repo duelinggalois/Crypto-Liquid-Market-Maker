@@ -17,7 +17,8 @@ logger = logging.getLogger("trader")
 
 def main(args):
   all_args = (args.pair and args.budget and args.minsize and
-              args.sizechange and args.minprice)
+              args.sizechange and (args.lowprice or
+                                   args.highprice))
 
   # Check for parser arguemnts to run with.
   if not all_args:
