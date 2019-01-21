@@ -52,7 +52,7 @@ class BookManager():
     plus_or_minus = -1 if side == "buy" else 1
     for i in range(count):
       self.book.add_order(side, size, price)
-      logger.info("Adding a {} {} order size {} and price {}". format(
+      logger.debug("Adding a {} {} order size {} and price {}". format(
         side, self.terms.pair, size, price))
 
       new_size = size + size_change
