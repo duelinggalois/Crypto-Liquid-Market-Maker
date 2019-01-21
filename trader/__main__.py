@@ -15,6 +15,32 @@ logging.config.dictConfig(config.log_config)
 logger = logging.getLogger("trader")
 
 
+def main(args):
+  all_args = (args.pair and args.budget and args.minsize and
+              args.sizechange and args.minprice)
+
+  # Check for parser arguemnts to run with.
+  if not all_args:
+    terms = user_inteface(test=args.test)
+    socket_manager = construct(terms, terms.test)
+  else:
+    socket_manager = construct(
+      TradingTerms(
+        pair=args.pair,
+        budget=args.budget,
+        min_size=args.minsize,
+        size_change=args.sizechange,
+        low_price=args.lowprice,
+        high_price=args.highprice,
+        test=args.test),
+      test=args.test)
+
+  try:
+    socket_manager.run()
+  except Exception:
+    logger.exception("error running trader")
+
+
 def user_inteface(test=True):
   os.system('clear')
   logger.info("Running Trader")
@@ -22,11 +48,6 @@ def user_inteface(test=True):
 
   # Get initial input from user
   terms = prompts.prompt_trading_terms(test=test)
-
-  # Confirm user selections
-  while not prompts.confirm_trading_terms(terms):
-    # reprompt for input
-    terms = prompts.prompt_trading_terms(test=test)
   return terms
 
 
@@ -45,36 +66,12 @@ def parse_command_line():
   parser.add_argument('--budget', type=Decimal, default=None)
   parser.add_argument('--minsize', type=Decimal, default=None)
   parser.add_argument('--sizechange', type=Decimal, default=None)
-  parser.add_argument('--minprice', type=Decimal, default=None)
+  parser.add_argument('--lowprice', type=Decimal, default=None)
+  parser.add_argument('--highprice', type=Decimal, default=None)
   parser.add_argument('--test', type=bool, default=True)
   args = parser.parse_args()
 
   return args
-
-
-def main(args):
-  all_args = (args.pair and args.budget and args.minsize and
-              args.sizechange and args.minprice)
-
-  # Check for parser arguemnts to run with.
-  if not all_args:
-    terms = user_inteface(test=args.test)
-    socket_manager = construct(terms, terms.test)
-  else:
-    socket_manager = construct(
-      TradingTerms(
-        pair=args.pair,
-        budget=args.budget,
-        min_size=args.minsize,
-        size_change=args.sizechange,
-        low_price=args.minprice,
-        test=args.test),
-      test=args.test)
-
-  try:
-    socket_manager.run()
-  except Exception:
-    logger.exception("error running trader")
 
 
 # Main

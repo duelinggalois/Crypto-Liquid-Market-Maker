@@ -16,35 +16,40 @@ class BookManager():
     self.test = test
     self.book = Book(terms.pair, test)
 
-    self.initial_count = terms.trade_count
-    self.buy_count = int(
-      (terms.mid_price - terms.low_price) /
-      (terms.high_price - terms.low_price) * self.initial_count
-    )
-    logger.info("rounded buy count to {}".format(self.buy_count))
-    self.sell_count = int(
-      (terms.high_price - terms.mid_price) /
-      (terms.high_price - terms.low_price) * self.initial_count
-    )
-    logger.info("rounded sell count to {}".format(self.sell_count))
-    self.count = self.buy_count + self.sell_count
-    first_buy_size = terms.min_size
-    first_sell_size = terms.min_size + terms.size_change
     first_buy_price = terms.mid_price - terms.price_change
     first_sell_price = terms.mid_price + terms.price_change
-    logger.info("Count {} buys {} sells {}".format(self.initial_count,
-                                                   self.buy_count,
-                                                   self.sell_count))
+    first_buy_size = terms.min_size + terms.size_change * terms.skew
+
+    if terms.skew < 0:
+      raise NotImplemented("More buys then sells, not implemented yet")
+
+    elif terms.skew > 0:
+      # Add skewed orders and reset initial sell price and sell size
+      first_sell_size = terms.min_size
+      self.add_orders('sell',
+                      terms.skew,
+                      first_sell_size,
+                      first_sell_price,
+                      terms.size_change
+                      )
+      # Reset intials for rmeainder of trades
+      first_sell_price += terms.price_change * terms.skew
+      first_sell_size += terms.size_change * (terms.skew + 1)
+    else:
+      first_sell_size = terms.min_size + terms.size_change
+
     self.add_orders("buy",
-                    self.buy_count,
+                    terms.buy_count,
                     first_buy_size,
                     first_buy_price,
-                    self.terms.size_change * 2)
+                    terms.size_change * 2
+                    )
     self.add_orders("sell",
-                    self.sell_count,
+                    terms.sell_count - terms.skew,
                     first_sell_size,
                     first_sell_price,
-                    self.terms.size_change * 2)
+                    terms.size_change * 2
+                    )
 
   def add_orders(self, side, count, first_size, first_price, size_change):
     price = first_price
@@ -53,7 +58,7 @@ class BookManager():
     for i in range(count):
       self.book.add_order(side, size, price)
       logger.debug("Adding a {} {} order size {} and price {}". format(
-        side, self.terms.pair, size, price))
+          side, self.terms.pair, size, price))
 
       new_size = size + size_change
       size = round(new_size, 8)
@@ -67,11 +72,10 @@ class BookManager():
     if self.matched_book_order(match):
       logger.info("****MATCHED TRADE*****")
       order = next(
-        o for o in self.book.open_orders if o.id == match["maker_order_id"]
+          o for o in self.book.open_orders if o.id == match["maker_order_id"]
       )
 
       if self.full_match(match, order):
-        logger.info("****FOUND FULL*****")
         side, plus_minus = ("buy", -1) if order.side == "sell" else ("sell", 1)
         count = int(1 +
                     (order.size - self.terms.min_size) /
@@ -83,12 +87,14 @@ class BookManager():
                                  self.terms.size_change)
 
       else:
-        logger.info("****NOT FULL*****")
-        order.filled += Decimal(match["size"])
+        matched = Decimal(match["size"])
+        logger.info("Partialy filled, {} filled of {}."
+                    .format(matched, order.size - order.filled))
+        order.filled += matched
 
   def matched_book_order(self, match):
     return match["maker_order_id"] in {
-      order.id for order in self.book.open_orders
+        order.id for order in self.book.open_orders
     }
 
   def full_match(self, match, order):
