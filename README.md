@@ -1,6 +1,6 @@
 ## Crypto Liquid Market Maker
 
-I created this strategy in an attempt to automate small gains repeatedly. A set amount is intended to be allocated to the stategry and as pairs of buys and sells execute over time, profit is generated. As a price is dropping, this strategy will repeatedly buy more crypto, as prices rise, it sells more. If the range of price breaks out of the trading range that is set, no more trades will execute unless the price returns to the range. This is not financial advice and this program can result in losses. Use at your own risk.
+I created this strategy in an attempt to automate small gains repeatedly. A set amount is intended to be allocated to the strategy and as pairs of buys and sells execute over time, profit is generated. As a price is dropping, this strategy will repeatedly buy more crypto, as prices rise, it sells more. If the range of price breaks out of the trading range that is set, no more trades will execute unless the price returns to the range. This is not financial advice and this program can result in losses. Use at your own risk.
 
 This program will list a sequence of buy and sell trades on pro.coinbase.com based on the following parameters:
 * trading pair (BTC-USD, ETH-USD, LTC-USD, BCH-USD, BTC-ETH, LTC-BTC, etc)
@@ -19,8 +19,14 @@ This program will list a sequence of buy and sell trades on pro.coinbase.com bas
 * `sudo pipenv install` (dependencies managed by `Pipfile` in project root)
 * `pipenv run python -m trader`
 
+**Alternatively run from the command line**
+```
+$ pipenv shell
+$ python -m trader --pair ETH-USD --budget 10000 --minsize .01 --sizechange .001 --minprice 20
+```
+
 **Running Tests**
-Please note that one test will create a limit buy order at a fraction of the current market rate of BTC-USD and then cancel it. When the market rate is $10,000/BTC the order would be 0.01 BTC at a rate of $100 and would reqire a balance of $1 All other tests execute in the Coinbase Sandbox for fake crypto and fake money. If you do not want this test to send a trade, don't add your keys and the test will then fail when trying to send the order to coinbase.
+Please note that one test will create a limit buy order at a fraction of the current market rate of BTC-USD and then cancel it. When the market rate is $10,000/BTC the order would be 0.01 BTC at a rate of $100 and would require a balance of $1 All other tests execute in the Coinbase Sandbox for fake crypto and fake money. If you do not want this test to send a trade, don't add your keys and the test will then fail when trying to send the order to coinbase.
 * Add Coinbase Pro Sandbox API passphrase, keys, and secret to `config.py`
 * `pipenv run nosetests --with-coverage --cover-package=trader`
 
@@ -53,7 +59,7 @@ What trading pair would you like to use?
 ```
 `What is the value of BTC would you like to allocate in terms of USD?` **10000**
 `What is the minimum trade size for this pair?` **.01**
-`How much should each trade in the sequnce of buys and sells increase by?` **.001**
+`How much should each trade in the sequence of buys and sells increase by?` **.001**
 ```
 2019-01-01 12:31:22,240 [INFO] trader.sequence.trading_terms: BTC-USD currently trading at 7876.09
 This pair is currently trading at 7876.09 BTC/USD.
@@ -111,16 +117,6 @@ y
 2019-01-01 12:34:27,075 [INFO] trader.sequence.BookManager: rounded buy count to 25
 2019-01-01 12:34:27,075 [INFO] trader.sequence.BookManager: rounded sell count to 25
 2019-01-01 12:34:27,075 [INFO] trader.sequence.BookManager: Count 50 buys 25 sells 25
-2019-01-01 12:34:27,075 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01 and price 7601.05
-2019-01-01 12:34:27,075 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01200000 and price 7326.01
-2019-01-01 12:34:27,075 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01400000 and price 7050.97
-...
-2019-01-01 12:34:27,077 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.05800000 and price 1000.09
-2019-01-01 12:34:27,077 [INFO] trader.sequence.BookManager: Adding a sell BTC-USD order size 0.01100000 and price 8151.13
-2019-01-01 12:34:27,077 [INFO] trader.sequence.BookManager: Adding a sell BTC-USD order size 0.01300000 and price 8426.17
-2019-01-01 12:34:27,077 [INFO] trader.sequence.BookManager: Adding a sell BTC-USD order size 0.01500000 and price 8701.21
-...
-2019-01-01 12:34:27,079 [INFO] trader.sequence.BookManager: Adding a sell BTC-USD order size 0.05900000 and price 14752.09
 2019-01-01 12:34:27,346 [INFO] trader.socket.manager: > {"type": "subscribe", "product_ids": ["BTC-USD"], "channels": ["matches"]}
 2019-01-01 12:34:27,406 [INFO] trader.socket.reader: Last Match
 2019-01-01 12:34:27,406 [INFO] trader.socket.reader: < 2019-01-01T19:10:02.884000Z - BTC-USD - trade id: 2194571 - side: buy size: 0.01000000 price: 8370.00000000
@@ -147,8 +143,6 @@ y
 2019-01-01 12:37:07,887 [INFO] trader.sequence.BookManager: ****CANCELING ORDERS FOR ADJUSTMNET*****
 2019-01-01 12:37:08,187 [INFO] trader.exchange.trading: Order Deleted with id:['a4edf322-9a0f-4a06-837c-e7eebf8f78af']
 2019-01-01 12:37:08,188 [INFO] trader.sequence.BookManager: ****SENDING ORDERS FOR ADJUSTMENT*****
-2019-01-01 12:37:08,188 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01 and price 7876.09
-2019-01-01 12:37:08,188 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01100000 and price 7601.05
 2019-01-01 12:37:08,611 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01000000 7876.09000000
 2019-01-01 12:37:08,909 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01100000 7601.05000000
 2019-01-01 12:37:08,910 [INFO] trader.socket.reader: < ***** 2019-01-01T19:37:17.558000Z - BTC-USD - trade_id: 2194575 - side: sell size: 0.01300000 price: 8426.17000000
@@ -160,10 +154,6 @@ y
 2019-01-01 12:37:09,612 [INFO] trader.exchange.trading: Order Deleted with id:['37717093-44c9-4243-9d3f-435bdc5c97c2']
 2019-01-01 12:37:09,952 [INFO] trader.exchange.trading: Order Deleted with id:['fd3a1e03-8d1f-4dcb-9416-bc4517129d83']
 2019-01-01 12:37:09,952 [INFO] trader.sequence.BookManager: ****SENDING ORDERS FOR ADJUSTMENT*****
-2019-01-01 12:37:09,952 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01 and price 8151.13
-2019-01-01 12:37:09,956 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01100000 and price 7876.09
-2019-01-01 12:37:09,956 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01200000 and price 7601.05
-2019-01-01 12:37:09,956 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01300000 and price 7326.01
 2019-01-01 12:37:10,124 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01000000 8151.13000000
 2019-01-01 12:37:10,301 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01100000 7876.09000000
 2019-01-01 12:37:10,478 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01200000 7601.05000000
@@ -179,12 +169,6 @@ y
 2019-01-01 12:37:11,502 [INFO] trader.exchange.trading: Order Deleted with id:['2f97f688-1c2e-4bcd-8f72-58de8f7b33a0']
 2019-01-01 12:37:11,633 [INFO] trader.exchange.trading: Order Deleted with id:['91a0cac7-e62d-4c38-871e-24e6116cc09a']
 2019-01-01 12:37:11,633 [INFO] trader.sequence.BookManager: ****SENDING ORDERS FOR ADJUSTMENT*****
-2019-01-01 12:37:11,633 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01 and price 8426.17
-2019-01-01 12:37:11,634 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01100000 and price 8151.13
-2019-01-01 12:37:11,634 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01200000 and price 7876.09
-2019-01-01 12:37:11,634 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01300000 and price 7601.05
-2019-01-01 12:37:11,634 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01400000 and price 7326.01
-2019-01-01 12:37:11,634 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01500000 and price 7050.97
 2019-01-01 12:37:11,927 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01000000 8426.17000000
 2019-01-01 12:37:12,059 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01100000 8151.13000000
 2019-01-01 12:37:12,376 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01200000 7876.09000000
@@ -207,14 +191,6 @@ When Trades Execute
 2019-01-01 12:37:13,881 [INFO] trader.exchange.trading: Order Deleted with id:['1f63afd0-8f5e-4b82-8d31-8fb74c25590a']
 2019-01-01 12:37:14,026 [INFO] trader.exchange.trading: Order Deleted with id:['95adcf93-f209-431f-b0f2-50c90a2a2093']
 2019-01-01 12:37:14,026 [INFO] trader.sequence.BookManager: ****SENDING ORDERS FOR ADJUSTMENT*****
-2019-01-01 12:37:14,026 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01 and price 8701.21
-2019-01-01 12:37:14,026 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01100000 and price 8426.17
-2019-01-01 12:37:14,026 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01200000 and price 8151.13
-2019-01-01 12:37:14,026 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01300000 and price 7876.09
-2019-01-01 12:37:14,026 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01400000 and price 7601.05
-2019-01-01 12:37:14,026 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01500000 and price 7326.01
-2019-01-01 12:37:14,027 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01600000 and price 7050.97
-2019-01-01 12:37:14,027 [INFO] trader.sequence.BookManager: Adding a buy BTC-USD order size 0.01700000 and price 6775.93
 2019-01-01 12:37:14,321 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01000000 8701.21000000
 2019-01-01 12:37:14,470 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01100000 8426.17000000
 2019-01-01 12:37:14,886 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01200000 8151.13000000
@@ -226,28 +202,11 @@ When Trades Execute
 2019-01-01 12:37:16,232 [INFO] trader.socket.reader: < ***** 2019-01-01T19:37:17.558000Z - BTC-USD - trade_id: 2194578 - side: sell size: 0.22620620 price: 9000.00000000
 ```
 
-**Alternative use from a python shell**
-
-The best way to run this from a shell is to follow the process in the run() method within __main__ file of trader. This process is far to complicated right now and I am working on simplifying it. 
-```
-$ pipenv shell
-$ python
->>> from trader.sequence.trading_terms import TradingTerms
->>> from trader.sequence.book_manager import BookManager
->>> from trader.socket.reader import Reader
->>> from trader.socket.manager import SocketManager
->>> strategy = TradingTerms(pair="ETH-USD", budget="10000", min_size="0.01", size_change=".001", low_price="10", test=True)
->>> bm = BookManager(strategy, test=True)
->>> r = Reader(bm)
->>> sm = SocketManager(r, product_ids=[strategy.pair], send_trades=True)
->>> sm.run()
-```
-
 **Work In Progress**
 
 Trading manually on coinbase for two years was a great inspiration to learn python. I still have a lot to learn and this is an outline of what I am currently working on:
 
 * Adding test where missing
 * Adding database
-* Storing trading data into a database for analysis and computing tax basis and procedes automatically.
+* Storing trading data into a database for analysis and computing tax basis and proceeds automatically.
 * Improving interface options for initialization. 
