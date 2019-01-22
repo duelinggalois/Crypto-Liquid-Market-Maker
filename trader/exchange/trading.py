@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def send_order(Order):
-
+  logging.debug("Order.test: {}".format(Order.test))
   url, auth = get_url_auth(Order.test)
 
   json_order = {

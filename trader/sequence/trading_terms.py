@@ -19,7 +19,7 @@ class TradingTerms():
     size_change=None,
     low_price=None,
     high_price=None,
-    test=False
+    test=True
   ):
 
     self._base_pair = None
@@ -355,7 +355,7 @@ class TradingTerms():
       "buy_budget: \t\t\t{3} {1}\nsell_budget: \t\t\t{4} {0} or {5} {1}\n"
       "min size: \t\t\t{6}\nsize change: \t\t\t{7}\nlow price: \t\t\t{8}\n"
       "mid price: \t\t\t{9}\nhigh price: \t\t\t{10}\ntrade_count: \t\t\t{11}\n"
-      "skew: \t\t\t\t{13}\nprice change: \t\t\t{13}\ntest: \t\t\t\t{14}"
+      "skew: \t\t\t\t{12}\nprice change: \t\t\t{13}\ntest: \t\t\t\t{14}"
     ).format(
         self.base_pair, self.quote_pair, self.budget,
         round(self.buy_budget, self.price_decimals), self.sell_budget,

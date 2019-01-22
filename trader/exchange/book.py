@@ -1,10 +1,17 @@
+import logging
+import logging.config
+
 from . import trading
 from .order import Order
+import config
+
+logging.config.dictConfig(config.log_config)
+logger = logging.getLogger(__name__)
 
 
 class Book():
 
-  def __init__(self, pair, test=False):
+  def __init__(self, pair, test=True):
 
     self.pair = pair
     self.unsent_orders = []
@@ -12,10 +19,12 @@ class Book():
     self.filled_orders = []
     self.canceled_orders = []
     self.test = test
+    logger.debug("Book.test: {}".format(self.test))
 
   def add_order(self, side, size, price):
     self.unsent_orders.append(
-        Order(self.pair, side, size, price, test=self.test))
+        Order(self.pair, side, size, price, test=self.test)
+    )
 
   def send_orders(self):
     for order in self.unsent_orders:
