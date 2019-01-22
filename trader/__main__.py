@@ -47,8 +47,8 @@ def main(args):
         size_change=args.sizechange,
         low_price=args.lowprice,
         high_price=args.highprice,
-        test=args.test),
-      test=args.test)
+        test=args.test)
+    )
 
   try:
     socket_manager.run()
