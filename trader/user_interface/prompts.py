@@ -19,9 +19,15 @@ def show_intro():
   os.system('clear')
 
 
-def prompt_trading_terms(test=False):
+def prompt_trading_terms():
 
-  terms = TradingTerms(test=test)
+  terms = TradingTerms()
+
+  terms.test = _prompt_bool(
+    "When testing, trades will be sent to public.sandbox.pro.coinbase.com\n"
+    "Are you testing?",
+    0
+  )
 
   terms.pair = _prompt_list(
       "What trading pair would you like to use?",

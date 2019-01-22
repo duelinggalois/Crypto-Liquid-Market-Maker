@@ -183,10 +183,10 @@ class test_trading_terms(unittest.TestCase):
       "buy_budget: \t\t\t{3} {1}\nsell_budget: \t\t\t{4} {0} or {5} {1}\n"
       "min size: \t\t\t{6}\nsize change: \t\t\t{7}\nlow price: \t\t\t{8}\n"
       "mid price: \t\t\t{9}\nhigh price: \t\t\t{10}\ntrade_count: \t\t\t{11}\n"
-      "skew: \t\t\t\t{13}\nprice change: \t\t\t{13}\ntest: \t\t\t\t{14}"
+      "skew: \t\t\t\t{12}\nprice change: \t\t\t{13}\ntest: \t\t\t\t{14}"
     ).format(
       "BTC", "USD", "10000",
-      "4707.71", "0.33600000", "4933.77",
+      "4678.37", "0.33600000", "4903.16",
       "0.01", "0.00100000", low,
       mid, high, count,
       skew, price_change, self.terms.test)

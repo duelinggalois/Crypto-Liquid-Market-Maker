@@ -11,10 +11,11 @@ logger = logging.getLogger(__name__)
 
 class BookManager():
 
-  def __init__(self, terms, test=False):
+  def __init__(self, terms):
     self.terms = terms
-    self.test = test
-    self.book = Book(terms.pair, test)
+    self.test = terms.test
+    logger.debug("BookManager.test: {}".format(self.test))
+    self.book = Book(terms.pair, self.test)
 
     first_buy_price = terms.mid_price - terms.price_change
     first_sell_price = terms.mid_price + terms.price_change
@@ -93,6 +94,16 @@ class BookManager():
         order.filled += matched
 
   def matched_book_order(self, match):
+    if logger.isEnabledFor(logging.DEBUG):
+      logger.debug("checking matched maker_order_id: {}".format(
+        match["maker_order_id"]
+      ))
+      logger.debug(str({
+        order.id for order in self.book.open_orders
+      }))
+      logger.debug(match["maker_order_id"] in {
+        order.id for order in self.book.open_orders
+      })
     return match["maker_order_id"] in {
         order.id for order in self.book.open_orders
     }

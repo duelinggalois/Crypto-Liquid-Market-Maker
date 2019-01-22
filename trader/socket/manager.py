@@ -36,7 +36,10 @@ class SocketManager():
         self.url = config.socket
     else:
       self.url = url
-
+    logging.debug("SocketManager test: {} url: {}".format(
+      reader.BookManager.test, url
+    )
+    )
     self.channel = channel
     self.product_ids = product_ids
     if self.channel == []:

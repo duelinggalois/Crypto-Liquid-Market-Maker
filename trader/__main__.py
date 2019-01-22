@@ -15,6 +15,20 @@ logging.config.dictConfig(config.log_config)
 logger = logging.getLogger("trader")
 
 
+def parse_command_line():
+  parser = argparse.ArgumentParser(description='argument parser description')
+  parser.add_argument('--pair', type=str, default=None)
+  parser.add_argument('--budget', type=Decimal, default=None)
+  parser.add_argument('--minsize', type=Decimal, default=None)
+  parser.add_argument('--sizechange', type=Decimal, default=None)
+  parser.add_argument('--lowprice', type=Decimal, default=None)
+  parser.add_argument('--highprice', type=Decimal, default=None)
+  parser.add_argument('--test', type=bool, default=True)
+  args = parser.parse_args()
+
+  return args
+
+
 def main(args):
   all_args = (args.pair and args.budget and args.minsize and
               args.sizechange and (args.lowprice or
@@ -22,8 +36,8 @@ def main(args):
 
   # Check for parser arguemnts to run with.
   if not all_args:
-    terms = user_inteface(test=args.test)
-    socket_manager = construct(terms, terms.test)
+    terms = user_inteface()
+    socket_manager = construct(terms)
   else:
     socket_manager = construct(
       TradingTerms(
@@ -42,37 +56,23 @@ def main(args):
     logger.exception("error running trader")
 
 
-def user_inteface(test=True):
+def user_inteface():
   os.system('clear')
   logger.info("Running Trader")
   prompts.show_intro()
 
   # Get initial input from user
-  terms = prompts.prompt_trading_terms(test=test)
+  terms = prompts.prompt_trading_terms()
   return terms
 
 
-def construct(terms, test):
-
-  book_manager = BookManager(terms, test=terms.test)
+def construct(terms):
+  logger.debug("Construct - terms.test: {}\n{}".format(terms.test, terms))
+  book_manager = BookManager(terms)
   reader = Reader(book_manager)
   socket_manager = SocketManager(reader, product_ids=[terms.pair],
                                  send_trades=True)
   return socket_manager
-
-
-def parse_command_line():
-  parser = argparse.ArgumentParser(description='argument parser description')
-  parser.add_argument('--pair', type=str, default=None)
-  parser.add_argument('--budget', type=Decimal, default=None)
-  parser.add_argument('--minsize', type=Decimal, default=None)
-  parser.add_argument('--sizechange', type=Decimal, default=None)
-  parser.add_argument('--lowprice', type=Decimal, default=None)
-  parser.add_argument('--highprice', type=Decimal, default=None)
-  parser.add_argument('--test', type=bool, default=True)
-  args = parser.parse_args()
-
-  return args
 
 
 # Main

@@ -13,7 +13,7 @@ class TestBookManager(unittest.TestCase):
     low_price = mid_price / 2
     self.terms = TradingTerms("BTC-USD", "10000", ".01", ".15", low_price,
                               test=True)
-    self.BookManager = BookManager(self.terms, test=True)
+    self.BookManager = BookManager(self.terms)
     starting_orders = {order["id"] for order in trading
                        .get_open_orders("BTC-USD", test=True)
                        }
