@@ -101,7 +101,7 @@ def get_mid_market_price(pair, test=False):
   return (ask + bid) / 2
 
 
-def get_open_orders(pair=None, test=False):
+def get_open_orders(pair=None, test=True):
   url, auth = get_url_auth(test)
   if pair is None:
     query_params = "?status=open"
@@ -112,7 +112,7 @@ def get_open_orders(pair=None, test=False):
   return get_orders.json()
 
 
-def get_products(test=False):
+def get_products(test=True):
   url, auth = get_url_auth(test)
   response = requests.get(url + "products")
   product_ids = [product['id'] for product in response.json()]
