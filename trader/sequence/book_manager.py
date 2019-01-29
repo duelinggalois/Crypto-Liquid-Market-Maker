@@ -71,7 +71,7 @@ class BookManager():
 
   def check_match(self, match):
     if self.matched_book_order(match):
-      logger.info("****MATCHED TRADE*****")
+      logger.info("*MATCHED TRADE*")
       order = next(
           o for o in self.book.open_orders if o.id == match["maker_order_id"]
       )
@@ -109,12 +109,12 @@ class BookManager():
     }
 
   def full_match(self, match, order):
-    logger.info("****CHECK FULL*****")
+    logger.info("*CHECK FULL*")
     return Decimal(match['size']) == order.size - order.filled
 
   def add_and_send_orders(self, side, count, first_size, first_price,
                           size_change):
-    logger.info("****SENDING ORDERS FOR ADJUSTMENT*****")
+    logger.info("*SENDING ORDERS FOR ADJUSTMENT*")
     existing_unsent_orders = self.book.unsent_orders
     self.book.unsent_orders = []
     self.add_orders(side, count, first_size, first_price, size_change)
@@ -122,7 +122,7 @@ class BookManager():
     self.book.unsent_orders = existing_unsent_orders
 
   def cancel_orders_below_size(self, side, size):
-    logger.info("****CANCELING ORDERS FOR ADJUSTMNET*****")
+    logger.info("*CANCELING ORDERS FOR ADJUSTMNET*")
     orders_to_cancel = [o for o in self.book.open_orders
                         if o.side == side and o.size <= size]
     self.book.cancel_order_list(orders_to_cancel)

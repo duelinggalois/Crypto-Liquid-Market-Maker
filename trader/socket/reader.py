@@ -51,7 +51,7 @@ class Reader():
                 )
 
   def match(self, msg):
-    logger.info("< ***** {0} - {1} - trade_id: {2} - "
+    logger.info("< {0} - {1} - trade_id: {2} - "
                 "side: {3} size: {4} price: {5}".format(
                   msg["time"],
                   msg["product_id"],

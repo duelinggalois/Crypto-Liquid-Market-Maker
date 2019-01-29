@@ -23,13 +23,14 @@ def parse_command_line():
   parser.add_argument('--sizechange', type=Decimal, default=None)
   parser.add_argument('--lowprice', type=Decimal, default=None)
   parser.add_argument('--highprice', type=Decimal, default=None)
-  parser.add_argument('--test', type=bool, default=True)
+  parser.add_argument('--live', action='store_true')
   args = parser.parse_args()
 
   return args
 
 
 def main(args):
+
   all_args = (args.pair and args.budget and args.minsize and
               args.sizechange and (args.lowprice or
                                    args.highprice))
@@ -39,6 +40,7 @@ def main(args):
     terms = user_inteface()
     socket_manager = construct(terms)
   else:
+    test = not args.live
     socket_manager = construct(
       TradingTerms(
         pair=args.pair,
@@ -47,7 +49,7 @@ def main(args):
         size_change=args.sizechange,
         low_price=args.lowprice,
         high_price=args.highprice,
-        test=args.test)
+        test=test)
     )
 
   try:
@@ -67,7 +69,7 @@ def user_inteface():
 
 
 def construct(terms):
-  logger.debug("Construct - terms.test: {}\n{}".format(terms.test, terms))
+  logger.debug("Constructing - terms.test: {}\n{}".format(terms.test, terms))
   book_manager = BookManager(terms)
   reader = Reader(book_manager)
   socket_manager = SocketManager(reader, product_ids=[terms.pair],
