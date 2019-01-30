@@ -43,7 +43,7 @@ class TradingTerms():
     self._quote_sell_budget = None
 
     self.test = test
-    self.supported_pairs = trading.get_products()
+    self.supported_pairs = trading.get_products(test=test)
     self.default_pair_index = 0
     self.pair = pair
     self.budget = budget

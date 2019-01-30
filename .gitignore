@@ -4,4 +4,5 @@ config.py
 .pytest_cache
 .python-version
 *.log
+*.out
 .coverage

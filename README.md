@@ -22,8 +22,9 @@ This program will list a sequence of buy and sell trades on pro.coinbase.com bas
 **Alternatively run from the command line**
 ```
 $ pipenv shell
-$ python -m trader --pair ETH-USD --budget 10000 --minsize .01 --sizechange .001 --minprice 20
+$ python -m trader --pair ETH-USD --budget 10000 --minsize .01 --sizechange .001 --lowprice 20 [--highpirce 1000 --live] 
 ```
+without the `--live` flag trades witll be listed on the coinbase pro test exchange, with it, trades will be sent to the live exchange.
 
 **Running Tests**
 Please note that one test will create a limit buy order at a fraction of the current market rate of BTC-USD and then cancel it. When the market rate is $10,000/BTC the order would be 0.01 BTC at a rate of $100 and would require a balance of $1 All other tests execute in the Coinbase Sandbox for fake crypto and fake money. If you do not want this test to send a trade, don't add your keys and the test will then fail when trying to send the order to coinbase.
@@ -57,16 +58,22 @@ What trading pair would you like to use?
    ZRX-USD
 
 ```
-`What is the value of BTC would you like to allocate in terms of USD?` **10000**
-`What is the minimum trade size for this pair?` **.01**
-`How much should each trade in the sequence of buys and sells increase by?` **.001**
+`What is the value of BTC would you like to allocate in terms of USD?` *10000*
+
+`What is the minimum trade size for this pair?` 
+*.01*
+
+`How much should each trade in the sequence of buys and sells increase by?` 
+*.001*
+
 ```
 2019-01-01 12:31:22,240 [INFO] trader.sequence.trading_terms: BTC-USD currently trading at 7876.09
 This pair is currently trading at 7876.09 BTC/USD.
 
 What is the low price to buy at?
 ```
-**1000**
+*1000*
+
 ```
 2019-01-01 12:32:28,836 [INFO] trader.sequence.trading_terms: With mid price of 7876.09 low price was set to 1000.00
 2019-01-01 12:32:28,836 [INFO] trader.sequence.trading_terms: No high price so it was set to 14752.18
@@ -134,55 +141,18 @@ y
 2019-01-01 12:34:38,783 [INFO] trader.socket.reader: Channel: matches		Pair: ['BTC-USD']
 2019-01-01 12:35:28,786 [INFO] trader.socket.manager: > ping
 2019-01-01 12:36:18,798 [INFO] trader.socket.manager: > ping
-2019-01-01 12:36:55,684 [INFO] trader.socket.reader: < ***** 2019-01-01T19:37:05.362000Z - BTC-USD - trade_id: 2194572 - side: sell size: 0.37537611 price: 7968.08000000
-2019-01-01 12:37:07,886 [INFO] trader.socket.reader: < ***** 2019-01-01T19:37:17.557000Z - BTC-USD - trade_id: 2194573 - side: sell size: 0.05934353 price: 7968.08000000
-2019-01-01 12:37:07,887 [INFO] trader.socket.reader: < ***** 2019-01-01T19:37:17.558000Z - BTC-USD - trade_id: 2194574 - side: sell size: 0.01100000 price: 8151.13000000
-2019-01-01 12:37:07,887 [INFO] trader.sequence.BookManager: ****MATCHED TRADE*****
-2019-01-01 12:37:07,887 [INFO] trader.sequence.BookManager: ****CHECK FULL*****
-2019-01-01 12:37:07,887 [INFO] trader.sequence.BookManager: ****FOUND FULL*****
-2019-01-01 12:37:07,887 [INFO] trader.sequence.BookManager: ****CANCELING ORDERS FOR ADJUSTMNET*****
-2019-01-01 12:37:08,187 [INFO] trader.exchange.trading: Order Deleted with id:['a4edf322-9a0f-4a06-837c-e7eebf8f78af']
-2019-01-01 12:37:08,188 [INFO] trader.sequence.BookManager: ****SENDING ORDERS FOR ADJUSTMENT*****
-2019-01-01 12:37:08,611 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01000000 7876.09000000
-2019-01-01 12:37:08,909 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01100000 7601.05000000
-2019-01-01 12:37:08,910 [INFO] trader.socket.reader: < ***** 2019-01-01T19:37:17.558000Z - BTC-USD - trade_id: 2194575 - side: sell size: 0.01300000 price: 8426.17000000
-2019-01-01 12:37:08,910 [INFO] trader.sequence.BookManager: ****MATCHED TRADE*****
-2019-01-01 12:37:08,911 [INFO] trader.sequence.BookManager: ****CHECK FULL*****
-2019-01-01 12:37:08,911 [INFO] trader.sequence.BookManager: ****FOUND FULL*****
-2019-01-01 12:37:08,911 [INFO] trader.sequence.BookManager: ****CANCELING ORDERS FOR ADJUSTMNET*****
-2019-01-01 12:37:09,316 [INFO] trader.exchange.trading: Order Deleted with id:['6eef479a-4207-4410-95c7-7fdfa2cf2e6a']
-2019-01-01 12:37:09,612 [INFO] trader.exchange.trading: Order Deleted with id:['37717093-44c9-4243-9d3f-435bdc5c97c2']
-2019-01-01 12:37:09,952 [INFO] trader.exchange.trading: Order Deleted with id:['fd3a1e03-8d1f-4dcb-9416-bc4517129d83']
-2019-01-01 12:37:09,952 [INFO] trader.sequence.BookManager: ****SENDING ORDERS FOR ADJUSTMENT*****
-2019-01-01 12:37:10,124 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01000000 8151.13000000
-2019-01-01 12:37:10,301 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01100000 7876.09000000
-2019-01-01 12:37:10,478 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01200000 7601.05000000
-2019-01-01 12:37:10,789 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01300000 7326.01000000
-2019-01-01 12:37:10,789 [INFO] trader.socket.reader: < ***** 2019-01-01T19:37:17.558000Z - BTC-USD - trade_id: 2194576 - side: sell size: 0.01500000 price: 8701.21000000
-2019-01-01 12:37:10,790 [INFO] trader.sequence.BookManager: ****MATCHED TRADE*****
-2019-01-01 12:37:10,790 [INFO] trader.sequence.BookManager: ****CHECK FULL*****
-2019-01-01 12:37:10,790 [INFO] trader.sequence.BookManager: ****FOUND FULL*****
-2019-01-01 12:37:10,790 [INFO] trader.sequence.BookManager: ****CANCELING ORDERS FOR ADJUSTMNET*****
-2019-01-01 12:37:10,936 [INFO] trader.exchange.trading: Order Deleted with id:['da522a13-b965-4227-be40-feb30f21a621']
-2019-01-01 12:37:11,075 [INFO] trader.exchange.trading: Order Deleted with id:['0255ab15-192c-4b73-adb5-a663b82ebc6f']
-2019-01-01 12:37:11,206 [INFO] trader.exchange.trading: Order Deleted with id:['fe719b88-a5ea-459f-8ba3-acbf48fd2776']
-2019-01-01 12:37:11,502 [INFO] trader.exchange.trading: Order Deleted with id:['2f97f688-1c2e-4bcd-8f72-58de8f7b33a0']
-2019-01-01 12:37:11,633 [INFO] trader.exchange.trading: Order Deleted with id:['91a0cac7-e62d-4c38-871e-24e6116cc09a']
-2019-01-01 12:37:11,633 [INFO] trader.sequence.BookManager: ****SENDING ORDERS FOR ADJUSTMENT*****
-2019-01-01 12:37:11,927 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01000000 8426.17000000
-2019-01-01 12:37:12,059 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01100000 8151.13000000
-2019-01-01 12:37:12,376 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01200000 7876.09000000
-2019-01-01 12:37:12,553 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01300000 7601.05000000
-2019-01-01 12:37:12,690 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01400000 7326.01000000
-2019-01-01 12:37:12,849 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01500000 7050.97000000
+2019-01-01 12:36:55,684 [INFO] trader.socket.reader: < 2019-01-01T19:37:05.362000Z - BTC-USD - trade_id: 2194572 - side: sell size: 0.37537611 price: 7968.08000000
+2019-01-01 12:37:07,886 [INFO] trader.socket.reader: < 2019-01-01T19:37:17.557000Z - BTC-USD - trade_id: 2194573 - side: sell size: 0.05934353 price: 7968.08000000
+2019-01-01 12:37:07,887 [INFO] trader.socket.reader: < 2019-01-01T19:37:17.558000Z - BTC-USD - trade_id: 2194574 - side: sell size: 0.01100000 price: 8151.13000000
+
 ```
 When Trades Execute
 ```
-2019-01-01 12:37:12,855 [INFO] trader.socket.reader: < ***** 2019-01-01T19:37:17.558000Z - BTC-USD - trade_id: 2194577 - side: sell size: 0.01700000 price: 8976.25000000
-2019-01-01 12:37:12,855 [INFO] trader.sequence.BookManager: ****MATCHED TRADE*****
-2019-01-01 12:37:12,856 [INFO] trader.sequence.BookManager: ****CHECK FULL*****
-2019-01-01 12:37:12,857 [INFO] trader.sequence.BookManager: ****FOUND FULL*****
-2019-01-01 12:37:12,857 [INFO] trader.sequence.BookManager: ****CANCELING ORDERS FOR ADJUSTMNET*****
+2019-01-01 12:37:12,855 [INFO] trader.socket.reader: < 2019-01-01T19:37:17.558000Z - BTC-USD - trade_id: 2194577 - side: sell size: 0.01700000 price: 8976.25000000
+2019-01-01 12:37:12,855 [INFO] trader.sequence.BookManager: *MATCHED TRADE*
+2019-01-01 12:37:12,856 [INFO] trader.sequence.BookManager: *CHECK FULL*
+2019-01-01 12:37:12,857 [INFO] trader.sequence.BookManager: *FOUND FULL*
+2019-01-01 12:37:12,857 [INFO] trader.sequence.BookManager: *CANCELING ORDERS FOR ADJUSTMNET*
 2019-01-01 12:37:13,015 [INFO] trader.exchange.trading: Order Deleted with id:['0b7a03de-85bd-400f-80d9-2e243e612a0c']
 2019-01-01 12:37:13,147 [INFO] trader.exchange.trading: Order Deleted with id:['18909e30-ead8-4cec-a5cb-d015fb51b5ee']
 2019-01-01 12:37:13,283 [INFO] trader.exchange.trading: Order Deleted with id:['0a4e46f8-b453-413f-8b1e-e0d67210df2f']
@@ -190,7 +160,7 @@ When Trades Execute
 2019-01-01 12:37:13,743 [INFO] trader.exchange.trading: Order Deleted with id:['c2652e7a-29fe-47b8-8c36-ed13e6aa9c05']
 2019-01-01 12:37:13,881 [INFO] trader.exchange.trading: Order Deleted with id:['1f63afd0-8f5e-4b82-8d31-8fb74c25590a']
 2019-01-01 12:37:14,026 [INFO] trader.exchange.trading: Order Deleted with id:['95adcf93-f209-431f-b0f2-50c90a2a2093']
-2019-01-01 12:37:14,026 [INFO] trader.sequence.BookManager: ****SENDING ORDERS FOR ADJUSTMENT*****
+2019-01-01 12:37:14,026 [INFO] trader.sequence.BookManager: *SENDING ORDERS FOR ADJUSTMENT*
 2019-01-01 12:37:14,321 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01000000 8701.21000000
 2019-01-01 12:37:14,470 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01100000 8426.17000000
 2019-01-01 12:37:14,886 [INFO] trader.exchange.trading: Order Posted: BTC-USD buy 0.01200000 8151.13000000

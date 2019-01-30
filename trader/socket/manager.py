@@ -134,11 +134,13 @@ class SocketManager():
       except Exception:
         listen = False
         logger.exception("Socket had a general excetption, last message "
-                         "recieved {} seconds ago".format(self.last_time_watch()))
+                         "recieved {} seconds ago".format(
+                            self.last_time_watch()
+                         ))
         raise
 
   async def ping_socket(self):
-    logger.info("> ping")
+    logger.debug("> ping")
     await self.ws.ping()
 
   def last_time_watch(self):
