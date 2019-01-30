@@ -102,6 +102,8 @@ def get_mid_market_price(pair, test=False):
 
 
 def get_open_orders(pair=None, test=True):
+  '''this method is limited by the api and will only return 100 orders
+  '''
   url, auth = get_url_auth(test)
   if pair is None:
     query_params = "?status=open"
