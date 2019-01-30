@@ -114,6 +114,12 @@ def get_open_orders(pair=None, test=True):
   return get_orders.json()
 
 
+def get_open_order(order_id, test=True):
+  url, auth = get_url_auth(test)
+  order = requests.get(url + "orders/" + order_id, auth=auth)
+  return order.json()
+
+
 def get_products(test=True):
   url, auth = get_url_auth(test)
   response = requests.get(url + "products")
