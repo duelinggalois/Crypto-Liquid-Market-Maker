@@ -10,18 +10,11 @@ class TestBookManager(unittest.TestCase):
 
   def setUp(self):
     mid_price = trading.get_mid_market_price("BTC-USD", test=True)
-    low_price = mid_price / 2
-    self.terms = TradingTerms("BTC-USD", "10000", ".01", ".15", low_price,
-                              test=True)
-    self.BookManager = BookManager(self.terms)
-    starting_orders = {order["id"] for order in trading
-                       .get_open_orders("BTC-USD", test=True)
-                       }
-    while len(starting_orders) != 0:
-      [trading.cancel_order_by_id(id, test=True) for id in starting_orders]
-      starting_orders = {order["id"] for order in trading
-                         .get_open_orders("BTC-USD", test=True)
-                         }
+    low_price = mid_price / 5
+    self.terms = TradingTerms(
+      "BTC-USD", "10000", ".01", ".15", low_price, test=True
+    )
+    self.BookManager = BookManager(self.terms, persist=False)
 
   def test_BookManager_init(self):
     self.assertEqual(self.terms, self.BookManager.terms)
@@ -58,17 +51,19 @@ class TestBookManager(unittest.TestCase):
     self.BookManager.send_orders()
 
     self.assertEqual(self.BookManager.book.unsent_orders, [])
-    sent_order_ids = {order.id for order in self.BookManager.book.open_orders}
-    ending_order_ids = {order["id"] for order in trading
-                        .get_open_orders("BTC-USD", test=True)}
-    self.assertEqual(ending_order_ids, sent_order_ids)
+    sent_order_ids = {
+      order.exchange_id for order
+      in self.BookManager.book.open_orders
+    }
+
+    # Check exchange for orders
+    for order_id in sent_order_ids:
+      response = trading.order_status(order_id)
+      self.assertEqual(order_id, response["id"])
 
     canceled_order_ids = {trading.cancel_order_by_id(id, test=True)[0]
                           for id in sent_order_ids}
     self.assertEqual(sent_order_ids, canceled_order_ids)
-    no_orders_left = {order["id"] for order in trading
-                      .get_open_orders("BTC-USD", test=True)}
-    self.assertEqual(set(), no_orders_left)
 
   def test_BookManager_add_and_send_order(self):
     self.BookManager.send_orders()
@@ -81,15 +76,15 @@ class TestBookManager(unittest.TestCase):
                                          first_price,
                                          self.terms.size_change)
 
-    sent_order_ids = {order.id for order in self.BookManager.book.open_orders}
-    ending_order_ids = {order["id"] for order in trading
-                        .get_open_orders("BTC-USD", test=True)}
+    sent_order_ids = {
+      order.exchange_id for order in self.BookManager.book.open_orders
+    }
 
-    self.assertEqual(sent_order_ids, ending_order_ids)
+    # Check exchange for orders
+    for order_id in sent_order_ids:
+      response = trading.order_status(order_id)
+      self.assertEqual(order_id, response["id"])
 
     canceled_order_ids = {trading.cancel_order_by_id(id, test=True)[0]
                           for id in sent_order_ids}
     self.assertEqual(sent_order_ids, canceled_order_ids)
-    no_orders_left = {order["id"] for order in
-                      trading.get_open_orders("BTC-USD", test=True)}
-    self.assertEqual(set(), no_orders_left)

@@ -171,12 +171,18 @@ class test_trading_terms(unittest.TestCase):
     self.terms.set_mid_price()
     self.terms.low_price = self.terms.mid_price - 100
 
+    buy_budget = round(self.terms.buy_budget, self.terms.price_decimals)
+    sell_budget = self.terms.sell_budget
+    quote_sell_budget = round(
+      self.terms.quote_sell_budget, self.terms.price_decimals
+    )
     mid = self.terms.mid_price
     low = round(mid - 100, 2)
     high = round(mid + 100, 2)
-    count = self.terms.trade_count
+    count = self.terms.count
     price_change = self.terms.price_change
     skew = self.terms.skew
+    test = self.terms.test
 
     test_output = (
       "base currency: \t\t\t{0}\nquote currency: \t\t{1}\nbudget: \t\t\t{2}\n"
@@ -186,11 +192,11 @@ class test_trading_terms(unittest.TestCase):
       "skew: \t\t\t\t{12}\nprice change: \t\t\t{13}\ntest: \t\t\t\t{14}"
     ).format(
       "BTC", "USD", "10000",
-      round(self.terms.buy_budget, self.terms.price_decimals),
-      self.terms.sell_budget,
-      round(self.terms.quote_sell_budget, self.terms.price_decimals),
+      buy_budget,
+      sell_budget,
+      quote_sell_budget,
       "0.01", "0.00100000", low,
       mid, high, count,
-      skew, price_change, self.terms.test)
+      skew, price_change, test)
 
     self.assertEqual(str(self.terms), test_output)
