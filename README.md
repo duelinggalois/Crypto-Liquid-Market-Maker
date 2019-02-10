@@ -9,15 +9,24 @@ This program will list a sequence of buy and sell trades on pro.coinbase.com bas
 * trade increase increment
 * low sale price (high price currently set automatically)
 
-**Recommended Installation**
+**Requirements**
 * [Install Python3](http://docs.python-guide.org/en/latest/starting/install3)
 * [Install PipEnv](https://docs.pipenv.org/)
+* [Install MySQL](https://dev.mysql.com/downloads/installer/)
+* [Coinbase Pro Account](https://pro.coinbase.com)
+* [Coinbase API Keys](https://pro.coinbase.com/profile/api)
+* [Coinbase Test API Keys](https://public.sandbox.pro.coinbase.com/profile/api) if you want to run tests
+
+I believe you can demo the command line interface with python3 and pipenv, but I opened an issue to verify this. Adding MySQL has been my most recent focus and I entend on making it optional. I have also added the git tag `pre-sql` to the last merge to master prior to sql being added.  
+
+**Recommended Installation**
 * `git clone https://github.com/rev3ks/Crypto-Liquid-Market-Maker`
 * `cd Crypto-Liquid-Market-Maker`
 * `cp config.py.default config.py`
 * Add Coinbase Pro API passphrase, keys, and secret to `config.py`
+* Add MySQL credentials and name of databases to use to `config.py`
 * `sudo pipenv install` (dependencies managed by `Pipfile` in project root)
-* `pipenv run python -m trader`
+* `pipenv run python -m trader` (Skip the config and run this to get a glimps)
 
 **Alternatively run from the command line**
 ```

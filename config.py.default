@@ -21,6 +21,14 @@ test_socket = 'wss://ws-feed-public.sandbox.pro.coinbase.com/'
 
 CB_FEE = 0.003
 
+# Mysql Database credentials
+db = {
+  'user': '',
+  'password': '',
+  'host': '',
+  'name': ''
+}
+
 log_config = {
   'version': 1,
   'disable_existing_loggers': False,
