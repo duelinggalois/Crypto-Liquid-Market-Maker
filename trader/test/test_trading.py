@@ -70,15 +70,19 @@ class test_trading(unittest.TestCase):
     self.assertEqual(new_order_ids, starting_order_ids)
 
   def test_live(self):
-    mid = trading.get_mid_market_price("BTC-USD")
-    half_mid = round(mid / 100, 2)
-    self.live_test_order = order.Order("BTC-USD", "buy", ".01", half_mid)
-    orders = trading.get_open_orders(pair="BTC-USD")
+    # Check for open orders
+    orders = trading.get_open_orders(pair="BTC-USD", test=False)
     starting_order_ids = {order["id"] for order in orders}
     logger.debug("Starting with {} orders".format(len(starting_order_ids)))
 
+    # Check price and send trade at fraction of price
+    mid = trading.get_mid_market_price("BTC-USD")
+    fraction_of_mid = round(mid / 100, 2)
+    self.live_test_order = order.Order("BTC-USD", "buy", ".01",
+                                       fraction_of_mid)
+
     trading.send_order(self.live_test_order)
-    orders = trading.get_open_orders(pair="BTC-USD")
+    orders = trading.get_open_orders(pair="BTC-USD", test=False)
     logger.debug("New order {}".format(self.live_test_order.id))
     new_order_ids = {order["id"] for order in orders}
     logger.debug("Ending with {} orders".format(len(new_order_ids)))
@@ -89,7 +93,7 @@ class test_trading(unittest.TestCase):
     self.assertEqual(new_order_ids, union_order_ids)
 
     trading.cancel_order(self.live_test_order)
-    orders = trading.get_open_orders(pair="BTC-USD")
+    orders = trading.get_open_orders(pair="BTC-USD", test=False)
     new_order_ids = {order["id"] for order in orders}
 
     self.assertEqual(new_order_ids, starting_order_ids)

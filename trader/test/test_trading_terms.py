@@ -186,7 +186,9 @@ class test_trading_terms(unittest.TestCase):
       "skew: \t\t\t\t{12}\nprice change: \t\t\t{13}\ntest: \t\t\t\t{14}"
     ).format(
       "BTC", "USD", "10000",
-      "4678.37", "0.33600000", "4903.16",
+      round(self.terms.buy_budget, self.terms.price_decimals),
+      self.terms.sell_budget,
+      round(self.terms.quote_sell_budget, self.terms.price_decimals),
       "0.01", "0.00100000", low,
       mid, high, count,
       skew, price_change, self.terms.test)
