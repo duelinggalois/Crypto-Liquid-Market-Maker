@@ -24,6 +24,7 @@ def parse_command_line():
   parser.add_argument('--lowprice', type=Decimal, default=None)
   parser.add_argument('--highprice', type=Decimal, default=None)
   parser.add_argument('--live', action='store_true')
+  parser.add_argument('--exchangeload', action='store_true')
   args = parser.parse_args()
 
   return args
@@ -36,7 +37,16 @@ def main(args):
                                    args.highprice))
 
   # Check for parser arguemnts to run with.
-  if not all_args:
+  if args.exchangeload:
+    terms = "exchange"
+    socket_manager = construct(
+      TradingTerms(
+        pair=args.pair,
+        test=not args.live,
+        exchangeload=True
+      )
+    )
+  elif not all_args:
     terms = user_inteface()
     socket_manager = construct(terms)
   else:
@@ -51,7 +61,6 @@ def main(args):
         high_price=args.highprice,
         test=test)
     )
-
   try:
     socket_manager.run()
   except Exception:
@@ -69,7 +78,10 @@ def user_inteface():
 
 
 def construct(terms):
-  logger.debug("Constructing - terms.test: {}\n{}".format(terms.test, terms))
+  if terms.exchangeload:
+    logger.debug("Loading terms from open exhcnage orders")
+  else:
+    logger.debug("Constructing - terms.test: {}\n{}".format(terms.test, terms))
   book_manager = BookManager(terms)
   reader = Reader(book_manager)
   socket_manager = SocketManager(reader, product_ids=[terms.pair],

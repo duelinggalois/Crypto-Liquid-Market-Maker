@@ -12,19 +12,41 @@ logger = logging.getLogger(__name__)
 
 class BookManager():
 
-  def __init__(self, terms, persist=True):
+  def __init__(self, terms, persist=True, exchangeload=False):
     self.terms = terms
     self.test = terms.test
     self.persist = persist
     logger.debug("BookManager.test: {}".format(self.test))
-    self.book = Book(terms.pair, persist=persist, test=self.test)
+    self.book = Book(terms.pair, persist=persist, test=terms.test)
+    if terms.exchangeload:
+      self.parse_exchange_orders(terms.exchange_orders)
+      
+      self.cancel_orders_below_size(
+        terms.cancel_orders[0],
+        terms.cancel_orders[1]
+      )
+      self.add_orders(
+        terms.first_add_orders[0],
+        terms.first_add_orders[1],
+        terms.first_add_orders[2],
+        terms.first_add_orders[3],
+        terms.first_add_orders[4],
+      )
+      self.add_orders(
+        terms.second_add_orders[0],
+        terms.second_add_orders[1],
+        terms.second_add_orders[2],
+        terms.second_add_orders[3],
+        terms.second_add_orders[4],
+      )
+      return
 
     first_buy_price = terms.mid_price - terms.price_change
     first_sell_price = terms.mid_price + terms.price_change
     first_buy_size = terms.min_size + terms.size_change * terms.skew
 
     if terms.skew < 0:
-      raise NotImplemented("More buys then sells, not implemented yet")
+      raise NotImplemented("More buys then sells, not implemented")
 
     elif terms.skew > 0:
       # Add skewed orders and reset initial sell price and sell size
@@ -54,9 +76,8 @@ class BookManager():
                     terms.size_change * 2
                     )
 
-  def add_orders(self, side, count, first_size, first_price, size_change):
-    price = first_price
-    size = first_size
+  def add_orders(self, side, count, size, price, size_change):
+
     plus_or_minus = -1 if side == "buy" else 1
     for i in range(count):
       self.book.add_order(side, size, price)
@@ -154,3 +175,15 @@ class BookManager():
         test_session.commit()
       else:
         session.commit()
+
+  def parse_exchange_orders(self, exch_orders):
+    {self.book.add_exchange_order(
+      o["id"],
+      o["side"],
+      o["size"],
+      o["price"],
+      o["post_only"],
+      o["filled_size"],
+      o["status"]
+    ) for o in exch_orders}
+    session.commit()

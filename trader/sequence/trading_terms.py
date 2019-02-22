@@ -1,6 +1,8 @@
+from collections import Counter
+from decimal import Decimal
 import logging
 import logging.config
-from decimal import Decimal
+from operator import itemgetter
 
 import config
 from ..exchange import trading
@@ -19,7 +21,8 @@ class TradingTerms():
     size_change=None,
     low_price=None,
     high_price=None,
-    test=True
+    test=True,
+    exchangeload=False
   ):
 
     self._base_pair = None
@@ -51,6 +54,11 @@ class TradingTerms():
     self.size_change = size_change
     self.low_price = low_price
     self.high_price = high_price
+
+    if exchangeload:
+      self.exchangeload = exchangeload
+      self.load_terms_from_exchange()
+
 
   @property
   def pair(self):
@@ -205,9 +213,11 @@ class TradingTerms():
     return round(self._mid_price, self.price_decimals)
 
   def set_mid_price(self):
+
     if self.pair:
-      self._mid_price = Decimal(trading.get_mid_market_price(self.pair,
-                                                             test=self.test))
+      self._mid_price = Decimal(trading.get_mid_market_price(
+        self.pair, test=self.test
+      ))
       logger.info("{} currently trading at {}"
                   .format(self.pair, self.mid_price))
     else:
@@ -365,6 +375,79 @@ class TradingTerms():
         self.skew, self.price_change, self.test)
     return output
 
+  def load_terms_from_exchange(self):
+
+    # ask coinbase for open orders for self.pair
+    open_orders = trading.get_open_orders(
+      self.pair, test=self.test
+    )
+    price_change = find_frequent_delta("price", open_orders)
+    size_change = find_frequent_delta("size", open_orders)
+
+    # Sort by size and split into buys and sells
+    open_orders.sort(key=itemgetter("size"))
+    buys, sells = [], []
+    {(buys if o["side"] == "buy" else sells).append(o) for o in open_orders}
+
+    smallest_size = Decimal(min(buys[0]["size"], sells[0]["size"]))
+    largest_size = Decimal(max(buys[-1]["size"], sells[-1]["size"]))
+    low_price = Decimal(buys[-1]["price"])
+    high_buy_price = Decimal(buys[0]["price"])
+    low_sell_price = Decimal(sells[0]["price"])
+    high_price = Decimal(sells[-1]["price"])
+
+    # typically this would be plus one order position will always be vacant
+    # between the first buy and first sell
+    count_goal = (high_price - low_price) / price_change
+
+    # count = (largest_size - minimum) / size_change + 1
+    # ((count - 1) * size_change - largest_size) * - 1 = minimum
+    min_size = largest_size - (count_goal - 1) * size_change
+    self.exchange_orders = open_orders
+
+    mid_market = trading.get_mid_market_price(self.pair)
+
+    buy_count = int((mid_market - high_buy_price) / price_change)
+    sell_count = int((low_sell_price - mid_market) / price_change)
+    smallest_order = next(
+      o for o in open_orders if o["size"] == str(smallest_size)
+    )
+    first_side, second_side = (
+      # This needs to be checked against fills for corner condition
+      ("buy", "sell") if smallest_order["side"] == "buy" else ("sell", "buy")
+    )
+    # Remove space between buys and sells on one side or the other
+    if first_side == "buy":
+      first_count = buy_count - 1
+      second_count = sell_count
+      first_price = high_buy_price + price_change * first_count
+      second_price = low_sell_price - price_change * second_count
+      cancel_side = "buy"
+    else:
+      first_count = sell_count - 1
+      second_count = buy_count
+      first_price = low_sell_price + price_change * first_count
+      second_price = high_buy_price - price_change * second_count
+      cancel_side = "sell"
+
+    second_size = min_size + size_change * first_count
+    cancel_size = min_size + size_change * (first_count + second_count)
+
+    self.cancel_orders = (cancel_side, cancel_size)
+
+    self.first_add_orders = (
+      first_side, first_count, min_size, first_price, size_change
+    )
+    self.second_add_orders = (
+      second_side, second_count, second_size, second_price, size_change
+    )
+    self.min_size = min_size
+    self.size_change = size_change
+    self.low_price = low_price
+    self.high_price = high_price
+    # No setter as normally this will be deterministic.
+    self._price_change = price_change
+
 
 def find_count(S0, SD, PL, PM, PH, BU):
   A = (SD * (3 * PH ** 2 * PM - 3 * PH * PL ** 2 - 3 * PH * PM ** 2 +
@@ -385,3 +468,22 @@ def find_count(S0, SD, PL, PM, PH, BU):
       type(C)
     ))
   return int((-B + (B ** 2 - 4 * A * C).sqrt()) / (2 * A))
+
+
+def find_frequent_delta(attribute, orders):
+
+  attrib_list = sorted(orders, key=itemgetter(attribute))
+  # Construct a dictionary with deltas as keys and count as values
+  attrib_delta = {}
+  for i in range(len(attrib_list) - 1):
+    delta = Decimal(
+      attrib_list[i + 1][attribute]
+    ) - Decimal(
+      attrib_list[i][attribute]
+    )
+    if delta in attrib_delta.keys():
+      attrib_delta[delta] += 1
+    else:
+      attrib_delta[delta] = 1
+
+  return max(attrib_delta, key=attrib_delta.get)

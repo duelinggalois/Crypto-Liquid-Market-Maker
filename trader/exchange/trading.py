@@ -128,17 +128,33 @@ def get_mid_market_price(pair, test=False):
   return (ask + bid) / 2
 
 
-def get_open_orders(pair=None, test=True):
-  '''this method is limited by the api and will only return 100 orders
+def get_open_orders(pair, test=True):
+  '''Return all open orders based on trading pair. The coinbase api is limited
+  by 100. Thus, in order to get all orders when in excess of 100, this method
+  continues to poll the the api and uses pagnation as described at
+  https://docs.pro.coinbase.com/#pagination and adds them to the set.
   '''
   url, auth = get_url_auth(test)
-  if pair is None:
-    query_params = "?status=open"
-  else:
-    query_params = "?status=open&product_id=" + pair
+  query_params = "?status=open&product_id=" + pair
+  # run loop until response is less then 100
+  orders = []
+  page_params = ""
+  while True:
 
-  get_orders = requests.get(url + "orders" + query_params, auth=auth)
-  return get_orders.json()
+    response = requests.get(
+      url + "orders" + query_params + page_params, auth=auth
+    )
+    if not response.ok:
+      logger.error("response code {}".format(response.status_code))
+
+    recent_orders = response.json()
+    orders.extend(recent_orders)
+    if len(recent_orders) < 100:
+      return orders
+    else:
+      # Counter intuitively look back in time from the present, after < before
+      cb_after = response.headers['cb-after']
+      page_params = "&after=" + cb_after
 
 
 def order_status(exchange_id, test=True):

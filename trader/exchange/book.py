@@ -35,8 +35,23 @@ class Book():
       self.pair, side, size, price, post_only=post_only,
       persist=self.persist, test=self.test
     )
-    order.save()
+    if self.persist:
+      order.save()
     self.unsent_orders.append(order)
+
+  def add_exchange_order(
+    self, exch_id, side, size, price, post_only, filled_size, status
+  ):
+    order = Order(
+      self.pair, side, size, price, post_only=post_only, persist=self.persist,
+      test=self.test
+    )
+    order.filled = filled_size
+    order.exchange_id = exch_id
+    order.status = status
+    if self.persist:
+      order.save()
+    self.open_orders.append(order)
 
   def send_orders(self):
     for order in self.unsent_orders:
@@ -67,3 +82,9 @@ class Book():
       filled_order.session.commit()
 
     return filled_order
+
+  def load_from_exchange(self):
+    '''create book from exchange
+    '''
+    trades = trading.get_open_orders(self.pair, test=self.test)
+    self.open_orders.extend(trades)
