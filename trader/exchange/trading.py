@@ -13,6 +13,11 @@ logger = logging.getLogger(__name__)
 
 
 def send_order(Order):
+  '''
+  Sends an order to exchange based on content of Order object. Exchange returns
+  a status of pending and requires to poll the api to confirm order is open.
+  this can be done with the confirm_order function.
+  '''
   logging.debug("Order.test: {}".format(Order.test))
   url, auth = get_url_auth(Order.test)
 
@@ -52,6 +57,14 @@ def send_order(Order):
       response["message"],
       str(Order)
     ))
+
+
+def confirm_order(Order):
+    '''Verify status is no longer pending after order is sent.
+    '''
+    response = order_status(Order.exchange_id)
+    Order.status = response["status"]
+    Order.filled = response["filled_size"]
 
 
 def cancel_order(Order):

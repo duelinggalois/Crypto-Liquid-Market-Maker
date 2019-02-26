@@ -41,6 +41,7 @@ class Book():
   def send_orders(self):
     for order in self.unsent_orders:
       trading.send_order(order)
+      trading.confirm_order(order.exchange_id)
       self.open_orders.append(order)
     self.unsent_orders = []
 
