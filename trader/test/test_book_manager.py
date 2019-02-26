@@ -42,7 +42,7 @@ class TestBookManager(unittest.TestCase):
     rounded_off_sell_trade = (book.unsent_orders[last_sell].size +
                               self.terms.size_change) * self.terms.mid_price
     lower_bound = 1000 - rounded_off_buy_trade - rounded_off_sell_trade - 10
-    # TODO: understand need for error term of 10, guessing it has to do with 
+    # TODO: understand need for error term of 10, guessing it has to do with
     # price distribution.
     self.assertLessEqual(budget, upper_bound)
     self.assertGreaterEqual(budget, lower_bound)

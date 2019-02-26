@@ -60,9 +60,9 @@ class Test_Order(unittest.TestCase):
     rounded = round(test, 2)
     self.assertEqual(test_order.price, rounded)
 
-    mid = trading.get_mid_market_price("LTC-BTC", test=True)
+    mid = trading.get_mid_market_price("ETH-BTC", test=True)
     test = mid / Decimal(".8")
-    test_order = Order("LTC-BTC", "buy",
+    test_order = Order("ETH-BTC", "buy",
                        .05, test, persist=False, test=True)
 
     rounded = round(test, 5)

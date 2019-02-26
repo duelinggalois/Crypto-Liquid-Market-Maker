@@ -68,4 +68,4 @@ class TestBookManagerIntegration(unittest.TestCase):
       self.assertEqual(order_in_db[0], order.id)
       self.assertIsNotNone(order_in_db[2])
       self.assertEqual(order_in_db[2], order.exchange_id)
-      self.assertEqual(order_in_db[8], "pending")
+      self.assertEqual(order_in_db[8], "open")
