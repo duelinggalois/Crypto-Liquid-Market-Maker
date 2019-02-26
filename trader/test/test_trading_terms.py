@@ -40,10 +40,10 @@ class test_trading_terms(unittest.TestCase):
     with self.assertRaises(ValueError):
       self.terms.pair = 6
 
-    terms = TradingTerms("LTC-BTC", test=True)
+    terms = TradingTerms("ETH-BTC", test=True)
 
-    self.assertEqual(terms.pair, "LTC-BTC")
-    self.assertEqual(terms.min_size, Decimal(".1"))
+    self.assertEqual(terms.pair, "ETH-BTC")
+    self.assertEqual(terms.min_size, Decimal("0.01"))
     self.assertEqual(terms.price_decimals, 5)
 
     with self.assertRaises(ValueError):
@@ -69,21 +69,15 @@ class test_trading_terms(unittest.TestCase):
     with self.assertRaises(ValueError):
       self.terms.min_size = 1
 
-    self.terms.pair = "ETH-USD"
+    self.terms.pair = "ETH-BTC"
     self.assertEqual(self.terms.min_size, Decimal(".01"))
     with self.assertRaises(ValueError):
       self.terms.min_size = .009
 
     self.terms.min_size = ".011"
     self.assertEqual(self.terms.min_size, Decimal(".011"))
-
-    self.terms.pair = "LTC-USD"
-    self.assertEqual(self.terms.min_size, Decimal(".1"))
     with self.assertRaises(ValueError):
-      self.terms.min_size = ".09"
-
-    self.terms.min_size = ".11"
-    self.assertEqual(self.terms.min_size, Decimal(".11"))
+      self.terms.min_size = ".009"
 
   def test_terms_size_change(self):
     with self.assertRaises(ValueError):

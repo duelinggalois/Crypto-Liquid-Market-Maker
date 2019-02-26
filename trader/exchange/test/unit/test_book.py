@@ -7,12 +7,12 @@ from ... import trading
 
 class Test_Book(unittest.TestCase):
   def setUp(self):
-    self.book = Book("LTC-USD", persist=False, test=True)
-    self.market_price = trading.get_mid_market_price("LTC-USD", test=True)
+    self.book = Book("BTC-USD", persist=False, test=True)
+    self.market_price = trading.get_mid_market_price("BTC-USD", test=True)
 
   def test_book_init(self):
 
-    self.assertEqual(self.book.pair, "LTC-USD")
+    self.assertEqual(self.book.pair, "BTC-USD")
     self.assertEqual(self.book.unsent_orders, [])
     self.assertEqual(self.book.open_orders, [])
     self.assertEqual(self.book.filled_orders, [])
@@ -26,7 +26,7 @@ class Test_Book(unittest.TestCase):
 
     order = self.book.unsent_orders[0]
     self.assertEqual(order.price, price)
-    self.assertEqual(order.pair, "LTC-USD")
+    self.assertEqual(order.pair, "BTC-USD")
     self.assertEqual(order.size, Decimal(".1"))
     self.assertEqual(order.side, "buy")
 
@@ -36,7 +36,7 @@ class Test_Book(unittest.TestCase):
     self.assertEqual(len(self.book.unsent_orders), 2)
     order = self.book.unsent_orders[1]
     self.assertEqual(order.price, price)
-    self.assertEqual(order.pair, "LTC-USD")
+    self.assertEqual(order.pair, "BTC-USD")
     self.assertEqual(order.size, Decimal(".11"))
     self.assertEqual(order.side, "sell")
 
@@ -97,4 +97,4 @@ class Test_Book(unittest.TestCase):
 
   def get_ids(self):
     return [order["id"] for order in trading
-            .get_open_orders(pair="LTC-USD", test=True)]
+            .get_open_orders(pair="BTC-USD", test=True)]
