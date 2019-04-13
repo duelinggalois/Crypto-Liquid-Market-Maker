@@ -8,6 +8,7 @@ from ... import trading
 from trader.database.manager import (
   get_order_from_db, BaseWrapper, Test_Engine, test_session
 )
+from sqlalchemy.orm import Session
 
 
 logging.config.dictConfig(config.log_config)
@@ -21,7 +22,8 @@ class Test_Order_Integration(unittest.TestCase):
     self.test_order = Order("BTC-USD", "buy", 1, 1, test=True)
 
   def tearDown(self):
-    test_session.close()
+    test_session.commit()
+    Session.close_all()
     BaseWrapper.metadata.drop_all(Test_Engine)
 
   def test_order_id(self):

@@ -3,6 +3,7 @@ import unittest
 from ...book import Book
 from ....database.manager import (
   BaseWrapper, Test_Engine, test_session, get_order_from_db)
+from sqlalchemy.orm import Session
 
 
 class Test_Order_Integration(unittest.TestCase):
@@ -12,7 +13,8 @@ class Test_Order_Integration(unittest.TestCase):
 
   def tearDown(self):
     self.book.cancel_all_orders()
-    test_session.close()
+    test_session.commit()
+    Session.close_all() 
     BaseWrapper.metadata.drop_all(Test_Engine)
 
   def test_init(self):

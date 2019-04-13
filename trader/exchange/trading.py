@@ -62,9 +62,13 @@ def send_order(Order):
 def confirm_order(Order):
     '''Verify status is no longer pending after order is sent.
     '''
-    response = order_status(Order.exchange_id)
-    Order.status = response["status"]
-    Order.filled = response["filled_size"]
+    logger.debug("Order.test: {}".format(Order.test))
+    try:
+        response = order_status(Order.exchange_id, test=Order.test)
+        Order.status = response["status"]
+        Order.filled = response["filled_size"]
+    except Exception:
+        logger.debug("confirm order failed: {}".format(response))
 
 
 def cancel_order(Order):
@@ -166,6 +170,7 @@ def order_status(exchange_id, test=True):
   if canceled may return 404 or dictonary with "message" of None.
   if bad format, will return "message" if Invalid order id
   '''
+  logger.debug("order status test: {}".format(test))
   url, auth = get_url_auth(test)
   response = requests.get(url + "orders/" + exchange_id, auth=auth)
   return response.json()
