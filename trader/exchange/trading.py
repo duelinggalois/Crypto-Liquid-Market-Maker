@@ -148,8 +148,12 @@ def get_open_orders(pair, test=True):
     response = requests.get(
       url + "orders" + query_params + page_params, auth=auth
     )
+
     if not response.ok:
-      logger.error("response code {}".format(response.status_code))
+      logger.error("response code {} message:".format(
+        response.status_code,
+        response.json()["message"]
+      ))
 
     recent_orders = response.json()
     orders.extend(recent_orders)

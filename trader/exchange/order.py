@@ -39,8 +39,6 @@ class Order(BaseWrapper):
       self.session = session
       self.engine = Engine
 
-    print("Order t" + str(self.session))
-
     self.pair = pair
     self.side = side
     self.size = size

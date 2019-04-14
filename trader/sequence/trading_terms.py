@@ -1,4 +1,3 @@
-from collections import Counter
 from decimal import Decimal
 import logging
 import logging.config
@@ -427,8 +426,8 @@ class TradingTerms():
     else:
       first_count = sell_count - 1
       second_count = buy_count
-      first_price = low_sell_price + price_change * first_count
-      second_price = high_buy_price - price_change * second_count
+      first_price = low_sell_price - price_change * first_count
+      second_price = high_buy_price + price_change * second_count
       cancel_side = "sell"
 
     second_size = min_size + size_change * first_count
@@ -482,9 +481,17 @@ def find_frequent_delta(attribute, orders):
     ) - Decimal(
       attrib_list[i][attribute]
     )
+    if delta == Decimal(0):
+      logger.debug("found 0 delta:\n{}\n{}".format(
+        attrib_list[i + 1],
+        attrib_list[i]
+      ))
+      if attrib_list[i + 1]["size"] == attrib_list[i]["size"]:
+        logger.debug("Exact match removing")
+        trading.cancel_order_by_id(attrib_list[i]["id"])
+      continue
     if delta in attrib_delta.keys():
       attrib_delta[delta] += 1
     else:
       attrib_delta[delta] = 1
-
   return max(attrib_delta, key=attrib_delta.get)
