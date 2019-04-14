@@ -3,6 +3,11 @@ import logging
 import logging.config
 from decimal import Decimal
 
+from sqlalchemy import Column, String, Numeric, Boolean
+
+from ..database.manager import (
+  BaseWrapper, Engine, Test_Engine, test_session, session
+)
 import config
 
 
@@ -10,22 +15,51 @@ logging.config.dictConfig(config.log_config)
 logger = logging.getLogger(__name__)
 
 
-class Order():
+class Order(BaseWrapper):
 
-  def __init__(self, pair, side, size, price, test=False):
+  # Setting up database table
+  _exchange_id = Column("exchange_id", String(40))
+  _pair = Column("pair", String(15))
+  _side = Column("side", String(4))
+  _price = Column("price", Numeric(precision=13, scale=5))
+  _size = Column("size", Numeric(precision=12, scale=8))
+  _filled = Column("filled", Numeric(precision=12, scale=8))
+  _status = Column("status", String(15))
+  _post_only = Column("post_only", Boolean)
+  _test = Column("test", Boolean)
+
+  def __init__(
+    self, pair, side, size, price, post_only=True, persist=True, test=False
+  ):
+
+    if test:
+      self.session = test_session
+      self.engine = Test_Engine
+    else:
+      self.session = session
+      self.engine = Engine
+
+    print("Order t" + str(self.session))
+
     self.pair = pair
     self.side = side
-    self.size = Decimal(size)
-    self.price = Decimal(price)
-    self.status = "created"
-    self.id = ""
+    self.size = size
+    self.filled = "0"
+    self.price = price
+    self.status = "ready"
     self.history = []
     self.responses = []
     self.test = test
-    self.post_only = True
-    self.filled = Decimal()
+    self.post_only = post_only
+    self.persist = persist
 
-    self.update_history("Created")
+  @property
+  def exchange_id(self):
+    return self._exchange_id
+
+  @exchange_id.setter
+  def exchange_id(self, value):
+    self._exchange_id = value
 
   @property
   def pair(self):
@@ -56,6 +90,14 @@ class Order():
     self._side = value
 
   @property
+  def price(self):
+    return self._price
+
+  @price.setter
+  def price(self, value):
+    self._price = round(Decimal(value), self.price_decimals)
+
+  @property
   def size(self):
     return self._size
 
@@ -64,15 +106,36 @@ class Order():
     self._size = Decimal(value)
 
   @property
-  def price(self):
-    return self._price
+  def filled(self):
+    return self._filled
 
-  @price.setter
-  def price(self, value):
-    if type(value) not in [float, int, Decimal]:
-      raise TypeError("{} is not a number".format(value))
+  @filled.setter
+  def filled(self, value):
+      self._filled = Decimal(value)
 
-    self._price = Decimal(round(value, self.price_decimals))
+  @property
+  def status(self):
+    return self._status
+
+  @status.setter
+  def status(self, value):
+    self._status = value
+
+  @property
+  def post_only(self):
+    return self._post_only
+
+  @post_only.setter
+  def post_only(self, value):
+    self._post_only = value
+
+  @property
+  def test(self):
+    return self._test
+
+  @test.setter
+  def test(self, value):
+    self._test = value
 
   def update_history(self, message):
     self.history.append(
@@ -90,7 +153,7 @@ class Order():
       "size: {}\n"
       "filled: {}\n"
       "status: {}\n"
-      "id: {}\n"
+      "exchange_id: {}\n"
       "test: {}\n"
       "history: {}\n"
       "responses: {}"
@@ -101,7 +164,7 @@ class Order():
       self.size,
       self.filled,
       self.status,
-      self.id,
+      self.exchange_id,
       self.test,
       self.history,
       self.responses
