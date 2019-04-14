@@ -71,12 +71,10 @@ def get_order_from_db(id, test=False):
   statement = "SELECT {} FROM {} WHERE {} = %s".format(
     columns, table, search_column
   )
-
-  engine = create_engine(_db_connection_string(
-    test=test
-  ), echo=True)
-
-  results = engine.execute(statement, id)
+  if test:
+    results = Test_Engine.execute(statement, id)
+  else:
+    results = Engine.execute(statement, id)
   return results.fetchone()
 
 

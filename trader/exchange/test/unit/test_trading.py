@@ -84,31 +84,37 @@ class test_trading(unittest.TestCase):
     self.assertIsNone(None)
 
   def test_live(self):
-    # Check for open orders
-    orders = trading.get_open_orders(pair="BTC-USD", test=False)
-    starting_order_ids = {order["id"] for order in orders}
-    logger.debug("Starting with {} orders".format(len(starting_order_ids)))
-
     # Check price and send trade at fraction of price
-    mid = trading.get_mid_market_price("BTC-USD")
+    mid = trading.get_mid_market_price("BTC-USD", test=False)
     fraction_of_mid = round(mid / 100, 2)
-    self.live_test_order = Order(
+
+    live_test_order = Order(
       "BTC-USD", "buy", ".01", fraction_of_mid, persist=False
     )
 
-    trading.send_order(self.live_test_order)
-    orders = trading.get_open_orders(pair="BTC-USD", test=False)
-    logger.debug("New order {}".format(self.live_test_order.exchange_id))
-    new_order_ids = {order["id"] for order in orders}
-    logger.debug("Ending with {} orders".format(len(new_order_ids)))
+    # Send order and check
+    trading.send_order(live_test_order)
+    print("id {}".format(live_test_order.exchange_id))
+    check_order = trading.order_status(live_test_order.exchange_id, test=False)
+    logger.debug(check_order)
 
-    union_order_ids = starting_order_ids | {self.live_test_order.exchange_id}
-    logger.debug("Union has {} orders".format(len(union_order_ids)))
+    # Cancel order and check
+    trading.cancel_order(live_test_order)
+    check_canceled_order = trading.order_status(live_test_order.exchange_id,
+                                                test=False)
+    logger.debug(check_canceled_order)
 
-    self.assertEqual(new_order_ids, union_order_ids)
-
-    trading.cancel_order(self.live_test_order)
-    orders = trading.get_open_orders(pair="BTC-USD", test=False)
-    new_order_ids = {order["id"] for order in orders}
-
-    self.assertEqual(new_order_ids, starting_order_ids)
+    self.assertEqual(check_order['id'], live_test_order.exchange_id)
+    self.assertEqual(check_order['price'], str(fraction_of_mid) + '000000')
+    self.assertEqual(check_order['size'], "0.01000000")
+    self.assertEqual(check_order['product_id'], 'BTC-USD')
+    self.assertEqual(check_order['side'], 'buy')
+    self.assertEqual(check_order['type'], 'limit')
+    self.assertEqual(check_order['time_in_force'], 'GTC')
+    self.assertEqual(check_order['post_only'], True)
+    self.assertEqual(check_order['fill_fees'], '0.0000000000000000')
+    self.assertEqual(check_order['filled_size'], '0.00000000')
+    self.assertEqual(check_order['executed_value'], '0.0000000000000000')
+    self.assertEqual(check_order['status'], 'open')
+    self.assertEqual(check_order['settled'], False)
+    self.assertEqual(check_canceled_order['message'], 'NotFound')
