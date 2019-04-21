@@ -7,26 +7,16 @@ from sqlalchemy.orm import relationship
 from . import trading
 from .order import Order
 import config
-from ..database.manager import (
-  BaseWrapper, Engine, Test_Engine, test_session, session
-)
+from ..database.manager import BaseWrapper
+
 logging.config.dictConfig(config.log_config)
 logger = logging.getLogger(__name__)
-JOIN_STRING = "and_(Book.id==Order.book_id, Order._status=={})"
 
 
 class Book(BaseWrapper):
 
   pair = Column("pair", String(15))
   orders = relationship(Order, lazy="dynamic", collection_class=set)
-
-  # dynamic_loader()
-  # collection_class=attribute_mapped_collection('exchange_id')
-  # ready_orders = orders.filter(Order.status == "ready")
-  # open_orders = orders.filter(Order.status == "open")
-  # filled_orders = orders.filter(Order.status == "filled")
-  # rejected_orders = orders.filter(Order.status == "rejected")
-  # cancel_orders = orders.filter(Order.status == "canceled")
 
   def __init__(self, pair, persist=True, test=True):
 
@@ -56,6 +46,8 @@ class Book(BaseWrapper):
       trading.confirm_order(order)
       order.status = "open"
       self.open_orders.append(order)
+      if self.persist:
+        order.save()
 
   def cancel_all_orders(self):
     self.cancel_order_list(self.open_orders)
@@ -66,6 +58,8 @@ class Book(BaseWrapper):
       trading.cancel_order(order)
       order.status = "canceled"
       self.canceled_orders.append(order)
+      if self.persist:
+        order.save()
 
   def order_filled(self, order_id):
     filled_order = next(

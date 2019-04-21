@@ -8,6 +8,7 @@ from ....database.manager import (
 class Test_Order_Integration(unittest.TestCase):
 
   def setUp(self):
+    BaseWrapper.metadata.create_all(Test_Engine)
     self.book = Book("BTC-USD", test=True, persist=False)
 
   def tearDown(self):
