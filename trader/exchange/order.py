@@ -3,7 +3,9 @@ import logging
 import logging.config
 from decimal import Decimal
 
-from sqlalchemy import Column, String, Numeric, Boolean
+from sqlalchemy import (
+  Column, String, Numeric, Boolean, ForeignKey
+)
 
 from ..database.manager import (
   BaseWrapper, Engine, Test_Engine, test_session, session
@@ -19,6 +21,7 @@ class Order(BaseWrapper):
 
   # Setting up database table
   _exchange_id = Column("exchange_id", String(40))
+  book_id = Column("book_id", ForeignKey("books.id"))
   _pair = Column("pair", String(15))
   _side = Column("side", String(4))
   _price = Column("price", Numeric(precision=13, scale=5))
@@ -38,8 +41,6 @@ class Order(BaseWrapper):
     else:
       self.session = session
       self.engine = Engine
-
-    print("Order t" + str(self.session))
 
     self.pair = pair
     self.side = side

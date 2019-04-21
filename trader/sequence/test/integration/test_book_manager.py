@@ -22,8 +22,9 @@ class TestBookManagerIntegration(unittest.TestCase):
       "BTC-USD", test=True
     )
     low_price = mid_price / 5
+    budget = mid_price * 3
     self.terms = TradingTerms(
-      "BTC-USD", "10000", ".01", ".015", low_price
+      "BTC-USD", budget, ".01", ".015", low_price
     )
     self.book_manager = BookManager(self.terms)
 
@@ -33,12 +34,12 @@ class TestBookManagerIntegration(unittest.TestCase):
     BaseWrapper.metadata.drop_all(Test_Engine)
 
   def test_init(self):
-    for order in self.book_manager.book.unsent_orders:
+    for order in self.book_manager.book.ready_orders:
       if logger.isEnabledFor(logging.DEBUG):
-        count = len(self.book_manager.book.unsent_orders)
+        count = len(self.book_manager.book.ready_orders)
         logger.debug(
-          "Verifying unsent order number {} of {}".format(
-            self.book_manager.book.unsent_orders.index(order) + 1,
+          "Verifying ready order number {} of {}".format(
+            self.book_manager.book.ready_orders.index(order) + 1,
             count
           )
         )
@@ -48,7 +49,7 @@ class TestBookManagerIntegration(unittest.TestCase):
       self.assertEqual(order_in_db[0], order.id)
       self.assertIsNone(order.exchange_id)
       self.assertIsNone(order_in_db[2])
-      self.assertEqual(order_in_db[8], "ready")
+      self.assertEqual(order_in_db[9], "ready")
 
   def test_send_order(self):
     self.book_manager.send_orders()
@@ -68,4 +69,4 @@ class TestBookManagerIntegration(unittest.TestCase):
       self.assertEqual(order_in_db[0], order.id)
       self.assertIsNotNone(order_in_db[2])
       self.assertEqual(order_in_db[2], order.exchange_id)
-      self.assertEqual(order_in_db[8], "open")
+      self.assertEqual(order_in_db[9], "open")

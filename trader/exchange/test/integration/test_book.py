@@ -8,7 +8,8 @@ from ....database.manager import (
 class Test_Order_Integration(unittest.TestCase):
 
   def setUp(self):
-    self.book = Book("BTC-USD", test=True)
+    BaseWrapper.metadata.create_all(Test_Engine)
+    self.book = Book("BTC-USD", test=True, persist=False)
 
   def tearDown(self):
     self.book.cancel_all_orders()
@@ -17,7 +18,7 @@ class Test_Order_Integration(unittest.TestCase):
 
   def test_init(self):
     self.book.add_order("buy", 1, 1)
-    order = self.book.unsent_orders[0]
+    order = self.book.ready_orders[0]
     order.save()
     order.session.commit()
 
