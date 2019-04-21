@@ -78,17 +78,17 @@ class Test_Book(unittest.TestCase):
     price = round(self.market_price + 1, 2)
     self.book.add_order("sell", ".11", price)
     self.book.send_orders()
-    order_id = self.book.open_orders[0].exchange_id
+    order = self.book.open_orders[0]
 
     # Tell book, order is filled
-    self.book.order_filled(order_id)
+    self.book.order_filled(order)
 
     self.assertEqual(self.book.open_orders, [])
     self.assertEqual(len(self.book.filled_orders), 1)
 
     filled_order = self.book.filled_orders[0]
 
-    self.assertEqual(order_id, filled_order.exchange_id)
+    self.assertEqual(order.exchange_id, filled_order.exchange_id)
 
     # move order back to open and cancel it.
     self.book.open_orders = [filled_order]

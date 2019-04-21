@@ -65,9 +65,14 @@ class BaseWrapper ():
 
 
 def get_order_from_db(id, test=False):
-  columns = "*"
-  table = "orders"
-  search_column = "id"
+  return get_item_from_db(id, "*", "orders", "id", test=test)
+
+
+def get_book_from_db(id, test=False):
+  return get_item_from_db(id, "*", "books", "id", test=test)
+
+
+def get_item_from_db(id, columns, table, search_column, test=False):
   statement = "SELECT {} FROM {} WHERE {} = %s".format(
     columns, table, search_column
   )
@@ -76,6 +81,7 @@ def get_order_from_db(id, test=False):
   else:
     results = Engine.execute(statement, id)
   return results.fetchone()
+
 
 
 @contextmanager

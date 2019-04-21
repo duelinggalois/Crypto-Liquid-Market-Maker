@@ -28,6 +28,8 @@ class Book(BaseWrapper):
     self.persist = persist
     self.test = test
     logger.debug("Book.test: {}".format(self.test))
+    if persist:
+      self.save()
 
   def add_order(self, side, size, price, post_only=True):
     order = Order(
@@ -61,10 +63,9 @@ class Book(BaseWrapper):
       if self.persist:
         order.save()
 
-  def order_filled(self, order_id):
-    filled_order = next(
-      order for order in self.open_orders if order.exchange_id == order_id
-    )
+  def order_filled(self, filled_order):
+    logger.debug("Updating filled order: {}".format(filled_order))
+
     self.open_orders.remove(filled_order)
     self.filled_orders.append(filled_order)
 

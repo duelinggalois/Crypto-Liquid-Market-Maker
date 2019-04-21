@@ -4,11 +4,11 @@ import unittest
 
 import config
 from ...order import Order
+from ...book import Book
 from ... import trading
 from trader.database.manager import (
   get_order_from_db, BaseWrapper, Test_Engine, test_session
 )
-
 
 logging.config.dictConfig(config.log_config)
 logger = logging.getLogger(__name__)
