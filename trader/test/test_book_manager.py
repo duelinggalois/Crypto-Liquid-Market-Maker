@@ -9,10 +9,11 @@ from ..exchange import trading
 class TestBookManager(unittest.TestCase):
 
   def setUp(self):
-    mid_price = trading.get_mid_market_price("BTC-USD", test=True)
-    low_price = mid_price / 5
+    self.mid_price = trading.get_mid_market_price("BTC-USD", test=True)
+    low_price = self.mid_price / 5
+    budget = self.mid_price * 4
     self.terms = TradingTerms(
-      "BTC-USD", "10000", ".01", ".15", low_price, test=True
+      "BTC-USD", budget, ".01", ".15", low_price, test=True
     )
     self.BookManager = BookManager(self.terms, persist=False)
 
@@ -23,11 +24,11 @@ class TestBookManager(unittest.TestCase):
     self.assertEqual(book.pair, "BTC-USD")
 
     buy_list = [round(order.price * order.size, 2)
-                for order in book.unsent_orders
+                for order in book.ready_orders
                 if order.side == "buy"]
     buy_budget = round(sum(buy_list), 2)
 
-    sell_list = [order.size for order in book.unsent_orders
+    sell_list = [order.size for order in book.ready_orders
                  if order.side == "sell"]
     sell_budget = sum(sell_list) * self.terms.mid_price
     sell_budget = round(sell_budget, 2)
@@ -35,22 +36,22 @@ class TestBookManager(unittest.TestCase):
     upper_bound = self.terms.budget
     last_buy = int(self.terms.count / 2 - 1)
     last_sell = int(self.terms.count - 1)
-    rounded_off_buy_trade = ((book.unsent_orders[last_buy].size -
+    rounded_off_buy_trade = ((book.ready_orders[last_buy].size -
                               self.terms.size_change) *
-                             (book.unsent_orders[last_buy].price +
+                             (book.ready_orders[last_buy].price +
                               self.terms.price_change))
-    rounded_off_sell_trade = (book.unsent_orders[last_sell].size +
+    rounded_off_sell_trade = (book.ready_orders[last_sell].size +
                               self.terms.size_change) * self.terms.mid_price
-    lower_bound = 1000 - rounded_off_buy_trade - rounded_off_sell_trade - 10
-    # TODO: understand need for error term of 10, guessing it has to do with
+    lower_bound = (self.mid_price - rounded_off_buy_trade -
+                   rounded_off_sell_trade
+                   )
     # price distribution.
     self.assertLessEqual(budget, upper_bound)
     self.assertGreaterEqual(budget, lower_bound)
 
   def test_BookManager_send_orders(self):
     self.BookManager.send_orders()
-
-    self.assertEqual(self.BookManager.book.unsent_orders, [])
+    self.assertEqual(self.BookManager.book.ready_orders, [])
     sent_order_ids = {
       order.exchange_id for order
       in self.BookManager.book.open_orders

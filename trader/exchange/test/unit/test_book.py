@@ -13,7 +13,7 @@ class Test_Book(unittest.TestCase):
   def test_book_init(self):
 
     self.assertEqual(self.book.pair, "BTC-USD")
-    self.assertEqual(self.book.unsent_orders, [])
+    self.assertEqual(self.book.ready_orders, [])
     self.assertEqual(self.book.open_orders, [])
     self.assertEqual(self.book.filled_orders, [])
     self.assertEqual(self.book.canceled_orders, [])
@@ -22,9 +22,9 @@ class Test_Book(unittest.TestCase):
     price = round(-1 + self.market_price, 2)
     self.book.add_order("buy", ".1", price)
 
-    self.assertEqual(len(self.book.unsent_orders), 1)
+    self.assertEqual(len(self.book.ready_orders), 1)
 
-    order = self.book.unsent_orders[0]
+    order = self.book.ready_orders[0]
     self.assertEqual(order.price, price)
     self.assertEqual(order.pair, "BTC-USD")
     self.assertEqual(order.size, Decimal(".1"))
@@ -33,8 +33,8 @@ class Test_Book(unittest.TestCase):
     price = round(-1 + self.market_price, 2)
     self.book.add_order("sell", ".11", price)
 
-    self.assertEqual(len(self.book.unsent_orders), 2)
-    order = self.book.unsent_orders[1]
+    self.assertEqual(len(self.book.ready_orders), 2)
+    order = self.book.ready_orders[1]
     self.assertEqual(order.price, price)
     self.assertEqual(order.pair, "BTC-USD")
     self.assertEqual(order.size, Decimal(".11"))
@@ -45,7 +45,7 @@ class Test_Book(unittest.TestCase):
     self.book.add_order("sell", ".11", price)
     self.book.send_orders()
 
-    self.assertEqual(self.book.unsent_orders, [])
+    self.assertEqual(self.book.ready_orders, [])
     self.assertEqual(len(self.book.open_orders), 1)
 
     send_id = self.book.open_orders[0].exchange_id
@@ -57,7 +57,7 @@ class Test_Book(unittest.TestCase):
     self.book.add_order("sell", ".2", self.market_price + 2)
     self.book.send_orders()
 
-    self.assertEqual(self.book.unsent_orders, [])
+    self.assertEqual(self.book.ready_orders, [])
     self.assertEqual(len(self.book.open_orders), 3)
 
     book_ids = {order.exchange_id for order in self.book.open_orders}
@@ -67,7 +67,6 @@ class Test_Book(unittest.TestCase):
     self.assertEqual(book_ids, sent_ids)
 
     self.book.cancel_all_orders()
-
     self.assertEqual(self.book.open_orders, [])
     self.assertEqual(len(self.book.canceled_orders), 3)
 
