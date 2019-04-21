@@ -28,6 +28,8 @@ class Book(BaseWrapper):
     self.persist = persist
     self.test = test
     logger.debug("Book.test: {}".format(self.test))
+    if persist:
+      self.save()
 
   def add_order(self, side, size, price, post_only=True):
     order = Order(
@@ -39,8 +41,19 @@ class Book(BaseWrapper):
       order.save()
 
   def send_orders(self):
+    buys = [o for o in self.ready_orders if o.side == "buy"]
+    sells = [o for o in self.ready_orders if o.side == "sell"]
+    pick_sell = True
     while len(self.ready_orders) > 0:
-      order = self.ready_orders.pop()
+      if pick_sell and len(sells) > 0:
+        order = sells.pop(0)
+        if len(buys) != 0:
+          pick_sell = False
+      else:
+        order = buys.pop(0)
+        if len(sells) != 0:
+          pick_sell = True
+      self.ready_orders.remove(order)
       trading.send_order(order)
       order.status = "pending"
       trading.confirm_order(order)
@@ -48,6 +61,7 @@ class Book(BaseWrapper):
       self.open_orders.append(order)
       if self.persist:
         order.save()
+
 
   def cancel_all_orders(self):
     self.cancel_order_list(self.open_orders)
@@ -61,10 +75,9 @@ class Book(BaseWrapper):
       if self.persist:
         order.save()
 
-  def order_filled(self, order_id):
-    filled_order = next(
-      order for order in self.open_orders if order.exchange_id == order_id
-    )
+  def order_filled(self, filled_order):
+    logger.debug("Updating filled order: {}".format(filled_order))
+
     self.open_orders.remove(filled_order)
     self.filled_orders.append(filled_order)
 

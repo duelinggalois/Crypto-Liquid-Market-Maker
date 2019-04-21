@@ -9,14 +9,19 @@ class Test_Order_Integration(unittest.TestCase):
 
   def setUp(self):
     BaseWrapper.metadata.create_all(Test_Engine)
-    self.book = Book("BTC-USD", test=True, persist=False)
+    self.book = Book("BTC-USD", test=True, persist=True)
 
   def tearDown(self):
+
     self.book.cancel_all_orders()
     test_session.close()
     BaseWrapper.metadata.drop_all(Test_Engine)
 
   def test_init(self):
+    self.assertIsNotNone(self.book.id)
+    
+
+  def test_add_orders(self):
     self.book.add_order("buy", 1, 1)
     order = self.book.ready_orders[0]
     order.save()
