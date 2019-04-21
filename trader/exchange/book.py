@@ -41,8 +41,19 @@ class Book(BaseWrapper):
       order.save()
 
   def send_orders(self):
+    buys = [o for o in self.ready_orders if o.side == "buy"]
+    sells = [o for o in self.ready_orders if o.side == "sell"]
+    pick_sell = True
     while len(self.ready_orders) > 0:
-      order = self.ready_orders.pop()
+      if pick_sell and len(sells) > 0:
+        order = sells.pop(0)
+        if len(buys) != 0:
+          pick_sell = False
+      else:
+        order = buys.pop(0)
+        if len(sells) != 0:
+          pick_sell = True
+      self.ready_orders.remove(order)
       trading.send_order(order)
       order.status = "pending"
       trading.confirm_order(order)
@@ -50,6 +61,7 @@ class Book(BaseWrapper):
       self.open_orders.append(order)
       if self.persist:
         order.save()
+
 
   def cancel_all_orders(self):
     self.cancel_order_list(self.open_orders)
