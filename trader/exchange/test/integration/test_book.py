@@ -19,7 +19,6 @@ class Test_Order_Integration(unittest.TestCase):
 
   def test_init(self):
     self.assertIsNotNone(self.book.id)
-    
 
   def test_add_orders(self):
     self.book.add_order("buy", 1, 1)

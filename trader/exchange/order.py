@@ -4,7 +4,7 @@ import logging.config
 from decimal import Decimal
 
 from sqlalchemy import (
-  Column, String, Numeric, Boolean, ForeignKey
+  Column, Integer, String, Numeric, Boolean, ForeignKey
 )
 
 from ..database.manager import (
@@ -21,7 +21,7 @@ class Order(BaseWrapper):
 
   # Setting up database table
   _exchange_id = Column("exchange_id", String(40))
-  book_id = Column("book_id", ForeignKey("books.id"))
+  book_id = Column(Integer, ForeignKey("books.id"))
   _pair = Column("pair", String(15))
   _side = Column("side", String(4))
   _price = Column("price", Numeric(precision=13, scale=5))
