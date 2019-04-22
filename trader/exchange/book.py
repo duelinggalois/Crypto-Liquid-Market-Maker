@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class Book(BaseWrapper):
 
   pair = Column("pair", String(15))
-  orders = relationship(Order, lazy="dynamic", collection_class=set)
+  orders = relationship("Order", lazy="dynamic", collection_class=list)
 
   def __init__(self, pair, persist=True, test=True):
 
@@ -36,6 +36,7 @@ class Book(BaseWrapper):
       self.pair, side, size, price, post_only=post_only,
       persist=self.persist, test=self.test
     )
+    self.orders.append(order)
     self.ready_orders.append(order)
     if self.persist:
       order.save()
@@ -62,13 +63,12 @@ class Book(BaseWrapper):
       if self.persist:
         order.save()
 
-
   def cancel_all_orders(self):
     self.cancel_order_list(self.open_orders)
 
   def cancel_order_list(self, order_list):
-    while len(self.open_orders) > 0:
-      order = self.open_orders.pop()
+    while len(order_list) > 0:
+      order = order_list.pop()
       trading.cancel_order(order)
       order.status = "canceled"
       self.canceled_orders.append(order)
