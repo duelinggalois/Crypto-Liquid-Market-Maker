@@ -121,11 +121,19 @@ def get_book(pair, level, test=False):
 
 
 def get_mid_market_price(pair, test=False):
+  ask, bid = get_first_book(pair, test)
+  return (Decimal(ask[0][0]) + Decimal(bid[0][0])) / 2
+
+
+def get_first_book(pair, test=False):
+  '''
+  book = {'asks': [['19000.01', '50000.07', 196]],
+ 'bids': [['19000', '0.003', 3]],
+ 'sequence': 45787580}
+  '''
   book = get_book(pair, 1, test=test)
   logger.debug(pformat(book))
-  ask = Decimal(book["asks"][0][0])
-  bid = Decimal(book["bids"][0][0])
-  return (ask + bid) / 2
+  return book["asks"], book["bids"]
 
 
 def get_open_orders(pair=None, test=True):

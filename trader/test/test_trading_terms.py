@@ -163,7 +163,7 @@ class test_trading_terms(unittest.TestCase):
     self.terms.budget = 10000
     self.terms.size_change = .001
     self.terms.set_mid_price()
-    self.terms.low_price = self.terms.mid_price - 100
+    self.terms.low_price = self.terms.mid_price / 3
 
     buy_budget = round(self.terms.buy_budget, self.terms.price_decimals)
     sell_budget = self.terms.sell_budget
@@ -171,8 +171,8 @@ class test_trading_terms(unittest.TestCase):
       self.terms.quote_sell_budget, self.terms.price_decimals
     )
     mid = self.terms.mid_price
-    low = round(mid - 100, 2)
-    high = round(mid + 100, 2)
+    low = round(mid / 3, 2)
+    high = round(mid * Decimal(5 / 3), 2)
     count = self.terms.count
     price_change = self.terms.price_change
     skew = self.terms.skew

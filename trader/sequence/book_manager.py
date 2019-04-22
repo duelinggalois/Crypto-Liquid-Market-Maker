@@ -5,6 +5,8 @@ import logging.config
 from ..exchange.book import Book
 import config
 from ..database.manager import session, test_session
+from trader.database.manager import (
+  BaseWrapper, Engine, Test_Engine)
 
 logging.config.dictConfig(config.log_config)
 logger = logging.getLogger(__name__)
@@ -17,6 +19,13 @@ class BookManager():
     self.test = terms.test
     self.persist = persist
     logger.debug("BookManager.test: {}".format(self.test))
+
+    # Temporary home for table creation
+    if terms.test:
+      BaseWrapper.metadata.create_all(Test_Engine)
+    else:
+      BaseWrapper.metadata.create_all(Engine)
+
     self.book = Book(terms.pair, persist=persist, test=self.test)
 
     first_buy_price = terms.mid_price - terms.price_change
@@ -98,7 +107,7 @@ class BookManager():
       if self.full_match(match, order):
 
         # Mark order as filled
-        self.book.order_filled(order.id)
+        self.book.order_filled(order)
 
         side, plus_minus = ("buy", -1) if order.side == "sell" else ("sell", 1)
         count = int(1 +
@@ -138,11 +147,11 @@ class BookManager():
   def add_and_send_orders(self, side, count, first_size, first_price,
                           size_change):
     logger.info("*SENDING ORDERS FOR ADJUSTMENT*")
-    existing_unsent_orders = self.book.unsent_orders
-    self.book.unsent_orders = []
+    existing_ready_orders = self.book.ready_orders
+    self.book.ready_orders = []
     self.add_orders(side, count, first_size, first_price, size_change)
     self.send_orders()
-    self.book.unsent_orders = existing_unsent_orders
+    self.book.ready_orders = existing_ready_orders
 
   def cancel_orders_below_size(self, side, size):
     logger.info("*CANCELING ORDERS FOR ADJUSTMNET*")
