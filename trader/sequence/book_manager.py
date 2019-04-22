@@ -107,7 +107,7 @@ class BookManager():
       if self.full_match(match, order):
 
         # Mark order as filled
-        self.book.order_filled(order.id)
+        self.book.order_filled(order)
 
         side, plus_minus = ("buy", -1) if order.side == "sell" else ("sell", 1)
         count = int(1 +
