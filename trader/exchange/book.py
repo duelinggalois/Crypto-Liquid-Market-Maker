@@ -71,6 +71,13 @@ class Book(BaseWrapper):
       order = order_list.pop()
       trading.cancel_order(order)
       order.status = "canceled"
+      try:
+        self.open_orders.remove(order)
+      except ValueError:
+        logger.info("Order not found in open orders: {}".format(
+          order
+        ))
+
       self.canceled_orders.append(order)
       if self.persist:
         order.save()
