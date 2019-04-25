@@ -63,8 +63,11 @@ def confirm_order(Order):
     '''Verify status is no longer pending after order is sent.
     '''
     response = order_status(Order.exchange_id)
-    Order.status = response["status"]
-    Order.filled = response["filled_size"]
+    if response != "Error" and "message" not in response:
+      Order.status = response["status"]
+      Order.filled = response["filled_size"]
+    else:
+      Order.status = "Error"
 
 
 def cancel_order(Order):
@@ -160,6 +163,24 @@ def order_status(exchange_id, test=True):
   '''
   url, auth = get_url_auth(test)
   response = requests.get(url + "orders/" + exchange_id, auth=auth)
+  if not response.ok:
+    if "message" in response.json():
+      logger.error((
+        "Bad response for exchange_id: {} message: {} reason: {} "
+        "status code: {}"
+      ).format(
+        exchange_id, response.json()["message"], response.reason,
+        response.status_code
+      ))
+      return response.json()
+    else:
+      logger.error((
+        "Bad response for exchange_id: {}  reason: {} status code: {}"
+      ).format(
+        exchange_id, response.reason,
+        response.status_code
+      ))
+      return "Error"
   return response.json()
 
 
