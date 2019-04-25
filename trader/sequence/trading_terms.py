@@ -63,21 +63,15 @@ class TradingTerms():
 
     self._pair = value
     if value:
+      details = trading.get_product(value)
       # split pair into pertinent parts
-      self.base_pair = self.pair[:3]
-      self.quote_pair = self.pair[4:]
-
-      # Set Price rounding for USD pairs and non USD pairs
-      if self.quote_pair == 'USD':
-        self.price_decimals = "2"
-      else:
-        self.price_decimals = "5"
-
-      # Assign min_price if None
-      if self.base_pair == "LTC":
-        self.min_size = ".1"
-      else:
-        self.min_size = ".01"
+      self.base_pair = details["base_currency"]
+      self.quote_pair = details["quote_currency"]
+      # price_decimal is used to round, we want to exclude "0." from len
+      self.price_decimals = len(details["quote_increment"]) - 2
+      self.base_min_size = details["base_min_size"]
+      self.min_size = details["base_min_size"]
+      self.max_size = details["base_max_size"]
 
   # add definition of base_pair property here
   @property
@@ -137,16 +131,10 @@ class TradingTerms():
     if value:
       if self.base_pair is None:
         raise ValueError("Can't set minimum size without knowing pair")
-      elif self.base_pair == "LTC" and Decimal(value) < Decimal(".1"):
+      elif Decimal(value) < Decimal(self.base_min_size):
         raise ValueError(
-          "Minimum trade size for {} is .1".format(
-            self.pair
-          )
-        )
-      elif Decimal(value) < Decimal(".01"):
-        raise ValueError(
-          'Miminum size trade for {} is .01'.format(
-            self.pair
+          "Minimum trade size for {} is {}".format(
+            self.pair, self.base_min_size
           )
         )
       else:
