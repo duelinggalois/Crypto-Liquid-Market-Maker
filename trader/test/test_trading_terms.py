@@ -32,8 +32,13 @@ class test_trading_terms(unittest.TestCase):
     self.assertEqual(self.terms.pair, "BTC-USD")
     self.assertEqual(self.terms.base_pair, "BTC")
     self.assertEqual(self.terms.quote_pair, "USD")
-    self.assertEqual(self.terms.min_size, Decimal(".01"))
-    self.assertEqual(self.terms.price_decimals, 2)
+    self.assertEqual(type(self.terms.min_size), Decimal,
+                     msg="min_size is a Decimal")
+    self.assertGreater(self.terms.min_size, 0, msg="min_size is positive")
+    self.assertEqual(type(self.terms.price_decimals), int,
+                     msg="price_decimals is a n integer")
+    self.assertGreater(self.terms.price_decimals, 0,
+                       msg="price_decimal is positive")
 
     with self.assertRaises(ValueError):
       self.terms.pair = "ETH"
@@ -43,9 +48,6 @@ class test_trading_terms(unittest.TestCase):
     terms = TradingTerms("ETH-BTC", test=True)
 
     self.assertEqual(terms.pair, "ETH-BTC")
-    self.assertEqual(terms.min_size, Decimal("0.01"))
-    self.assertEqual(terms.price_decimals, 5)
-
     with self.assertRaises(ValueError):
       terms.quote_pair = "ETH"
     with self.assertRaises(ValueError):
@@ -170,6 +172,7 @@ class test_trading_terms(unittest.TestCase):
     quote_sell_budget = round(
       self.terms.quote_sell_budget, self.terms.price_decimals
     )
+    base_min_size = self.terms.base_min_size
     mid = self.terms.mid_price
     low = round(mid / 3, 2)
     high = round(mid * Decimal(5 / 3), 2)
@@ -189,7 +192,7 @@ class test_trading_terms(unittest.TestCase):
       buy_budget,
       sell_budget,
       quote_sell_budget,
-      "0.01", "0.00100000", low,
+      base_min_size, "0.00100000", low,
       mid, high, count,
       skew, price_change, test)
 

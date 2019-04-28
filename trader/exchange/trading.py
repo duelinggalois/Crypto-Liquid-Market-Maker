@@ -192,6 +192,20 @@ def get_products(test=True):
   return product_ids
 
 
+def get_product(pair, test=True):
+  """
+  Get product details.
+
+  returns dictionary with the following keys.
+  'id', 'base_currency', 'quote_currency', 'base_min_size', 'base_max_size',
+  'quote_increment', 'display_name', 'status', 'margin_enabled',
+  'status_message', 'min_market_funds', 'max_market_funds', 'post_only',
+  'limit_only', 'cancel_only'
+  """
+  url, auth = get_url_auth(test)
+  response = requests.get(url + "products/" + pair)
+  return response.json()
+
 def get_url_auth(test):
   if test:
     url = config.test_rest_api_url
