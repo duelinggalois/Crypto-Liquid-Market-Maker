@@ -35,7 +35,7 @@ def send_order(Order):
     auth=auth
   )
   response = order_post.json()
-  logger.debug("response: " + pformat(response))
+  logger.debug("response:\n" + pformat(response))
   if "message" not in response:
     Order.responses.append(response)
     Order.exchange_id = response["id"]
@@ -44,11 +44,12 @@ def send_order(Order):
       Order.save()
 
     Order.update_history(response["status"])
-    logger.info("Order Posted: {} {} {} {}".format(
+    logger.info("Order Posted: {} {} {} {} {}".format(
       response["product_id"],
       response["side"],
       response["size"],
-      response["price"]
+      response["price"],
+      response["id"]
     ))
 
   else:
@@ -64,7 +65,9 @@ def confirm_order(Order):
     '''
     response = order_status(Order.exchange_id)
     if response != "Error" and "message" not in response:
-      Order.status = response["status"]
+      Order.status = (response["status"] if response["status"] != "done" else
+                      response["done_reason"]
+                      )
       Order.filled = response["filled_size"]
     else:
       Order.status = "Error"
@@ -83,7 +86,7 @@ def cancel_order(Order):
     Order.status = "error"
 
     logger.error(
-      "When deleting order recieved message: {}\n{}".format(
+      "When deleting order received message: {}\n{}".format(
         message["message"],
         str(Order)
       )
@@ -158,11 +161,12 @@ def order_status(exchange_id, test=True):
   ['id', 'price', 'size', 'product_id', 'side', 'type', 'time_in_force',
   'post_only', 'created_at', 'fill_fees', 'filled_size', 'executed_value',
   'status', 'settled']
-  if canceled may return 404 or dictonary with "message" of None.
+  if canceled may return 404 or dictionary with "message" of None.
   if bad format, will return "message" if Invalid order id
   '''
   url, auth = get_url_auth(test)
   response = requests.get(url + "orders/" + exchange_id, auth=auth)
+  logger.debug("response: \n" + pformat(response.json()))
   if not response.ok:
     if "message" in response.json():
       logger.error((

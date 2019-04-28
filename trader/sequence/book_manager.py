@@ -44,7 +44,7 @@ class BookManager():
                       first_sell_price,
                       terms.size_change
                       )
-      # Reset intials for rmeainder of trades
+      # Reset initials for remainder of trades
       first_sell_price += terms.price_change * terms.skew
       first_sell_size += terms.size_change * (terms.skew + 1)
     else:
@@ -113,15 +113,13 @@ class BookManager():
         count = int(1 +
                     (order.size - self.terms.min_size) /
                     self.terms.size_change)
-        first_size = self.terms.min_size
         first_price = order.price + plus_minus * self.terms.price_change
-        self.cancel_orders_below_size(side, order.size)
-        self.add_and_send_orders(side, count, first_size, first_price,
-                                 self.terms.size_change)
+        self.adjust_orders_for_matched_trade(
+          side, self.min_size, count, first_price)
 
       else:
         matched = Decimal(match["size"])
-        logger.info("Partialy filled, {} filled {}."
+        logger.info("Partially filled, {} filled {}."
                     .format(matched, order.size - order.filled))
         order.filled += matched
         if self.persist:
@@ -144,6 +142,18 @@ class BookManager():
     logger.info("*CHECK FULL*")
     return Decimal(match['size']) == order.size - order.filled
 
+  def adjust_orders_for_matched_trade(
+    self, side, size, count, price):
+    logger.info("*ADJUSTING ORDERS FOR MATCHED TRADE*")
+    # list first trade right away
+    self.add_and_send_order(side, size, price)
+    plus_or_minus = -1 if side == "buy" else 1
+    for i in range(count - 1):
+      price = price + (plus_or_minus * self.price_change)
+      size = size + self.size_change
+      self.book.cancel_order(side, price)
+      self.add_and_send_order(side, size, price)
+
   def add_and_send_orders(self, side, count, first_size, first_price,
                           size_change):
     logger.info("*SENDING ORDERS FOR ADJUSTMENT*")
@@ -152,6 +162,9 @@ class BookManager():
     self.add_orders(side, count, first_size, first_price, size_change)
     self.send_orders()
     self.book.ready_orders = existing_ready_orders
+
+  def add_and_send_order(self, side, size, price):
+    self.book.add_and_send_order(side, size, price)
 
   def cancel_orders_below_size(self, side, size):
     logger.info("*CANCELING ORDERS FOR ADJUSTMNET*")

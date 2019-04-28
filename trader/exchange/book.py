@@ -25,21 +25,48 @@ class Book(BaseWrapper):
     self.open_orders = []
     self.filled_orders = []
     self.canceled_orders = []
+    self.rejected_orders = []
     self.persist = persist
     self.test = test
     logger.debug("Book.test: {}".format(self.test))
     if persist:
       self.save()
 
-  def add_order(self, side, size, price, post_only=True):
+  def create_new_order(self, side, size, price, post_only=True):
     order = Order(
       self.pair, side, size, price, post_only=post_only,
       persist=self.persist, test=self.test
     )
     self.orders.append(order)
+    return order
+
+  def add_order(self, side, size, price, post_only=True):
+    order = self.create_new_order(side, size, price, post_only=post_only)
     self.ready_orders.append(order)
     if self.persist:
       order.save()
+
+  def add_and_send_order(self, side, size, price, post_only=True):
+    order = self.create_new_order(side, size, price, post_only=post_only)
+    self.send_order(order)
+
+  def send_order(self, order):
+    trading.send_order(order)
+    order.status = "pending"
+    trading.confirm_order(order)
+    if order.status == "open":
+      self.open_orders.append(order)
+    elif order.status == "filled":
+      self.filled_orders.append(order)
+    elif order.status == "rejected":
+      self.rejected_orders.append(order)
+    else:
+      logger.error("Received {} status when sending order:\n{}".format(
+        order.status, order
+      ))
+
+    if self.persist:
+        order.save()
 
   def send_orders(self):
     buys = [o for o in self.ready_orders if o.side == "buy"]
@@ -55,13 +82,7 @@ class Book(BaseWrapper):
         if len(sells) != 0:
           pick_sell = True
       self.ready_orders.remove(order)
-      trading.send_order(order)
-      order.status = "pending"
-      trading.confirm_order(order)
-      order.status = "open"
-      self.open_orders.append(order)
-      if self.persist:
-        order.save()
+      self.send_order(order)
 
   def cancel_all_orders(self):
     self.cancel_order_list(self.open_orders)
@@ -81,6 +102,18 @@ class Book(BaseWrapper):
       self.canceled_orders.append(order)
       if self.persist:
         order.save()
+
+  def cancel_order(self, side, price):
+    try:
+      order_to_cancel = next(
+        o for o in self.open_orders if o.side == side and o.price == price)
+      trading.cancel_order(order_to_cancel)
+      self.open_orders.remove(order_to_cancel)
+      self.canceled_orders.append(order_to_cancel)
+    except StopIteration:
+      logger.warn("Could not find {} order at price {} to cancel".format(
+        side, price
+      ))
 
   def order_filled(self, filled_order):
     logger.debug("Updating filled order: {}".format(filled_order))
