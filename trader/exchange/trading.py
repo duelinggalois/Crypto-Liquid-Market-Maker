@@ -28,18 +28,20 @@ def send_order(Order):
     "product_id": Order.pair,
     "post_only": Order.post_only
   }
-  logger.debug("sent order:\n" + pformat(json_order))
+  logger.debug("sent order:\n{}".format(pformat(json_order)))
   order_post = requests.post(
     url + 'orders',
     json=json_order,
     auth=auth
   )
   response = order_post.json()
-  logger.debug("response:\n" + pformat(response))
+  logger.debug("response:\n{}".format(pformat(response)))
   if "message" not in response:
     Order.responses.append(response)
     Order.exchange_id = response["id"]
     Order.status = response["status"]
+    if response["status"] == "rejected":
+      Order.reject_reason = response["reject_reason"]
     if Order.persist:
       Order.save()
 
@@ -133,9 +135,11 @@ def get_mid_market_price(pair, test=False):
 
 def get_first_book(pair, test=False):
   '''
-  book = {'asks': [['19000.01', '50000.07', 196]],
- 'bids': [['19000', '0.003', 3]],
- 'sequence': 45787580}
+  find first trades in book for given pair.
+
+  returns {'asks': [['19000.01', '50000.07', 196]],
+           'bids': [['19000', '0.003', 3]],
+           'sequence': 45787580}
   '''
   book = get_book(pair, 1, test=test)
   logger.debug(pformat(book))
@@ -209,6 +213,7 @@ def get_product(pair, test=True):
   url, auth = get_url_auth(test)
   response = requests.get(url + "products/" + pair)
   return response.json()
+
 
 def get_url_auth(test):
   if test:

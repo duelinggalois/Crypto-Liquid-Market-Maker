@@ -17,6 +17,7 @@ coverage = "*"
 nose = "*"
 SQLAlchemy = ">=1.3.0"
 pymysql = "*"
+deprecated = "*"
 
 [dev-packages]
 

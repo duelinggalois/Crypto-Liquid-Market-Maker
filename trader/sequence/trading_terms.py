@@ -67,9 +67,10 @@ class TradingTerms():
       # split pair into pertinent parts
       self.base_pair = details["base_currency"]
       self.quote_pair = details["quote_currency"]
-      # price_decimal is used to round, we want to exclude "0." from len
+      # price_decimal is used to round, we want to exclude "0." from length
       self.price_decimals = len(details["quote_increment"]) - 2
       self.base_min_size = details["base_min_size"]
+      self.quote_increment = details["quote_increment"]
       self.min_size = details["base_min_size"]
       self.max_size = details["base_max_size"]
 

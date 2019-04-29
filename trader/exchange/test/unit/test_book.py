@@ -11,6 +11,10 @@ class Test_Book(unittest.TestCase):
     self.market_price = trading.get_mid_market_price("BTC-USD", test=True)
     self.details = trading.get_product("BTC-USD", test=True)
 
+  def tearDown(self):
+    self.book.cancel_all_orders()
+    self.assertEqual(self.book.open_orders, [], msg="cancel orders in book")
+
   def test_book_init(self):
 
     self.assertEqual(self.book.pair, "BTC-USD")
@@ -130,12 +134,17 @@ class Test_Book(unittest.TestCase):
     price = self.market_price * Decimal("5")
     self.book.add_and_send_order(side, size, price, post_only=True)
 
-    self.assertEqual(len(self.book.open_orders), 0,
-                     msg="Order should be rejected not open")
     self.assertEqual(len(self.book.canceled_orders), 0,
                      msg="Order should be rejected not canceled")
-    self.assertEqual(len(self.book.rejected_orders), 1,
-                     msg=("Post only order that would fill was not rejected"))
+    self.assertEqual(len(self.book.open_orders), 1,
+                     msg="Order should still post")
+    order_to_cancel = self.book.open_orders[0]
+    trading.cancel_order(order_to_cancel)
+    self.assertGreater(len(self.book.rejected_orders), 0,
+                       msg=("rejects could be should be one or more with order"
+                            " changes after polling"))
+    self.assertEqual(self.book.rejected_orders[0].reject_reason, "post only")
+    self.assertEqual(order_to_cancel.status, "canceled")
 
   def get_ids(self):
     return [order["id"] for order in trading

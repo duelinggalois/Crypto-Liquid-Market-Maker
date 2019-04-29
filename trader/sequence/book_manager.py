@@ -2,6 +2,8 @@ from decimal import Decimal
 import logging
 import logging.config
 
+from deprecated import deprecated
+
 from ..exchange.book import Book
 import config
 from ..database.manager import session, test_session
@@ -151,9 +153,10 @@ class BookManager():
     for i in range(count - 1):
       price = price + (plus_or_minus * self.price_change)
       size = size + self.size_change
-      self.book.cancel_order(side, price)
+      self.book.cancel_order(side, size, price)
       self.add_and_send_order(side, size, price)
 
+  @deprecated(reason="replaced with adjust_orders_for_matched_trade")
   def add_and_send_orders(self, side, count, first_size, first_price,
                           size_change):
     logger.info("*SENDING ORDERS FOR ADJUSTMENT*")
@@ -166,6 +169,7 @@ class BookManager():
   def add_and_send_order(self, side, size, price):
     self.book.add_and_send_order(side, size, price)
 
+  @deprecated(reason="replaced with adjust_orders_for_matched_trade")
   def cancel_orders_below_size(self, side, size):
     logger.info("*CANCELING ORDERS FOR ADJUSTMNET*")
     orders_to_cancel = [o for o in self.book.open_orders
