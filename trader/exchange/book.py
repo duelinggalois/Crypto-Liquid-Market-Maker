@@ -52,7 +52,6 @@ class Book(BaseWrapper):
     buys = [o for o in self.ready_orders if o.side == "buy"]
     sells = [o for o in self.ready_orders if o.side == "sell"]
     pick_sell = True
-    # from nose.tools import set_trace; set_trace()
     while len(self.ready_orders) > 0:
       if pick_sell and len(sells) > 0:
         order = sells.pop(0)
@@ -114,7 +113,7 @@ class Book(BaseWrapper):
   def cancel_order_list(self, order_list):
     while len(order_list) > 0:
       order = order_list.pop()
-      trading.cancel_order(order)
+      self.trading_cancel_order(order)
       order.status = "canceled"
       try:
         self.open_orders.remove(order)
@@ -127,20 +126,24 @@ class Book(BaseWrapper):
       if self.persist:
         order.save()
 
-  def cancel_order(self, side, size, price):
-    try:
-      # check correct side, size, and price range greater then expected
-      order_to_cancel = next(
-        o for o in self.open_orders if o.side == side and o.size == size and
-        o.price >= price
-      )
-      trading.cancel_order(order_to_cancel)
+  def cancel_order(self, side, size):
+    """
+    Cancels order of matching side and size. When more than one, the oldest
+    order will be canceled.
+    """
+    matched_orders = [
+      o for o in self.open_orders if o.side == side and o.size == size
+    ]
+    if len(matched_orders) >= 1:
+      # Grab the the first posted trade in the case there is more than one
+      order_to_cancel = matched_orders[0]
+      logging.debug("Found order to cancel {}".format(order_to_cancel.id))
+      self.trading_cancel_order(order_to_cancel)
       self.open_orders.remove(order_to_cancel)
       self.canceled_orders.append(order_to_cancel)
-    except StopIteration:
-      logger.warn("Could not find {} order at price {} to cancel".format(
-        side, price
-      ))
+    else:
+      logger.error("could not find order on {} side and {} size"
+                   .format(side, size))
 
   def order_filled(self, filled_order):
     logger.debug("Updating filled order: {}".format(filled_order))
@@ -154,3 +157,6 @@ class Book(BaseWrapper):
       filled_order.session.commit()
 
     return filled_order
+
+  def trading_cancel_order(self, order):
+    trading.cancel_order(order)

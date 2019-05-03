@@ -146,6 +146,32 @@ class Test_Book(unittest.TestCase):
     self.assertEqual(self.book.rejected_orders[0].reject_reason, "post only")
     self.assertEqual(order_to_cancel.status, "canceled")
 
+  def test_cancel_order(self):
+    side = "buy"
+    size = ".1"
+    price1 = self.market_price / 2
+    price2 = self.market_price * 2 / 3
+    self.book.add_and_send_order(side, size, price1)
+    self.assertEqual(len(self.book.open_orders), 1,
+                     msg="One open order in book")
+    order1 = self.book.open_orders[0]
+    self.book.add_and_send_order(side, size, price2)
+    self.assertEqual(len(self.book.open_orders), 2,
+                     msg="Two open orders in book")
+    order2 = next(o for o in self.book.open_orders if o != order1)
+    self.book.cancel_order(side, Decimal(size))
+    self.assertEqual(len(self.book.open_orders), 1,
+                     msg="One open order in book")
+    self.assertEqual(len(self.book.canceled_orders), 1,
+                     msg="One open order in book")
+    open_order = self.book.open_orders[0]
+    canceled_order = self.book.canceled_orders[0]
+
+    self.assertEqual(open_order, order2,
+                     msg="Second posted order should not be canceled")
+    self.assertEqual(canceled_order, order1,
+                     msg="First posted order should be canceled")
+
   def get_ids(self):
     return [order["id"] for order in trading
             .get_open_orders(pair="BTC-USD", test=True)]
