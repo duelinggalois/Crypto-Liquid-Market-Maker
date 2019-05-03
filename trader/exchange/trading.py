@@ -28,27 +28,30 @@ def send_order(Order):
     "product_id": Order.pair,
     "post_only": Order.post_only
   }
-  logger.debug("sent order:\n" + pformat(json_order))
+  logger.debug("sent order:\n{}".format(pformat(json_order)))
   order_post = requests.post(
     url + 'orders',
     json=json_order,
     auth=auth
   )
   response = order_post.json()
-  logger.debug("response: " + pformat(response))
+  logger.debug("response:\n{}".format(pformat(response)))
   if "message" not in response:
     Order.responses.append(response)
     Order.exchange_id = response["id"]
     Order.status = response["status"]
+    if response["status"] == "rejected":
+      Order.reject_reason = response["reject_reason"]
     if Order.persist:
       Order.save()
 
     Order.update_history(response["status"])
-    logger.info("Order Posted: {} {} {} {}".format(
+    logger.info("Order Posted: {} {} {} {} {}".format(
       response["product_id"],
       response["side"],
       response["size"],
-      response["price"]
+      response["price"],
+      response["id"]
     ))
 
   else:
@@ -64,7 +67,9 @@ def confirm_order(Order):
     '''
     response = order_status(Order.exchange_id)
     if response != "Error" and "message" not in response:
-      Order.status = response["status"]
+      Order.status = (response["status"] if response["status"] != "done" else
+                      response["done_reason"]
+                      )
       Order.filled = response["filled_size"]
     else:
       Order.status = "Error"
@@ -83,7 +88,7 @@ def cancel_order(Order):
     Order.status = "error"
 
     logger.error(
-      "When deleting order recieved message: {}\n{}".format(
+      "When deleting order received message: {}\n{}".format(
         message["message"],
         str(Order)
       )
@@ -130,9 +135,11 @@ def get_mid_market_price(pair, test=False):
 
 def get_first_book(pair, test=False):
   '''
-  book = {'asks': [['19000.01', '50000.07', 196]],
- 'bids': [['19000', '0.003', 3]],
- 'sequence': 45787580}
+  find first trades in book for given pair.
+
+  returns {'asks': [['19000.01', '50000.07', 196]],
+           'bids': [['19000', '0.003', 3]],
+           'sequence': 45787580}
   '''
   book = get_book(pair, 1, test=test)
   logger.debug(pformat(book))
@@ -158,11 +165,12 @@ def order_status(exchange_id, test=True):
   ['id', 'price', 'size', 'product_id', 'side', 'type', 'time_in_force',
   'post_only', 'created_at', 'fill_fees', 'filled_size', 'executed_value',
   'status', 'settled']
-  if canceled may return 404 or dictonary with "message" of None.
+  if canceled may return 404 or dictionary with "message" of None.
   if bad format, will return "message" if Invalid order id
   '''
   url, auth = get_url_auth(test)
   response = requests.get(url + "orders/" + exchange_id, auth=auth)
+  logger.debug("response: \n" + pformat(response.json()))
   if not response.ok:
     if "message" in response.json():
       logger.error((
@@ -205,6 +213,7 @@ def get_product(pair, test=True):
   url, auth = get_url_auth(test)
   response = requests.get(url + "products/" + pair)
   return response.json()
+
 
 def get_url_auth(test):
   if test:

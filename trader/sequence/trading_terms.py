@@ -67,9 +67,10 @@ class TradingTerms():
       # split pair into pertinent parts
       self.base_pair = details["base_currency"]
       self.quote_pair = details["quote_currency"]
-      # price_decimal is used to round, we want to exclude "0." from len
+      # price_decimal is used to round, we want to exclude "0." from length
       self.price_decimals = len(details["quote_increment"]) - 2
       self.base_min_size = details["base_min_size"]
+      self.quote_increment = details["quote_increment"]
       self.min_size = details["base_min_size"]
       self.max_size = details["base_max_size"]
 
@@ -194,8 +195,7 @@ class TradingTerms():
 
   def set_mid_price(self):
     if self.pair:
-      self._mid_price = Decimal(trading.get_mid_market_price(self.pair,
-                                                             test=self.test))
+      self._mid_price = trading_mid_market_price(self.pair, self.test)
       logger.info("{} currently trading at {}"
                   .format(self.pair, self.mid_price))
     else:
@@ -352,6 +352,10 @@ class TradingTerms():
         self.mid_price, self.high_price, self.count,
         self.skew, self.price_change, self.test)
     return output
+
+
+def trading_mid_market_price(pair, test=True):
+  return Decimal(trading.get_mid_market_price(pair, test=test))
 
 
 def find_count(S0, SD, PL, PM, PH, BU):
