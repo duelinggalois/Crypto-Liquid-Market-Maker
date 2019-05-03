@@ -32,7 +32,10 @@ class TestBookManager(unittest.TestCase):
              total |  4000 |
              fee   |    12 |
     """
-    trading_terms.trading_mid_market_price = Mock(side_effect=[Decimal("500")])
+    self.real_mid_market = trading_terms.trading_mid_market_price
+    trading_terms.trading_mid_market_price = Mock(
+      return_value=Decimal("500")
+    )
     self.mid_price = Decimal("500")
     low_price = "100"
     budget = Decimal("4000") * (1 + Decimal(config.CB_FEE))
@@ -40,13 +43,16 @@ class TestBookManager(unittest.TestCase):
       "BTC-USD", budget, "1", ".1", low_price, test=True
     )
     self.BookManager = BookManager(self.terms, persist=False)
+    self.real_send_order = self.BookManager.book.send_order
     self.BookManager.book.send_order = Mock(
       side_effect=self.book_send_order_mock)
+    self.real_cancel_order = self.BookManager.book.trading_cancel_order
     self.BookManager.book.trading_cancel_order = Mock()
 
-  # def tearDown(self):
-  #   self.BookManager.book.cancel_all_orders()
-  #   self.assertEqual(self.BookManager.book.open_orders, [])
+  def tearDown(self):
+    trading_terms.trading_mid_market_price = self.real_mid_market
+    self.BookManager.book.send_order = self.real_send_order
+    self.BookManager.book.trading_cancel_order = self.real_cancel_order
 
   def test_BookManager_init(self):
     self.assertEqual(self.terms, self.BookManager.terms)

@@ -161,7 +161,7 @@ class BookManager():
     self.add_and_send_order(side, size, price)
     plus_or_minus = -1 if side == "buy" else 1
     for i in range(count - 1):
-      self.book.cancel_order(side, size)
+      self.book.cancel_order_by_attribute(side, size)
       price = price + (plus_or_minus * self.terms.price_change)
       size = size + self.terms.size_change
       self.add_and_send_order(side, size, price)

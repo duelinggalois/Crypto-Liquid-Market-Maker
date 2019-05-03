@@ -146,7 +146,7 @@ class Test_Book(unittest.TestCase):
     self.assertEqual(self.book.rejected_orders[0].reject_reason, "post only")
     self.assertEqual(order_to_cancel.status, "canceled")
 
-  def test_cancel_order(self):
+  def test_cancel_order_by_attribute(self):
     side = "buy"
     size = ".1"
     price1 = self.market_price / 2
@@ -159,7 +159,7 @@ class Test_Book(unittest.TestCase):
     self.assertEqual(len(self.book.open_orders), 2,
                      msg="Two open orders in book")
     order2 = next(o for o in self.book.open_orders if o != order1)
-    self.book.cancel_order(side, Decimal(size))
+    self.book.cancel_order_by_attribute(side, Decimal(size))
     self.assertEqual(len(self.book.open_orders), 1,
                      msg="One open order in book")
     self.assertEqual(len(self.book.canceled_orders), 1,

@@ -76,7 +76,7 @@ class Book(BaseWrapper):
       if order.post_only and order.reject_reason == "post only":
         self.rejected_orders.append(order)
         # Find first price available for post-only
-        logger.warn("Post-only rejected:\n{}".format(pformat(str(order))))
+        logger.warn("Post-only rejected:\n" + pformat(str(order)))
         # Recursive loop override rejected order, confirm happens in recursion
         return self.post_at_best_post_only(order.side, order.size)
       else:
@@ -88,9 +88,9 @@ class Book(BaseWrapper):
     elif order.status == "filled":
       self.filled_orders.append(order)
     else:
-      logger.error("Received {} status when sending order:\n{}".format(
-        order.status, pformat(order)
-      ))
+      logger.error("Received {} status when sending order:\n".format(
+        order.status) + pformat(order)
+      )
 
     if self.persist:
         order.save()
@@ -126,7 +126,7 @@ class Book(BaseWrapper):
       if self.persist:
         order.save()
 
-  def cancel_order(self, side, size):
+  def cancel_order_by_attribute(self, side, size):
     """
     Cancels order of matching side and size. When more than one, the oldest
     order will be canceled.
