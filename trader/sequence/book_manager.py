@@ -2,8 +2,6 @@ from decimal import Decimal
 import logging
 import logging.config
 
-from deprecated import deprecated
-
 from ..exchange.book import Book
 import config
 from ..database.manager import session, test_session
