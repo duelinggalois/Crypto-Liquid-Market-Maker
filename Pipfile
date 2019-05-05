@@ -17,6 +17,8 @@ coverage = "*"
 nose = "*"
 SQLAlchemy = ">=1.3.0"
 pymysql = "*"
+unittest = "*"
+flaky = "*"
 
 [dev-packages]
 

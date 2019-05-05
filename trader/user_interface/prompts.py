@@ -4,6 +4,7 @@ import readline
 
 from pick import pick
 
+from trader.exchange.api_wrapper.coinbase_pro import CoinbasePro
 from ..sequence.trading_terms import TradingTerms
 
 
@@ -21,13 +22,13 @@ def show_intro():
 
 def prompt_trading_terms():
 
-  terms = TradingTerms()
 
-  terms.test = _prompt_bool(
+  test = _prompt_bool(
     "When testing, trades will be sent to public.sandbox.pro.coinbase.com\n"
     "Are you testing?",
     0
   )
+  terms = TradingTerms(trading_api=CoinbasePro(test=test))
 
   terms.pair = _prompt_list(
       "What trading pair would you like to use?",

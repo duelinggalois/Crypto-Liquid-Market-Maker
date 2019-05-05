@@ -8,6 +8,7 @@ import logging
 import logging.config
 import time
 import traceback
+from threading import Thread
 import websockets
 
 
@@ -15,34 +16,34 @@ logging.config.dictConfig(config.log_config)
 logger = logging.getLogger(__name__)
 
 
-class SocketManager():
+class SocketManager:
 
-  def __init__(self, reader,
+  def __init__(self, reader, book_manager,
                auth=False,
                url="",
                action='subscribe',
                product_ids=[],
-               channel=[],
+               channel=["matches"],
                send_trades=False
                ):
 
     self.reader = reader
+    self.book_manager = book_manager
     self.auth = auth
 
     if url == "":
-      if reader.BookManager.test:
+      if book_manager.is_trading_api_test():
         self.url = config.test_socket
       else:
         self.url = config.socket
     else:
       self.url = url
-    logging.debug("SocketManager test: {} url: {}".format(
-      reader.BookManager.test, url
-    )
-    )
+    logging.debug("SocketManager\n\ttest: {}\n\turl: {}\n\tpair: {}".format(
+      book_manager.is_trading_api_test(), self.url, product_ids
+    ))
     self.channel = channel
     self.product_ids = product_ids
-    if self.channel == []:
+    if self.channel:
       self.sub_params = {
           'type': action,
           'product_ids': self.product_ids,
@@ -55,10 +56,14 @@ class SocketManager():
       }
     self.send_trades = send_trades
     self.protocol = ""
+    self.last_time = time.time()
+    self.api_key = None
+    self.api_passphrase = None
+    self.api_secret = None
 
   def auth_stamp(self):
     self.api_key = config.api_key
-    self.api_secretd = config.api_secret
+    self.api_secret = config.api_secret
     self.api_passphrase = config.api_passphrase
     timestamp = str(time.time())
     message = timestamp + 'GET' + '/users/self/verify'
@@ -80,22 +85,23 @@ class SocketManager():
         loop.run_until_complete(self.connect())
 
       except asyncio.TimeoutError:
-        logger.warn("Ping Timeout, Restarting Websocket")
+        logger.warning("Ping Timeout, Restarting Web Socket")
 
       except websockets.exceptions.ConnectionClosed:
-        logger.warn("Connection Closed, Restarting Websocket")
+        logger.warning("Connection Closed, Restarting Web Socket")
 
       except KeyboardInterrupt:
-        logger.error("Keyboard Interuption, stopping socket")
+        logger.error("Keyboard Interruption, stopping socket")
         raise
 
       except Exception:
         logger.error("last message received {} seconds ago/n{}"
                      .format(self.last_time_watch(),
                              traceback.format_exc()))
-        logger.warn("Restarting Websocket")
+        logger.warning("Restarting Web Socket")
 
   async def connect(self):
+    self.last_time = time.time()
     async with websockets.connect(self.url) as self.ws:
       await self.send(json.dumps(self.sub_params))
       await self.listen()
@@ -108,33 +114,27 @@ class SocketManager():
     listen = True
     while listen:
       try:
-        recieved = await asyncio.wait_for(self.ws.recv(), timeout=50)
-        message = json.loads(recieved)
+        received = await asyncio.wait_for(self.ws.recv(), timeout=50)
+        message = json.loads(received)
         logger.debug("< {}".format(message))
         self.reader.new(message)
         self.last_time = time.time()
-        if self.send_trades:
-          self.reader.BookManager.send_orders()
-          self.send_trades = False
 
       except asyncio.TimeoutError:
         await self.ping_socket()
 
       except websockets.exceptions.ConnectionClosed:
-        listen = False
         logging.warn("Connection Closed Exception after {} seconds"
                      .format(round(self.last_time_watch(), 2)))
         raise websockets.exceptions.ConnectionClosed(
           1006, "1 minute without messages")
 
       except KeyboardInterrupt:
-        listen = False
         raise
 
       except Exception:
-        listen = False
-        logger.exception("Socket had a general excetption, last message "
-                         "recieved {} seconds ago".format(
+        logger.exception("Socket had a general exception, last message "
+                         "received {} seconds ago".format(
                             self.last_time_watch()
                          ))
         raise

@@ -1,21 +1,21 @@
 import unittest
-import logging
 import logging.config
 from decimal import Decimal
 
 import config
-from ...order import Order
-from ... import trading
+from trader.exchange.order import Order
+from trader.exchange.api_wrapper.coinbase_pro import CoinbasePro
 
+CPTrading = CoinbasePro(test=True)
 
 logging.config.dictConfig(config.log_config)
 logger = logging.getLogger(__name__)
 
 
-class test_trading(unittest.TestCase):
+class test_coinbase_pro_trading(unittest.TestCase):
 
   def setUp(self):
-    mid = trading.get_mid_market_price("BTC-USD", test=True)
+    mid = CPTrading.get_mid_market_price("BTC-USD")
     if mid > 100000:
       mid = 6000
     self.test_price = round(mid / 2, 2)
@@ -24,12 +24,11 @@ class test_trading(unittest.TestCase):
                             "buy",
                             ".011",
                             self.test_price,
-                            test=True,
-                            persist=False)
+                           )
 
   def test_send_order(self):
-    trading.send_order(self.test_order)
-    response = self.test_order.responses[0]
+    CPTrading.send_order(self.test_order)
+    response = self.test_order.response
 
     self.assertEqual(response["side"], "buy")
     self.assertEqual(response["post_only"], True)
@@ -40,11 +39,11 @@ class test_trading(unittest.TestCase):
     self.assertEqual(response["status"], "pending")
     self.assertEqual(self.test_order.status, "pending")
 
-    trading.cancel_order(self.test_order)
+    CPTrading.cancel_order(self.test_order)
 
   def test_cancel_order(self):
-    trading.send_order(self.test_order)
-    response = trading.cancel_order(self.test_order)
+    CPTrading.send_order(self.test_order)
+    response = CPTrading.cancel_order(self.test_order)
 
     self.assertTrue(self.test_order.exchange_id in response)
 
@@ -54,11 +53,11 @@ class test_trading(unittest.TestCase):
     'post_only', 'created_at', 'fill_fees', 'filled_size', 'executed_value',
     'status', 'settled']
     '''
-    trading.send_order(self.test_order)
-    response = trading.order_status(self.test_order.exchange_id)
+    CPTrading.send_order(self.test_order)
+    response = CPTrading.order_status(self.test_order.exchange_id)
 
     self.assertEqual(self.test_order.exchange_id, response['id'])
-    # TODO: may want to adjust scale of decimals to amtch
+    # TODO: may want to adjust scale of decimals to match
     self.assertEqual(str(self.test_order.price) + "000000", response['price'])
     self.assertEqual(str(self.test_order.size) + "00000", response['size'])
     self.assertEqual(self.test_order.filled, Decimal(response['filled_size']))
@@ -67,15 +66,15 @@ class test_trading(unittest.TestCase):
     self.assertEqual(self.test_order.post_only, response["post_only"])
 
   def test_order_status_canceled(self):
-    trading.send_order(self.test_order)
-    trading.cancel_order(self.test_order)
-    response = trading.order_status(self.test_order.exchange_id)
+    CPTrading.send_order(self.test_order)
+    CPTrading.cancel_order(self.test_order)
+    response = CPTrading.order_status(self.test_order.exchange_id)
 
     self.assertEqual(response['message'], "NotFound")
 
   def test_order_status_bad_order(self):
 
-    response = trading.order_status("ths-is-not-a-real-id")
+    response = CPTrading.order_status("ths-is-not-a-real-id")
 
     self.assertEqual(response['message'], "Invalid order id")
 
@@ -85,23 +84,22 @@ class test_trading(unittest.TestCase):
 
   def test_live(self):
     # Check price and send trade at fraction of price
-    mid = trading.get_mid_market_price("BTC-USD", test=False)
+    mid = CPTrading.get_mid_market_price("BTC-USD")
     fraction_of_mid = round(mid / 100, 2)
 
     live_test_order = Order(
-      "BTC-USD", "buy", ".01", fraction_of_mid, persist=False
+      "BTC-USD", "buy", ".01", fraction_of_mid
     )
 
     # Send order and check
-    trading.send_order(live_test_order)
+    CPTrading.send_order(live_test_order)
     print("id {}".format(live_test_order.exchange_id))
-    check_order = trading.order_status(live_test_order.exchange_id, test=False)
+    check_order = CPTrading.order_status(live_test_order.exchange_id)
     logger.debug(check_order)
 
     # Cancel order and check
-    trading.cancel_order(live_test_order)
-    check_canceled_order = trading.order_status(live_test_order.exchange_id,
-                                                test=False)
+    CPTrading.cancel_order(live_test_order)
+    check_canceled_order = CPTrading.order_status(live_test_order.exchange_id)
     logger.debug(check_canceled_order)
 
     self.assertEqual(check_order['id'], live_test_order.exchange_id)

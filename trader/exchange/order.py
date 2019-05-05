@@ -1,15 +1,11 @@
-import time
 import logging
-import logging.config
 from decimal import Decimal
 
 from sqlalchemy import (
   Column, Integer, String, Numeric, Boolean, ForeignKey
 )
 
-from ..database.manager import (
-  BaseWrapper, Engine, Test_Engine, test_session, session
-)
+from ..database.manager import BaseWrapper
 import config
 
 
@@ -29,18 +25,10 @@ class Order(BaseWrapper):
   _filled = Column("filled", Numeric(precision=12, scale=8))
   _status = Column("status", String(15))
   _post_only = Column("post_only", Boolean)
-  _test = Column("test", Boolean)
 
   def __init__(
-    self, pair, side, size, price, post_only=True, persist=True, test=False
+    self, pair, side, size, price, post_only=True
   ):
-
-    if test:
-      self.session = test_session
-      self.engine = Test_Engine
-    else:
-      self.session = session
-      self.engine = Engine
 
     self.pair = pair
     self.side = side
@@ -50,9 +38,8 @@ class Order(BaseWrapper):
     self.status = "ready"
     self.history = []
     self.responses = []
-    self.test = test
     self.post_only = post_only
-    self.persist = persist
+
 
   @property
   def exchange_id(self):
@@ -130,18 +117,10 @@ class Order(BaseWrapper):
   def post_only(self, value):
     self._post_only = value
 
-  @property
-  def test(self):
-    return self._test
-
-  @test.setter
-  def test(self, value):
-    self._test = value
-
-  def update_history(self, message):
-    self.history.append(
-      {"time": time.time(), "status": message}
-    )
+  # def update_history(self, message):
+  #   self.history.append(
+  #     {"time": time.time(), "status": message}
+  #   )
 
   def allow_market_trade(self):
     self.post_only = False
@@ -154,10 +133,10 @@ class Order(BaseWrapper):
       "size: {}\n"
       "filled: {}\n"
       "status: {}\n"
+      "database_id: {}\n"
       "exchange_id: {}\n"
-      "test: {}\n"
-      "history: {}\n"
-      "responses: {}"
+      # "history: {}\n"
+      # "responses: {}"
     ).format(
       self.pair,
       self.side,
@@ -165,8 +144,9 @@ class Order(BaseWrapper):
       self.size,
       self.filled,
       self.status,
+      self.id,
       self.exchange_id,
-      self.test,
-      self.history,
-      self.responses
+      # When printing order after loading these attributes do not exist
+      # self.history,
+      # self.responses
     )
