@@ -2,13 +2,13 @@ import unittest
 from decimal import Decimal
 
 import config
-from ..sequence.trading_terms import TradingTerms
+from trader.sequence.trading_terms import TradingTerms
 
 
 class test_trading_terms(unittest.TestCase):
 
   def setUp(self):
-    self.terms = TradingTerms(test=True)
+    self.terms = TradingTerms()
 
   def test_terms_init(self):
 
@@ -26,7 +26,7 @@ class test_trading_terms(unittest.TestCase):
       self.terms.set_mid_price()
 
   def test_terms_pair(self):
-    self.terms = TradingTerms(test=True)
+    self.terms = TradingTerms()
     self.terms.pair = "BTC-USD"
 
     self.assertEqual(self.terms.pair, "BTC-USD")
@@ -45,7 +45,7 @@ class test_trading_terms(unittest.TestCase):
     with self.assertRaises(ValueError):
       self.terms.pair = 6
 
-    terms = TradingTerms("ETH-BTC", test=True)
+    terms = TradingTerms("ETH-BTC")
 
     self.assertEqual(terms.pair, "ETH-BTC")
     with self.assertRaises(ValueError):
@@ -179,14 +179,13 @@ class test_trading_terms(unittest.TestCase):
     count = self.terms.count
     price_change = self.terms.price_change
     skew = self.terms.skew
-    test = self.terms.test
 
     test_output = (
       "base currency: \t\t\t{0}\nquote currency: \t\t{1}\nbudget: \t\t\t{2}\n"
       "buy_budget: \t\t\t{3} {1}\nsell_budget: \t\t\t{4} {0} or {5} {1}\n"
       "min size: \t\t\t{6}\nsize change: \t\t\t{7}\nlow price: \t\t\t{8}\n"
       "mid price: \t\t\t{9}\nhigh price: \t\t\t{10}\ntrade_count: \t\t\t{11}\n"
-      "skew: \t\t\t\t{12}\nprice change: \t\t\t{13}\ntest: \t\t\t\t{14}"
+      "skew: \t\t\t\t{12}\nprice change: \t\t\t{13}"
     ).format(
       "BTC", "USD", "10000",
       buy_budget,
@@ -194,6 +193,6 @@ class test_trading_terms(unittest.TestCase):
       quote_sell_budget,
       base_min_size, "0.00100000", low,
       mid, high, count,
-      skew, price_change, test)
+      skew, price_change)
 
     self.assertEqual(str(self.terms), test_output)

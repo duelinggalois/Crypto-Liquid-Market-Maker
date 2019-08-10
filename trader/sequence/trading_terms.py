@@ -3,13 +3,13 @@ import logging.config
 from decimal import Decimal
 
 import config
-from ..exchange import trading
+from trader.exchange.api_wrapper.noop_trader import NoopApi
 
 logging.config.dictConfig(config.log_config)
 logger = logging.getLogger(__name__)
 
 
-class TradingTerms():
+class TradingTerms:
 
   def __init__(
     self,
@@ -19,7 +19,7 @@ class TradingTerms():
     size_change=None,
     low_price=None,
     high_price=None,
-    test=True
+    trading_api=NoopApi()
   ):
 
     self._base_pair = None
@@ -42,8 +42,8 @@ class TradingTerms():
     self._sell_budget = None
     self._quote_sell_budget = None
 
-    self.test = test
-    self.supported_pairs = trading.get_products(test=test)
+    self.trading_api = trading_api
+    self.supported_pairs = trading_api.get_products()
     self.default_pair_index = 0
     self.pair = pair
     self.budget = budget
@@ -63,16 +63,16 @@ class TradingTerms():
 
     self._pair = value
     if value:
-      details = trading.get_product(value)
+      details = self.trading_api.get_product_details(value)
       # split pair into pertinent parts
       self.base_pair = details["base_currency"]
       self.quote_pair = details["quote_currency"]
       # price_decimal is used to round, we want to exclude "0." from length
-      self.price_decimals = len(details["quote_increment"]) - 2
-      self.base_min_size = details["base_min_size"]
-      self.quote_increment = details["quote_increment"]
-      self.min_size = details["base_min_size"]
-      self.max_size = details["base_max_size"]
+      self.price_decimals = len(details["quote_increment"].rstrip("0")) - 2
+      self.base_min_size = details["base_min_size"].rstrip("0")
+      self.quote_increment = details["quote_increment"].rstrip("0")
+      self.min_size = details["base_min_size"].rstrip("0")
+      self.max_size = details["base_max_size"].rstrip("0")
 
   # add definition of base_pair property here
   @property
@@ -165,7 +165,7 @@ class TradingTerms():
 
   @low_price.setter
   def low_price(self, low_price):
-    if low_price:
+    if low_price != None:
       if Decimal(low_price) < self.mid_price:
         self._low_price = Decimal(low_price)
         logger.info("With mid price of {} low price was set to {}"
@@ -195,7 +195,7 @@ class TradingTerms():
 
   def set_mid_price(self):
     if self.pair:
-      self._mid_price = trading_mid_market_price(self.pair, self.test)
+      self._mid_price = self.trading_mid_market_price(self.pair)
       logger.info("{} currently trading at {}"
                   .format(self.pair, self.mid_price))
     else:
@@ -211,7 +211,7 @@ class TradingTerms():
 
   @high_price.setter
   def high_price(self, high_price):
-    if high_price:
+    if high_price != None:
       if Decimal(self.mid_price) < high_price:
         if self._low_price is None:
           self._high_price = Decimal(high_price)
@@ -254,7 +254,7 @@ class TradingTerms():
     if self._price_change is None:
       self._price_change = round(Decimal(
         self.high_price - self.low_price
-      ) / (self.trade_count), self._price_decimals)
+      ) / self.trade_count, self._price_decimals)
 
     return self._price_change
 
@@ -343,19 +343,19 @@ class TradingTerms():
       "buy_budget: \t\t\t{3} {1}\nsell_budget: \t\t\t{4} {0} or {5} {1}\n"
       "min size: \t\t\t{6}\nsize change: \t\t\t{7}\nlow price: \t\t\t{8}\n"
       "mid price: \t\t\t{9}\nhigh price: \t\t\t{10}\ntrade_count: \t\t\t{11}\n"
-      "skew: \t\t\t\t{12}\nprice change: \t\t\t{13}\ntest: \t\t\t\t{14}"
+      "skew: \t\t\t\t{12}\nprice change: \t\t\t{13}"
     ).format(
         self.base_pair, self.quote_pair, self.budget,
         round(self.buy_budget, self.price_decimals), self.sell_budget,
         round(self.quote_sell_budget, self.price_decimals),
         self.min_size, self.size_change, self.low_price,
         self.mid_price, self.high_price, self.count,
-        self.skew, self.price_change, self.test)
+        self.skew, self.price_change)
     return output
 
 
-def trading_mid_market_price(pair, test=True):
-  return Decimal(trading.get_mid_market_price(pair, test=test))
+  def trading_mid_market_price(self, pair):
+    return Decimal(self.trading_api.get_mid_market_price(pair))
 
 
 def find_count(S0, SD, PL, PM, PH, BU):
