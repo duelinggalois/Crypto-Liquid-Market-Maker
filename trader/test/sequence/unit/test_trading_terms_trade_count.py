@@ -1,7 +1,7 @@
 import unittest
 from decimal import Decimal
 
-from ..sequence.trading_terms import find_count
+from trader.sequence.trading_terms import find_count
 
 
 class test_skew(unittest.TestCase):

@@ -17,8 +17,6 @@ This program will list a sequence of buy and sell trades on pro.coinbase.com bas
 * [Coinbase API Keys](https://pro.coinbase.com/profile/api)
 * [Coinbase Test API Keys](https://public.sandbox.pro.coinbase.com/profile/api) if you want to run tests
 
-I believe you can demo the command line interface with python3 and pipenv, but I opened an issue to verify this. Adding MySQL has been my most recent focus and I entend on making it optional. I have also added the git tag `pre-sql` to the last merge to master prior to sql being added.  
-
 **Recommended Installation**
 * `git clone https://github.com/rev3ks/Crypto-Liquid-Market-Maker`
 * `cd Crypto-Liquid-Market-Maker`
