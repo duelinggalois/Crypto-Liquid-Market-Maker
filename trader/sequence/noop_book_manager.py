@@ -3,14 +3,38 @@ from trader.sequence.abstract_book_manager import AbstractBookManager
 from trader.sequence.book_manager import BookManager
 
 
+class noop_book_manager_maker:
+
+  def __init__(
+    self,
+    terms,
+    book=None,
+    ):
+
+    kw = dict()
+    kw["terms"] = terms
+    kw["book"] = book
+
+    bm = NoopBookManager(**kw)
+    bm.initialize_book()
+
+    self.kw = kw
+
+  def __call__(self):
+    return NoopBookManager(**self.kw)
+
+
 class NoopBookManager(AbstractBookManager):
 
   def __init__(self, terms, book=None):
     # Keeping some functionality while discarding what is not needed for
     # testing
     self.book = book
-    self.bm = BookManager(terms, book=book, trading_api=NoopApi(), persist=False)
+    self.bm = BookManager(terms, book=book, persist=False)
     self.adjust_queue = None
+
+  def initialize_book(self):
+    self.bm.initialize_book()
 
   def load_book(self):
     pass

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class SocketManager:
 
-  def __init__(self, reader, book_manager,
+  def __init__(self, reader, BookManagerMaker,
                auth=False,
                url="",
                action='subscribe',
@@ -28,8 +28,8 @@ class SocketManager:
                ):
 
     self.reader = reader
-    self.book_manager = book_manager
     self.auth = auth
+    book_manager = BookManagerMaker()
 
     if url == "":
       if book_manager.is_trading_api_test():
@@ -41,6 +41,7 @@ class SocketManager:
     logging.debug("SocketManager\n\ttest: {}\n\turl: {}\n\tpair: {}".format(
       book_manager.is_trading_api_test(), self.url, product_ids
     ))
+    self.book_manager = book_manager
     self.channel = channel
     self.product_ids = product_ids
     if self.channel:

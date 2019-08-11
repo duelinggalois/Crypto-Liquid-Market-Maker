@@ -15,8 +15,9 @@ class ThreadHandler:
   synchronous code.
   """
 
-  def __init__(self, book_manager):
-    self.book_manager = book_manager
+  def __init__(self, BookManagerMaker):
+    self.BookManagerMaker = BookManagerMaker
+    self.book_manager = None
     self.initial_thread = None
     self.initial_done = False
     self._sell_threads = []
@@ -29,8 +30,9 @@ class ThreadHandler:
     """Check if matched trade is in book and process trade if it is
     """
     logger.info("Checking book for matched trade")
-    self.book_manager.load_book()
-    order = self.book_manager.look_for_order(match)
+    book_manager = self.BookManagerMaker()
+    book_manager.load_book()
+    order = book_manager.look_for_order(match)
 
     if order is None:
       logger.info("Matched trade not in book")
@@ -39,49 +41,56 @@ class ThreadHandler:
     logger.info("Matched trade is in book")
     match_size = Decimal(match["size"])
 
-    self.book_manager.update_order(order, match_size)
+    book_manager.update_order(order, match_size)
 
     if order.status == "filled":
       logger.info("Match filled order")
-      self.handle_full_match(order)
+      # order was loaded in current thread, passing it as a dictionary
+      # to avoid session errors caused by passing it directly
+      order_description = {
+        "side": order.side,
+        "size": order.size,
+        "price": order.price
+      }
+      self.handle_full_match(order_description)
 
     else:
       logger.info("Match filled {} of order, {} is remaining."
                   .format(Decimal(match_size), order.size - order.filled))
 
-    self.book_manager.close_book()
+    book_manager.close_book()
 
-  def handle_full_match(self, order):
-    if order.side == "buy":
+  def handle_full_match(self, order_desc):
+    if order_desc["side"] == "buy":
       # a buy order triggers listing sells and vise versa
-      self.start_sell_thread(order)
+      self.start_sell_thread(order_desc)
     else:
-      self.start_buy_thread(order)
+      self.start_buy_thread(order_desc)
 
   def start_initial_trade_thread(self):
-    self.initial_thread = TradingThread(self.book_manager)
+    self.initial_thread = TradingThread(self.BookManagerMaker())
     self.initial_thread.start()
 
-  def start_sell_thread(self, order):
+  def start_sell_thread(self, order_desc):
     self.clean_thread_pools()
-    thread = TradingThread(self.book_manager, order)
+    thread = TradingThread(self.BookManagerMaker(), order_desc)
     if self.initial_thread is not None and not self.initial_done:
       self.pause_initial_thread(thread)
     for other_thread in self._sell_threads:
-      other_thread.intervene(order.size, thread)
+      other_thread.intervene(order_desc["size"], thread)
     for other_thread in self._buy_threads:
       # pause thread but do not override it with larger size
       other_thread.intervene(0, thread)
     thread.start()
     self._sell_threads.append(thread)
 
-  def start_buy_thread(self, order):
+  def start_buy_thread(self, order_desc):
     self.clean_thread_pools()
-    thread = TradingThread(self.book_manager, order)
+    thread = TradingThread(self.BookManagerMaker(), order_desc)
     if self.initial_thread is not None and not self.initial_done:
       self.pause_initial_thread(thread)
     for other_thread in self._buy_threads:
-      other_thread.intervene(order.size, thread)
+      other_thread.intervene(order_desc["size"], thread)
     for other_thread in self._sell_threads:
       # pause thread but do not override it with larger size
       other_thread.intervene(0, thread)
@@ -90,7 +99,7 @@ class ThreadHandler:
 
   def pause_initial_thread(self, thread):
     if self.initial_thread.is_alive():
-      self.initial_thread.intervene((0, thread))
+      self.initial_thread.intervene(0, thread)
     else:
       self.initial_done = True
 
@@ -101,11 +110,11 @@ class ThreadHandler:
 
 class TradingThread(threading.Thread):
 
-  def __init__(self, book_manager, filled_order=None):
+  def __init__(self, book_manager, filled_order_desc=None):
 
     super().__init__()
 
-    self.filled_order = filled_order
+    self.filled_order_desc = filled_order_desc
     self.book_manager = book_manager
     self.adjust_queue = queue.Queue()
     self.started = False
@@ -119,10 +128,10 @@ class TradingThread(threading.Thread):
 
   def run(self):
     self.book_manager.load_book()
-    if self.filled_order is None:
+    if self.filled_order_desc is None:
       self.book_manager.send_orders(adjust_queue=self.adjust_queue)
     else:
-      self.book_manager.send_trade_sequence(self.filled_order,
+      self.book_manager.send_trade_sequence(self.filled_order_desc,
                                             adjust_queue=self.adjust_queue)
     self.book_manager.close_book()
 

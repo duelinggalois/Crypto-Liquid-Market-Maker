@@ -5,6 +5,7 @@ from pprint import pformat
 import time
 
 import config
+from trader.exchange.api_wrapper.exchange_api import ExchangeApi
 from trader.exchange.api_wrapper.noop_trader import NoopApi
 from trader.exchange.persisted_book import Book
 from trader.exchange.order import Order
@@ -16,40 +17,90 @@ logging.config.dictConfig(config.log_config)
 logger = logging.getLogger(__name__)
 
 
-class BookManager(AbstractBookManager):
+class book_manager_maker:
 
-  def __init__(self,
-               terms,
-               book=None,
-               trading_api=NoopApi(),
-               persist=True):
-    super().__init__(terms,
-                     book=book,
-                     trading_api=trading_api)
+  def __init__(
+    self,
+    terms,
+    book=None,
+    trading_api=NoopApi(),
+    persist=True):
 
-    self.persist = persist
-    self.initialize_book()
+    kw = dict()
+    kw["terms"] = terms
+
+    if book is None:
+      book = Book(terms.pair)
+
+    if not isinstance(trading_api, ExchangeApi):
+      raise ValueError("trader {} is not an instance of ExchangeApi",
+                       str(trading_api))
+    kw["trading_api"] = trading_api
+
+    kw["persist"] = persist
+    session = None
     if persist:
       # if they do not exist, this will create tables
       dal.connect()
       session = dal.Session()
-      session.add(self.book)
+      session.add(book)
       session.commit()
-      self.book_id = self.book.id
-      session.close()
+      kw["book_id"] = book.id
+    else:
+      kw["book"] = book
+
+    self.kw = kw
+
+    # initialize book
+    bm = BookManager(**self.kw)
+    if session is not None:
+      bm.load_book(session)
+    bm.initialize_book()
+    bm.close_book()
+
+  def __call__(self):
+    return BookManager(**self.kw)
+
+
+class BookManager(AbstractBookManager):
+
+  def __init__(self,
+               terms,
+               book_id=None,
+               book=None,
+               trading_api=NoopApi(),
+               persist=True):
+
+    self.terms = terms
+    self.book_id = book_id
+    self.persist = persist
+    self.book_id = book_id
+    self.book = book
+    self.trading_api = trading_api
+
+    self.adjust_queue = None
     self.session = None
 
-  def load_book(self):
+  def load_book(self, session=None):
     if self.book_id is None:
       logger.error("persist set to {}".format(self.persist))
       raise RuntimeError("BookManager has no book id this may be because "
                          "persist is set to false")
-    self.session = dal.Session()
+    if session is None:
+      self.session = dal.Session()
+    else:
+      self.session = session
     self.book = self.session.query(Book).filter(Book.id == self.book_id).one()
 
   def close_book(self):
-    self.session.commit()
-    self.session.close()
+    if self.session is not None:
+      self.session.commit()
+      self.session.close()
+      self.session = None
+
+  def commit(self):
+    if self.session is not None:
+      self.session.commit()
 
   def look_for_order(self, match):
     try:
@@ -138,7 +189,8 @@ class BookManager(AbstractBookManager):
     to consume messages. Sends all pending orders created at initialization.
     Creates a session to update the database.
     """
-
+    if self.book is None:
+      raise ValueError("Book may not have been loaded")
     ready_orders = self.book.get_ready_orders()
     buys = [o for o in ready_orders if o.side == "buy"]
     sells = [o for o in ready_orders if o.side == "sell"]
@@ -171,8 +223,7 @@ class BookManager(AbstractBookManager):
           pick_sell = True
       self.send_order(order)
       time.sleep(.2)
-    if self.persist:
-      self.close_book()
+
 
   def send_order(self, order):
     self.trading_api.send_order(order)
@@ -191,14 +242,17 @@ class BookManager(AbstractBookManager):
       logger.error("Received {} status when sending order:\n".format(
         order.status) + pformat(order)
                    )
+    self.commit()
 
   def update_order(self, order, match_size):
     order.filled += match_size
     if order.filled == order.size:
       order.status = "filled"
+    self.commit()
 
   def cancel_sent_order(self, order):
     self.trading_api.cancel_order(order)
+    self.commit()
 
   def cancel_all_orders(self):
     if self.persist:
@@ -233,14 +287,14 @@ class BookManager(AbstractBookManager):
                   .format(order_to_cancel.exchange_id))
     self.cancel_sent_order(order_to_cancel)
 
-  def send_trade_sequence(self, filled_order, adjust_queue=None):
+  def send_trade_sequence(self, filled_order_desc, adjust_queue=None):
     """
     When an open order is matched, the matched value is distributed across the
     opposite side trades by adjusting all of those smaller then the matched
     trade by the size change. To do this, each trade must be canceled and
     posted again at the adjusted amount.
     """
-    side, count, price = self.get_sequence_parameter(filled_order)
+    side, count, price = self.get_sequence_parameter(filled_order_desc)
     size = self.get_terms_min_size()
     logger.info("*ADJUSTING ORDERS FOR MATCHED TRADE*")
     logger.debug("side: {}, count: {}, price {}".format(side, count, price))
@@ -288,24 +342,11 @@ class BookManager(AbstractBookManager):
                    Decimal(ask[0][0]) + adjust)
     self.send_order(order)
 
-  # Todo remove once tests are moved
-  @staticmethod
-  def full_match(match, order):
-    logger.info("**Checking for full match**")
-    return Decimal(match['size']) == order.size - order.filled
-
-  # Todo remove once tests are moved
-  @staticmethod
-  def when_partial_match(filled_size, order):
-    order.filled += filled_size
-    logger.info("Order was partially filled, {} was filled, {} is remaining."
-                .format(filled_size, order.size - order.filled))
-
-  def get_sequence_parameter(self, order):
-    side, plus_minus = ("buy", -1) if order.side == "sell" else ("sell", 1)
+  def get_sequence_parameter(self, order_description):
+    side, plus_minus = ("buy", -1) if order_description["side"] == "sell" else ("sell", 1)
     count = int(
-      1 + (order.size - self.get_terms_min_size()) /
+      1 + (order_description["size"] - self.get_terms_min_size()) /
       self.get_terms_size_change()
     )
-    first_price = order.price + plus_minus * self.terms.price_change
+    first_price = order_description["price"] + plus_minus * self.terms.price_change
     return side, count, first_price
