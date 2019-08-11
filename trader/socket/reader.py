@@ -10,9 +10,8 @@ logger = logging.getLogger(__name__)
 
 class Reader:
 
-  def __init__(self, book_manager):
-    self.thread_handler = ThreadHandler(book_manager)
-    self.book_manager = book_manager
+  def __init__(self, BookManagerMaker):
+    self.thread_handler = ThreadHandler(BookManagerMaker)
     self._sell_thread = None
     self._buy_thread = None
     self.first_subscribe = True

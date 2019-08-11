@@ -4,7 +4,7 @@ import unittest
 import config
 from trader.exchange.api_wrapper.noop_trader import NoopApi
 from trader.exchange.noop_book import NoopBook
-from trader.sequence.book_manager import BookManager
+from trader.sequence.book_manager import book_manager_maker
 from trader.sequence import trading_terms
 from trader.test.common_utils import create_match
 
@@ -36,9 +36,9 @@ class TestBookManager(unittest.TestCase):
       "BTC-USD", budget, "1", ".1", low_price, trading_api=noop_api
     )
     book = NoopBook("BTC-USD")
-    self.book_manager = BookManager(
-      self.terms, persist=False, book=book, trading_api=noop_api
-    )
+    self.BookManagerMaker = book_manager_maker(
+      self.terms, persist=False, book=book, trading_api=noop_api)
+    self.book_manager = self.BookManagerMaker()
 
   def tearDown(self):
     pass
@@ -191,7 +191,11 @@ class TestBookManager(unittest.TestCase):
 
     self.book_manager.update_order(order, match["size"])
     self.assertTrue(order.status == "filled")
-
-    self.book_manager.send_trade_sequence(order)
+    order_desc = {
+      "side": order.side,
+      "size": order.size,
+      "price": order.price
+    }
+    self.book_manager.send_trade_sequence(order_desc)
 
     return order
