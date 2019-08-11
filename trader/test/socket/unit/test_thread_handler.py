@@ -5,7 +5,8 @@ from decimal import Decimal
 import config
 from trader.exchange.api_wrapper.noop_trader import NoopApi
 from trader.exchange.noop_book import NoopBook
-from trader.sequence.noop_book_manager import NoopBookManager
+from trader.sequence.noop_book_manager import NoopBookManager, \
+  noop_book_manager_maker
 from trader.sequence.trading_terms import TradingTerms
 from trader.socket.thread_handler import ThreadHandler
 from trader.test.common_utils import create_match
@@ -37,9 +38,11 @@ class TestThreadHandler(unittest.TestCase):
     terms = TradingTerms(
       "BTC-USD", budget, "1", ".1", low_price, trading_api=noop_api
     )
-    self.book_manager = NoopBookManager(terms, book=self.book)
-    self.thread_handler = ThreadHandler(self.book_manager)
-    self.book_manager.send_orders()
+    self.NoopBookManagerMaker = noop_book_manager_maker(terms, book=self.book)
+    self.thread_handler = ThreadHandler(self.NoopBookManagerMaker)
+    book_manager = self.NoopBookManagerMaker()
+    self.NoopBookManagerMaker().send_orders()
+    self.book_manager = book_manager
 
   def test_thread_check_book_for_buy_match(self):
     match, buy_order = self.create_match_from_size("1")

@@ -8,21 +8,6 @@ from trader.exchange.persisted_book import Book
 class AbstractBookManager(abc.ABC):
 
   @abc.abstractmethod
-  def __init__(self,
-               terms,
-               book=None,
-               trading_api=NoopApi()):
-    self.terms = terms
-    if book is None:
-      self.book = Book(self.terms.pair)
-    else:
-      self.book = book
-    if not isinstance(trading_api, ExchangeApi):
-      raise ValueError("trader {} is not an instance of ExchangeApi", str(trading_api))
-    self.trading_api = trading_api
-    self.adjust_queue = None
-
-  @abc.abstractmethod
   def load_book(self):
     pass
 

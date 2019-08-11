@@ -8,7 +8,7 @@ from trader.database.db import dal
 from trader.exchange.api_wrapper.noop_trader import NoopApi
 from trader.exchange.order import Order
 from trader.exchange.persisted_book import Book
-from trader.sequence.book_manager import BookManager
+from trader.sequence.book_manager import BookManager, book_manager_maker
 from trader.sequence import trading_terms
 from trader import Test_Session
 
@@ -48,8 +48,8 @@ class TestBookManagerIntegration(unittest.TestCase):
     self.terms = trading_terms.TradingTerms(
       "BTC-USD", budget, "1", ".5", low_price, trading_api=trading_api)
 
-
-    self.book_manager = BookManager(self.terms, trading_api=trading_api)
+    self.BookManagerMaker = book_manager_maker(self.terms, trading_api=trading_api)
+    self.book_manager = self.BookManagerMaker()
 
 
   def tearDown(self):

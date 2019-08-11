@@ -10,7 +10,7 @@ from decimal import Decimal
 from .user_interface import prompts
 from trader.exchange.api_wrapper.coinbase_pro import CoinbasePro
 from .sequence.trading_terms import TradingTerms
-from .sequence.book_manager import BookManager
+from .sequence.book_manager import book_manager_maker
 from .socket.manager import SocketManager
 from .socket.reader import Reader
 
@@ -84,9 +84,9 @@ def user_interface():
 def construct_trader_module(terms):
   logger.debug("Trading Api using sandbox: {}".format(terms.trading_api.test))
   logger.debug("Constructing: \n{}".format(terms))
-  book_manager = BookManager(terms, trading_api=terms.trading_api)
-  reader = Reader(book_manager)
-  socket_manager = SocketManager(reader, book_manager, product_ids=[terms.pair],
+  BookManagerMaker = book_manager_maker(terms, trading_api=terms.trading_api)
+  reader = Reader(BookManagerMaker)
+  socket_manager = SocketManager(reader, BookManagerMaker, product_ids=[terms.pair],
                                  send_trades=True)
   return socket_manager
 
@@ -100,8 +100,8 @@ def qa():
     high_price = Decimal(args.highprice)
   elif mid_price < 500 or mid_price > 15000:
     logger.error(
-      "Sandbox trading at {} outside of current qa settings, use following flags"
-      "\nbudget, highprice and lowprice".format(mid_price)
+      "Sandbox trading at {} outside of current qa settings, use following "
+      "flags budget, highprice and lowprice".format(mid_price)
     )
     return
   else:
