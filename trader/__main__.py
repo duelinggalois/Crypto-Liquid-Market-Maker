@@ -2,17 +2,15 @@ import sys
 
 import config
 import logging
-import logging.config
-import os
 import argparse
 from decimal import Decimal
 
-from .user_interface import prompts
+from trader.user_interface.prompts import Prompts
 from trader.exchange.api_wrapper.coinbase_pro import CoinbasePro
-from .sequence.trading_terms import TradingTerms
-from .sequence.book_manager import book_manager_maker
-from .socket.manager import SocketManager
-from .socket.reader import Reader
+from trader.sequence.trading_terms import TradingTerms
+from trader.sequence.book_manager import book_manager_maker
+from trader.socket.manager import SocketManager
+from trader.socket.reader import Reader
 
 logging.config.dictConfig(config.log_config)
 logger = logging.getLogger("trader")
@@ -43,8 +41,12 @@ def main(args):
 
   # Check for parser arguments to run with.
   if not all_args:
-    terms = user_interface()
-    socket_manager = construct_trader_module(terms)
+    terms = get_terms_from_interface()
+    if terms is not None:
+      # socket_manager = construct_trader_module(terms)
+      start_with_exception_canceling(construct_trader_module(terms))
+    else:
+      return
   else:
     test = not args.live
     trading_api = CoinbasePro(test=test)
@@ -59,26 +61,11 @@ def main(args):
         trading_api=trading_api
       )
     )
-
-  start_trader(socket_manager)
-
-
-def start_trader(socket_manager):
-  try:
-    socket_manager.run()
-  except Exception:
-    logger.exception("error running trader")
-    raise RuntimeError
+    start_with_exception_canceling(socket_manager)
 
 
-def user_interface():
-  os.system('clear')
-  logger.info("Running Trader")
-  prompts.show_intro()
-
-  # Get initial input from user
-  terms = prompts.prompt_trading_terms()
-  return terms
+def get_terms_from_interface():
+  return Prompts().get_terms()
 
 
 def construct_trader_module(terms):
@@ -119,8 +106,12 @@ def qa():
     trading_api=trading_api
   )
   socket_manager = construct_trader_module(terms)
+  start_with_exception_canceling(socket_manager)
+
+
+def start_with_exception_canceling(socket_manager):
   try:
-    start_trader(socket_manager)
+    socket_manager.run()
   except Exception as e:
     logger.error("Error running QA: {}", e)
   finally:
