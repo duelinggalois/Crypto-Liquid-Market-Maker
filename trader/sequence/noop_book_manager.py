@@ -58,7 +58,7 @@ class NoopBookManager(AbstractBookManager):
     self.bm.send_order(order)
 
   def update_order(self, order, match_size):
-    self.bm.update_order(order, match_size)
+    return self.bm.update_order(order, match_size)
 
   def cancel_all_orders(self):
     pass
