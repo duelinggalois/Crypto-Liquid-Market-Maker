@@ -179,7 +179,7 @@ class TestThreadHandler(unittest.TestCase):
         (price is None or o.price == Decimal(price))
       )
     except StopIteration:
-      if time.time() - start < 10:
+      if time.time() - start < 1:
         time.sleep(.005)
         return self.create_match_from_size(size)
       else:
