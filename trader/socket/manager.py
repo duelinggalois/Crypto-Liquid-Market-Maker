@@ -1,5 +1,8 @@
 import asyncio
 import base64
+
+from pymysql import OperationalError
+
 import config
 import hashlib
 import hmac
@@ -8,7 +11,6 @@ import logging
 import logging.config
 import time
 import traceback
-from threading import Thread
 import websockets
 
 
@@ -18,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class SocketManager:
 
-  def __init__(self, reader, BookManagerMaker,
+  def __init__(self, reader, api_test,
                auth=False,
                url="",
                action='subscribe',
@@ -29,19 +31,17 @@ class SocketManager:
 
     self.reader = reader
     self.auth = auth
-    book_manager = BookManagerMaker()
 
     if url == "":
-      if book_manager.is_trading_api_test():
+      if api_test:
         self.url = config.test_socket
       else:
         self.url = config.socket
     else:
       self.url = url
     logging.debug("SocketManager\n\ttest: {}\n\turl: {}\n\tpair: {}".format(
-      book_manager.is_trading_api_test(), self.url, product_ids
+      api_test, self.url, product_ids
     ))
-    self.book_manager = book_manager
     self.channel = channel
     self.product_ids = product_ids
     if self.channel:
@@ -61,6 +61,7 @@ class SocketManager:
     self.api_key = None
     self.api_passphrase = None
     self.api_secret = None
+    self.fast_error_count = 0
 
   def auth_stamp(self):
     self.api_key = config.api_key
@@ -95,10 +96,23 @@ class SocketManager:
         logger.error("Keyboard Interruption, stopping socket")
         raise
 
-      except Exception:
+      except websockets.InvalidStatusCode as e:
+        logger.error("Might be getting rate limited")
+        if self.last_time_watch() < 3:
+          self.fast_error_count += 1
+        if self.fast_error_count > 5:
+          raise e
+        time.sleep(10)
+
+      except Exception as e:
         logger.error("last message received {} seconds ago/n{}"
                      .format(self.last_time_watch(),
                              traceback.format_exc()))
+        if self.last_time_watch() < 3:
+          self.fast_error_count += 1
+        if self.fast_error_count > 5:
+          logger.error("Too many repeated errors")
+          raise e
         logger.warning("Restarting Web Socket")
 
   async def connect(self):
@@ -119,16 +133,22 @@ class SocketManager:
         message = json.loads(received)
         logger.debug("< {}".format(message))
         self.reader.new(message)
+        self.fast_error_count = 0
         self.last_time = time.time()
 
       except asyncio.TimeoutError:
         await self.ping_socket()
 
       except websockets.exceptions.ConnectionClosed:
-        logging.warn("Connection Closed Exception after {} seconds"
+        logging.warning("Connection Closed Exception after {} seconds"
                      .format(round(self.last_time_watch(), 2)))
         raise websockets.exceptions.ConnectionClosed(
           1006, "1 minute without messages")
+
+      except OperationalError:
+        # initial error will be raised, repeated reconnections will also
+        # be raised, logging will occur at specified level
+        raise
 
       except KeyboardInterrupt:
         raise

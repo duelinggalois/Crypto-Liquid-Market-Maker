@@ -75,11 +75,12 @@ class Reader:
       }
     :return: none
     """
-    logger.info("< {0} - {1} - trade_id: {2} - "
-                "side: {3} size: {4} price: {5}".format(
+    logger.info("< {} - {} - trade_id: {} - maker_order_id: {}"
+                "side: {} size: {} price: {}".format(
                   msg["time"],
                   msg["product_id"],
                   msg["trade_id"],
+                  msg["maker_order_id"],
                   msg["side"],
                   msg["size"],
                   msg["price"]

@@ -17,14 +17,14 @@ class DataAccessLayer:
   def connect(self, test=True):
     if not self.conn_string:
       self.set_connection_string(test)
-    self.engine = create_engine(self.conn_string)
+    self.engine = create_engine(self.conn_string, echo_pool=True,
+                                pool_pre_ping=True)
     BaseWrapper.metadata.create_all(self.engine)
     self.Session_Factory = sessionmaker(bind=self.engine)
     self.Session = scoped_session(self.Session_Factory)
 
   def set_connection_string(self, test=True):
     self.conn_string = _db_connection_string(test)
-
 
 dal = DataAccessLayer()
 

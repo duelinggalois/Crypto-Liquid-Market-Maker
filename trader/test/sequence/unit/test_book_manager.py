@@ -189,8 +189,7 @@ class TestBookManager(unittest.TestCase):
     match = create_match(order)
     self.assertTrue(self.book_manager.look_for_order(match), order)
 
-    self.book_manager.update_order(order, match["size"])
-    self.assertTrue(order.status == "filled")
+    self.assertTrue(self.book_manager.update_order(order, match["size"]))
     order_desc = {
       "side": order.side,
       "size": order.size,

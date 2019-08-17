@@ -4,6 +4,8 @@ import logging.config
 from pprint import pformat
 import time
 
+from pymysql import OperationalError
+
 import config
 from trader.exchange.api_wrapper.exchange_api import ExchangeApi
 from trader.exchange.api_wrapper.noop_trader import NoopApi
@@ -41,11 +43,15 @@ class book_manager_maker:
     session = None
     if persist:
       # if they do not exist, this will create tables
-      dal.connect()
-      session = dal.Session()
-      session.add(book)
-      session.commit()
-      kw["book_id"] = book.id
+      try:
+        dal.connect()
+        session = dal.Session()
+        session.add(book)
+        session.commit()
+        kw["book_id"] = book.id
+      except OperationalError as e:
+        logger.error("Initial db connection failed")
+        raise e
     else:
       kw["book"] = book
 
@@ -82,15 +88,20 @@ class BookManager(AbstractBookManager):
     self.session = None
 
   def load_book(self, session=None):
-    if self.book_id is None:
-      logger.error("persist set to {}".format(self.persist))
-      raise RuntimeError("BookManager has no book id this may be because "
-                         "persist is set to false")
-    if session is None:
-      self.session = dal.Session()
-    else:
-      self.session = session
-    self.book = self.session.query(Book).filter(Book.id == self.book_id).one()
+    try:
+      if self.book_id is None:
+        logger.error("persist set to {}".format(self.persist))
+        raise RuntimeError("BookManager has no book id this may be because "
+                           "persist is set to false")
+      if session is None:
+        self.session = dal.Session()
+      else:
+        self.session = session
+      self.book = self.session.query(Book).filter(Book.id == self.book_id).one()
+    except Exception as e:
+      logger.error("Rolling back book load {}".format(e.args))
+      self.session.rollback()
+      raise e
 
   def close_book(self):
     if self.session is not None:
@@ -100,7 +111,12 @@ class BookManager(AbstractBookManager):
 
   def commit(self):
     if self.session is not None:
-      self.session.commit()
+      try:
+        self.session.commit()
+      except Exception as e:
+        logger.error("Rolling back commit: {}".format(e.args))
+        self.session.rollback()
+        raise ConnectionError
 
   def look_for_order(self, match):
     try:
@@ -201,8 +217,8 @@ class BookManager(AbstractBookManager):
         # Another thread is taking priority stopping or pausing
         while not adjust_queue.empty():
           other_max_size, other_thread = adjust_queue.get()
-          logging.warning("Thread with Initial thread being adjusted by priority"
-                          " {}"
+          logging.warning("Thread with Initial thread being adjusted by "
+                          "priority {}"
                           .format(other_max_size))
           if other_max_size >= max_size:
             # Stop this thread work will be reproduced other thread
@@ -224,7 +240,6 @@ class BookManager(AbstractBookManager):
       self.send_order(order)
       time.sleep(.2)
 
-
   def send_order(self, order):
     self.trading_api.send_order(order)
     if order.status == "rejected":
@@ -245,10 +260,13 @@ class BookManager(AbstractBookManager):
     self.commit()
 
   def update_order(self, order, match_size):
+    order_filled = False
     order.filled += match_size
     if order.filled == order.size:
       order.status = "filled"
+      order_filled = True
     self.commit()
+    return order_filled
 
   def cancel_sent_order(self, order):
     self.trading_api.cancel_order(order)
@@ -279,9 +297,11 @@ class BookManager(AbstractBookManager):
                   .format(side, size))
       return
     elif len(matched_orders) > 1:
-      logger.error("Found more than one trade to cancel: {}"
+      logger.warning("Found more than one trade to cancel: {}"
                    .format(matched_orders))
-      return
+      for o in matched_orders:
+        logger.debug("One of orders found to cancel {}".format(o.exchange_id))
+        self.cancel_sent_order(o)
     order_to_cancel = matched_orders[0]
     logging.debug("Found order to cancel {}"
                   .format(order_to_cancel.exchange_id))
@@ -334,19 +354,21 @@ class BookManager(AbstractBookManager):
 
   def post_at_best_post_only(self, order):
     # if we are buying we want minus, if we are selling we want plus
-    details = self.trading_api.get_product_details(self.pair)
+    details = self.trading_api.get_product_details(self.terms.pair)
     plus_or_minus = -1 if order.side == "buy" else 1
     adjust = plus_or_minus * Decimal(details["quote_increment"])
-    ask, bid = self.trading_api.get_first_book(self.pair)
+    ask, bid = self.trading_api.get_first_book(self.terms.pair)
     order.price = (Decimal(bid[0][0]) + adjust if order.side == "buy" else
                    Decimal(ask[0][0]) + adjust)
     self.send_order(order)
 
   def get_sequence_parameter(self, order_description):
-    side, plus_minus = ("buy", -1) if order_description["side"] == "sell" else ("sell", 1)
+    side, plus_minus = ("buy", -1) if order_description["side"] == "sell" else \
+      ("sell", 1)
     count = int(
       1 + (order_description["size"] - self.get_terms_min_size()) /
       self.get_terms_size_change()
     )
-    first_price = order_description["price"] + plus_minus * self.terms.price_change
+    first_price = order_description["price"] + plus_minus * \
+                  self.terms.price_change
     return side, count, first_price

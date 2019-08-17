@@ -3,7 +3,10 @@ import queue
 import threading
 from decimal import Decimal
 
+from pymysql import OperationalError
+
 import config
+from trader.database.db import dal
 
 logging.config.dictConfig(config.log_config)
 logger = logging.getLogger(__name__)
@@ -22,6 +25,7 @@ class ThreadHandler:
     self.initial_done = False
     self._sell_threads = []
     self._buy_threads = []
+    self.session_errors = 0
 
   def get_threads(self):
     return self._sell_threads + self._buy_threads + [self.initial_thread]
@@ -29,36 +33,51 @@ class ThreadHandler:
   def check_book_for_match(self, match):
     """Check if matched trade is in book and process trade if it is
     """
-    logger.info("Checking book for matched trade")
-    book_manager = self.BookManagerMaker()
-    book_manager.load_book()
-    order = book_manager.look_for_order(match)
+    try:
+      logger.info("Checking book for matched trade")
+      book_manager = self.BookManagerMaker()
+      book_manager.load_book()
+      order = book_manager.look_for_order(match)
 
-    if order is None:
-      logger.info("Matched trade not in book")
-      return
+      if order is None:
+        logger.info("Matched trade not in book")
+        return
 
-    logger.info("Matched trade is in book")
-    match_size = Decimal(match["size"])
+      logger.info("Matched trade is in book")
+      match_size = Decimal(match["size"])
 
-    book_manager.update_order(order, match_size)
+      is_order_filled = book_manager.update_order(order, match_size)
 
-    if order.status == "filled":
-      logger.info("Match filled order")
-      # order was loaded in current thread, passing it as a dictionary
-      # to avoid session errors caused by passing it directly
-      order_description = {
-        "side": order.side,
-        "size": order.size,
-        "price": order.price
-      }
-      self.handle_full_match(order_description)
+      if is_order_filled:
+        logger.info("Match filled order")
+        # order was loaded in current thread, passing it as a dictionary
+        # to avoid session errors caused by passing it directly
+        order_description = {
+          "side": order.side,
+          "size": order.size,
+          "price": order.price
+        }
+        self.handle_full_match(order_description)
+      else:
+        logger.info("Match filled {} of order, {} is remaining."
+                    .format(Decimal(match_size), order.size - order.filled))
 
-    else:
-      logger.info("Match filled {} of order, {} is remaining."
-                  .format(Decimal(match_size), order.size - order.filled))
-
-    book_manager.close_book()
+      book_manager.close_book()
+      self.session_errors = 0
+    except ConnectionError as e:
+      dal.disconnect()
+      dal.connect()
+      self.session_errors += 1
+      if self.session_errors < 3:
+        logger.warning(
+          "Attempting to reconnect for database exception code: {} message: {}"
+          "".format(
+            e.args[0], e.args[1]
+          )
+        )
+        self.check_book_for_match(match)
+      else:
+        raise e
 
   def handle_full_match(self, order_desc):
     if order_desc["side"] == "buy":
@@ -118,6 +137,7 @@ class TradingThread(threading.Thread):
     self.book_manager = book_manager
     self.adjust_queue = queue.Queue()
     self.started = False
+    self.session_errors = 0
 
   def start(self):
     self.started = True
@@ -127,13 +147,26 @@ class TradingThread(threading.Thread):
     return not self.started
 
   def run(self):
-    self.book_manager.load_book()
-    if self.filled_order_desc is None:
-      self.book_manager.send_orders(adjust_queue=self.adjust_queue)
-    else:
-      self.book_manager.send_trade_sequence(self.filled_order_desc,
-                                            adjust_queue=self.adjust_queue)
-    self.book_manager.close_book()
+    try:
+      self.book_manager.load_book()
+      if self.filled_order_desc is None:
+        self.book_manager.send_orders(adjust_queue=self.adjust_queue)
+      else:
+        self.book_manager.send_trade_sequence(self.filled_order_desc,
+                                              adjust_queue=self.adjust_queue)
+      self.book_manager.close_book()
+    except ConnectionError as e:
+
+      self.session_errors += 1
+      if self.session_errors < 3:
+        logger.warning(
+          "Attempting to reconnect for database exception code: {}"
+          "".format(e.args)
+        )
+        dal.connect()
+        self.run()
+      else:
+        raise e
 
   def intervene(self, size, other_thread):
     """

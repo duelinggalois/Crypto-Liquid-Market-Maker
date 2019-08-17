@@ -86,8 +86,8 @@ def construct_trader_module(terms):
   logger.debug("Constructing: \n{}".format(terms))
   BookManagerMaker = book_manager_maker(terms, trading_api=terms.trading_api)
   reader = Reader(BookManagerMaker)
-  socket_manager = SocketManager(reader, BookManagerMaker, product_ids=[terms.pair],
-                                 send_trades=True)
+  socket_manager = SocketManager(reader, terms.trading_api.test,
+                                 product_ids=[terms.pair], send_trades=True)
   return socket_manager
 
 
@@ -128,7 +128,7 @@ def qa():
       thread.intervene(sys.maxsize, None)
       thread.join()
     logger.info("Canceling orders")
-    socket_manager.book_manager.cancel_all_orders()
+    socket_manager.reader.thread_handler.BookManagerMaker().cancel_all_orders()
     logger.info("Done")
 
 
