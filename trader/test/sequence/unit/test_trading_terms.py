@@ -2,10 +2,10 @@ import unittest
 from decimal import Decimal
 
 import config
-from trader.sequence.trading_terms import TradingTerms
+from trader.sequence.trading_terms import TradingTerms, ZERO, NO_VALUE
 
 
-class test_trading_terms(unittest.TestCase):
+class TestTradingTerms(unittest.TestCase):
 
   def setUp(self):
     self.terms = TradingTerms()
@@ -26,7 +26,6 @@ class test_trading_terms(unittest.TestCase):
       self.terms.set_mid_price()
 
   def test_terms_pair(self):
-    self.terms = TradingTerms()
     self.terms.pair = "BTC-USD"
 
     self.assertEqual(self.terms.pair, "BTC-USD")
@@ -54,8 +53,7 @@ class test_trading_terms(unittest.TestCase):
       terms.base_pair = "USD"
 
   def test_terms_budget(self):
-    with self.assertRaises(ValueError):
-      self.terms.budget
+    self.assertEqual(self.terms.budget, ZERO)
 
     self.terms.budget = 100
 
@@ -66,10 +64,9 @@ class test_trading_terms(unittest.TestCase):
       self.terms.budget = -1
 
   def test_min_size(self):
+    self.assertEqual(self.terms.min_size, ZERO)
     with self.assertRaises(ValueError):
-      self.terms.min_size
-    with self.assertRaises(ValueError):
-      self.terms.min_size = 1
+      self.terms.min_size = -.001
 
     self.terms.pair = "ETH-BTC"
     self.assertEqual(self.terms.min_size, Decimal(".01"))
@@ -82,16 +79,14 @@ class test_trading_terms(unittest.TestCase):
       self.terms.min_size = ".009"
 
   def test_terms_size_change(self):
-    with self.assertRaises(ValueError):
-      self.terms.size_change
+    self.assertEqual(self.terms.size_change, ZERO)
     self.terms.size_change = .0001
     self.assertEqual(self.terms.size_change, Decimal(".0001"))
     with self.assertRaises(ValueError):
       self.terms.size_change = -.0001
 
   def test_terms_mid_price(self):
-    with self.assertRaises(ValueError):
-      self.terms.mid_price
+    self.assertEqual(self.terms.mid_price, ZERO)
     self.terms.pair = "BTC-USD"
 
     self.terms.set_mid_price()
@@ -99,10 +94,8 @@ class test_trading_terms(unittest.TestCase):
 
   def test_terms_prices(self):
     self.terms.pair = "BTC-USD"
-    with self.assertRaises(ValueError):
-      self.terms.high_price
-    with self.assertRaises(ValueError):
-      self.terms.low_price
+    self.assertEqual(self.terms.high_price, ZERO)
+    self.assertEqual(self.terms.low_price, ZERO)
 
     self.terms.set_mid_price()
     high = round(self.terms.mid_price + Decimal("16.67"), 2)
@@ -126,12 +119,16 @@ class test_trading_terms(unittest.TestCase):
     self.assertEqual(low, self.terms.low_price)
     self.assertEqual(high, self.terms.high_price)
 
+    # Set high price to 521
     highest = round(self.terms.mid_price + 21, 2)
     self.terms.high_price = highest
     self.assertEqual(highest, self.terms.high_price)
 
+    # set high price to 499 and low to 501 to raise error
     high = self.terms.mid_price - 1
+    # set high price to 501
     low = self.terms.mid_price + 1
+    # set high_price to 500
     with self.assertRaises(ValueError):
       self.terms.high_price = high
     with self.assertRaises(ValueError):

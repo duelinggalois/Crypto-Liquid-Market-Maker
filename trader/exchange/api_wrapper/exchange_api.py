@@ -4,6 +4,8 @@ import abc
 class ExchangeApi(abc.ABC):
   """Abstract class for implementing a wrapper for a specific exchange api."""
 
+  url = "None"
+
   @staticmethod
   @abc.abstractmethod
   def send_order(order):
@@ -74,3 +76,6 @@ class ExchangeApi(abc.ABC):
   def get_product_details(pair):
     """Get product details"""
     pass
+
+  def __str__(self):
+    return "<{} url: {}>".format(self.__class__.__name__, self.url)
