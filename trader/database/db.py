@@ -3,8 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 import config
-# TODO Combine manager and db into one file
-from trader.database.manager import BaseWrapper
+from trader.database.models.base_wrapper import BaseWrapper
 
 Base = declarative_base()
 
@@ -16,7 +15,7 @@ class DataAccessLayer:
       self.Session_Factory = None
       self.Session = None
 
-  def connect(self, test=True):
+  def connect(self, test=False):
     if not self.conn_string:
       self.set_connection_string(test)
     self.engine = create_engine(
@@ -30,13 +29,13 @@ class DataAccessLayer:
     self.Session = scoped_session(self.Session_Factory)
 
   def set_connection_string(self, test=True):
-    self.conn_string = _db_connection_string(test)
+    self.conn_string = db_connection_string(test)
 
 
 dal = DataAccessLayer()
 
 
-def _db_connection_string(test):
+def db_connection_string(test):
   db_name = config.db['test_name'] if test else config.db['name']
   return 'mysql+pymysql://{}:{}@{}/{}'.format(
     config.db['user'],
@@ -44,3 +43,5 @@ def _db_connection_string(test):
     config.db['host'],
     db_name
   )
+
+

@@ -1,16 +1,18 @@
 import sys
+import time
 
 import config
 import logging
 import argparse
 from decimal import Decimal
 
+from trader.exchange.api_enum import ApiEnum
+from trader.exchange.api_provider import ApiProvider
+from trader.operations.operator import Operator
 from trader.user_interface.prompts import Prompts
-from trader.exchange.api_wrapper.coinbase_pro import CoinbasePro
-from trader.sequence.trading_terms import TradingTerms
-from trader.sequence.book_manager import book_manager_maker
-from trader.socket.manager import SocketManager
-from trader.socket.reader import Reader
+from trader.exchange.coinbase_pro import (CoinbasePro,
+                                          CoinbaseProTest)
+from trader.database.models.trading_terms import TradingTerms
 
 logging.config.dictConfig(config.log_config)
 logger = logging.getLogger("trader")
@@ -44,42 +46,45 @@ def main(args):
     terms = get_terms_from_interface()
     if terms is not None:
       # socket_manager = construct_trader_module(terms)
-      start_with_exception_canceling(construct_trader_module(terms))
+      operator = get_operator(terms)
+      start_with_exception_canceling(operator, terms)
     else:
       return
   else:
     test = not args.live
-    trading_api = CoinbasePro(test=test)
-    socket_manager = construct_trader_module(
-      TradingTerms(
+    api_enum = ApiEnum.CoinbaseProTest if test else ApiEnum.CoinbasePro
+    terms = TradingTerms(
         pair=args.pair,
         budget=args.budget,
         min_size=args.minsize,
         size_change=args.sizechange,
         low_price=args.lowprice,
         high_price=args.highprice,
-        trading_api=trading_api
-      )
+        api_enum=api_enum
     )
-    start_with_exception_canceling(socket_manager)
+    operator = get_operator(terms)
+    start_with_exception_canceling(operator, terms)
 
 
 def get_terms_from_interface():
   return Prompts().get_terms()
 
 
-def construct_trader_module(terms):
-  logger.debug("Trading Api using sandbox: {}".format(terms.trading_api.test))
-  logger.debug("Constructing: \n{}".format(terms))
-  BookManagerMaker = book_manager_maker(terms, trading_api=terms.trading_api)
-  reader = Reader(BookManagerMaker)
-  socket_manager = SocketManager(reader, terms.trading_api.test,
-                                 product_ids=[terms.pair], send_trades=True)
-  return socket_manager
+def get_operator(terms):
+  logger.debug("Trading Api using: {}".format(terms.api_enum))
+  logger.debug("Constructing Operator with terms: \n{}".format(terms))
+  if terms.api_enum == ApiEnum.CoinbasePro:
+    socket_url = config.socket_url
+  elif terms.api_enum == ApiEnum.CoinbaseProTest:
+    socket_url = config.test_socket
+  else:
+    raise ValueError("No socket for: {}".format(terms.api_enum))
+  logger.debug("Socket url: {}".format(socket_url))
+  return Operator(url=socket_url, api_enum=terms.api_enum)
 
 
 def qa():
-  trading_api = CoinbasePro(test=True)
+  trading_api = ApiProvider.get_api(ApiEnum.CoinbaseProTest)
   mid_price = trading_api.get_mid_market_price("BTC-USD")
   if args.lowprice and args. highprice and args.budget:
     budget = Decimal(args.budget)
@@ -103,23 +108,28 @@ def qa():
     size_change=Decimal(".0001"),
     low_price=low_price,
     high_price=high_price,
-    trading_api=trading_api
+    api_enum=trading_api.enum
   )
-  socket_manager = construct_trader_module(terms)
-  start_with_exception_canceling(socket_manager)
+  operator = get_operator(terms)
+  start_with_exception_canceling(operator, terms)
 
 
-def start_with_exception_canceling(socket_manager):
+def start_with_exception_canceling(operator, terms):
+
+  operator.start_socket()
+  operator.add_strategy(terms)
+  # run a loop to catch errors in threads or
   try:
-    socket_manager.run()
-  except Exception as e:
-    logger.error("Error running QA: {}", e)
+    while operator.reader.is_alive() and operator.socket_manager.is_alive():
+      time.sleep(1)
   finally:
-    for thread in socket_manager.reader.thread_handler.get_threads():
-      thread.intervene(sys.maxsize, None)
-      thread.join()
+    logger.error("Error running QA, socket is alive {}, reader is alive {}"
+                 .format(operator.socket_manager.is_alive(),
+                         operator.reader.is_alive()))
+
     logger.info("Canceling orders")
-    socket_manager.reader.thread_handler.BookManagerMaker().cancel_all_orders()
+    operator.remove_strategy(terms)
+    operator.stop_socket()
     logger.info("Done")
 
 

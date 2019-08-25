@@ -3,16 +3,16 @@ import logging.config
 from decimal import Decimal
 
 import config
-from trader.exchange.order import Order
-from trader.exchange.api_wrapper.coinbase_pro import CoinbasePro
+from trader.database.models.order import Order
+from trader.exchange.coinbase_pro import CoinbaseProTest
 
-CPTrading = CoinbasePro(test=True)
+CPTrading = CoinbaseProTest()
 
 logging.config.dictConfig(config.log_config)
 logger = logging.getLogger(__name__)
 
 
-class test_coinbase_pro_trading(unittest.TestCase):
+class TestCoinbaseProTrading(unittest.TestCase):
 
   def setUp(self):
     mid = CPTrading.get_mid_market_price("BTC-USD")
@@ -33,8 +33,8 @@ class test_coinbase_pro_trading(unittest.TestCase):
     self.assertEqual(response["side"], "buy")
     self.assertEqual(response["post_only"], True)
     self.assertEqual(response["type"], "limit")
-    self.assertEqual(response["size"], "{:.8f}".format(0.011))
-    self.assertEqual(response["price"], "{:.8f}".format(self.test_price))
+    self.assertEqual(response["size"], "{:.3f}".format(0.011))
+    self.assertEqual(Decimal(response["price"]), self.test_price)
     self.assertEqual(response["product_id"], "BTC-USD")
     self.assertEqual(response["status"], "pending")
     self.assertEqual(self.test_order.status, "pending")

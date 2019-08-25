@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>User: {{ user_info.user }}</h1>
+    <hr>
+    {% for i in user_info.info %}
+    <p>{{ i.strategy }}</p>
+    <br>
+    <form action="{{ url_for('strategy', strategy_id=i.id) }}" method="post" novalidate>
+        {{ i.form.hidden_tag() }}
+        {% if i.active %}
+        <p>{{ i.form.stop() }} {{ i.form.delete()}}</p>
+        {% else %}
+        <p>{{ i.form.start() }} {{ i.form.delete()}}</p>
+        {% endif %}
+    </form>
+    {% endfor %}
+{% endblock %}

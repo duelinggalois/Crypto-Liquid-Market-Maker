@@ -17,6 +17,14 @@ coverage = "*"
 nose = "*"
 SQLAlchemy = ">=1.3.0"
 pymysql = "*"
+flask = "*"
+python-dotenv = "*"
+flask-wtf = "*"
+flask-sqlalchemy = "*"
+flask-migrate = "*"
+flask-login = "*"
+flask-testing = "*"
+testing-mysqld = "*"
 
 [dev-packages]
 

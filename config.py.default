@@ -21,6 +21,13 @@ test_socket = 'wss://ws-feed-public.sandbox.pro.coinbase.com/'
 
 CB_FEE = 0.003
 
+# App Config object
+class AppConfig:
+  SECRET_KEY = ''
+  SQLALCHEMY_DATABASE_URI = ''
+  SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+
 # Mysql Database credentials
 db = {
   'user': '',

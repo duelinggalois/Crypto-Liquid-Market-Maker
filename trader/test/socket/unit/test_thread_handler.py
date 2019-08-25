@@ -3,13 +3,13 @@ import unittest
 from decimal import Decimal
 
 import config
-from trader.exchange.api_wrapper.noop_trader import NoopApi
+from trader.exchange.api_enum import ApiEnum
+from trader.exchange.api_provider import ApiProvider
 from trader.exchange.noop_book import NoopBook
-from trader.sequence.noop_book_manager import NoopBookManager, \
-  noop_book_manager_maker
-from trader.sequence.trading_terms import TradingTerms
+from trader.operations.noop_book_manager import noop_book_manager_maker
+from trader.database.models.trading_terms import TradingTerms
 from trader.socket.thread_handler import ThreadHandler
-from trader.test.common_utils import create_match
+from trader.test.common_utils import create_match, create_last_match
 
 
 class TestThreadHandler(unittest.TestCase):
@@ -33,18 +33,83 @@ class TestThreadHandler(unittest.TestCase):
   def setUp(self):
     low_price = "100"
     budget = Decimal("4000") * (1 + Decimal(config.CB_FEE))
-    noop_api = NoopApi(mid_market_price="500")
+    ApiProvider.noop_api.set_noop_parameters(["500"], ["BTC-USD"])
     self.book = NoopBook("BTC-USD")
-    terms = TradingTerms(
-      "BTC-USD", budget, "1", ".1", low_price, trading_api=noop_api
+    self.terms = TradingTerms(
+      "BTC-USD", budget, "1", ".1", low_price, api_enum=ApiEnum.NoopApi
     )
-    self.NoopBookManagerMaker = noop_book_manager_maker(terms, book=self.book)
-    self.thread_handler = ThreadHandler(self.NoopBookManagerMaker)
-    book_manager = self.NoopBookManagerMaker()
-    self.NoopBookManagerMaker().send_orders()
-    self.book_manager = book_manager
+    self.NoopBookManagerMaker = noop_book_manager_maker(self.terms,
+                                                        book=self.book)
+    self.thread_handler = ThreadHandler()
+    self.thread_handler.add_terms(self.terms,
+                                  BookManagerMaker=self.NoopBookManagerMaker)
+    self.book_manager = self.NoopBookManagerMaker()
+
+  def tearDown(self):
+    ApiProvider.noop_api.reset_noop()
+
+  def test_handle_last_match_message(self):
+    self.send_last_match_message()
+
+    expected_orders = {
+      ('buy', '100.00', '1.60000000'),
+      ('buy', '200.00', '1.40000000'),
+      ('buy', '300.00', '1.20000000'),
+      ('buy', '400.00', '1.00000000'),
+      ('sell', '600.00', '1.10000000'),
+      ('sell', '700.00', '1.30000000'),
+      ('sell', '800.00', '1.50000000'),
+      ('sell', '900.00', '1.70000000')
+    }
+    actual_orders = {(o.side, str(o.price), str(o.size)) for o in
+                     self.book_manager.book.get_open_orders()}
+    self.assertEqual(actual_orders, expected_orders)
+
+  def test_remove_terms(self):
+    self.send_last_match_message()
+    self.thread_handler.remove_terms(self.terms)
+    self.wait_for_threads()
+    expected_orders = set()
+    actual_orders = {(o.side, str(o.price), str(o.size)) for o in
+                     self.book_manager.book.get_open_orders()}
+    self.assertEqual(actual_orders, expected_orders)
+    expected_canceled_order = {
+      ('buy', '100.00', '1.60000000'),
+      ('buy', '200.00', '1.40000000'),
+      ('buy', '300.00', '1.20000000'),
+      ('buy', '400.00', '1.00000000'),
+      ('sell', '600.00', '1.10000000'),
+      ('sell', '700.00', '1.30000000'),
+      ('sell', '800.00', '1.50000000'),
+      ('sell', '900.00', '1.70000000')
+    }
+    actual_canceled = {(o.side, str(o.price), str(o.size)) for o in
+                       self.book_manager.book.get_canceled_orders()}
+
+    self.assertEqual(actual_canceled, expected_canceled_order)
+
+  def test_intervene_initial_thread(self):
+    self.thread_handler.handle_last_match_message(create_last_match())
+    match, buy_order = self.create_match_from_size("1")
+    self.thread_handler.check_book_for_match(match)
+    self.wait_for_threads()
+    expected_order = {('sell', '600.00', '1.10000000'),
+                      ("sell", "700.00", "1.30000000"),
+                      ("buy", "300.00", "1.20000000"),
+                      ("sell", "800.00", "1.50000000"),
+                      ("buy", "200.00", "1.40000000"),
+                      ("sell", "900.00", "1.70000000"),
+                      ("buy", "100.00", "1.60000000"),
+                      ("sell", "500.00", "1")
+                      }
+    actual_order = {(o.side, str(o.price), str(o.size)) for o in
+                    self.book_manager.book.get_open_orders()}
+    self.assertEqual(actual_order, expected_order)
+    self.assertEqual(self.book_manager.book.get_filled_orders(), [buy_order])
 
   def test_thread_check_book_for_buy_match(self):
+    self.send_last_match_message()
+
     match, buy_order = self.create_match_from_size("1")
     self.thread_handler.check_book_for_match(match)
     self.wait_for_threads()
@@ -64,6 +129,7 @@ class TestThreadHandler(unittest.TestCase):
     self.assertEqual(self.book_manager.book.get_filled_orders(), [buy_order])
 
   def test_thread_check_book_for_sell_match(self):
+    self.send_last_match_message()
     match, sell_order = self.create_match_from_size("1.1")
     self.thread_handler.check_book_for_match(match)
     self.wait_for_threads()
@@ -84,6 +150,7 @@ class TestThreadHandler(unittest.TestCase):
     self.assertEqual(self.book_manager.book.get_filled_orders(), [sell_order])
 
   def test_skip_threads(self):
+    self.send_last_match_message()
     # executing four sell trades will skip test killing threads
     match_1, order_1 = self.create_match_from_size("1.1")
     match_2, order_2 = self.create_match_from_size("1.3")
@@ -115,6 +182,7 @@ class TestThreadHandler(unittest.TestCase):
                      [order_1, order_2, order_3, order_4])
 
   def test_back_and_forth_threads(self):
+    self.send_last_match_message()
     # size 1.1 and 1.3 sold
     match_1, order_1 = self.create_match_from_size("1.1", "sell", "600")
     match_2, order_2 = self.create_match_from_size("1.3", "sell", "700")
@@ -156,8 +224,14 @@ class TestThreadHandler(unittest.TestCase):
     self.assertEqual(self.book_manager.book.get_filled_orders(),
                      [order_1, order_2, order_3, order_4, order_5, order_6])
 
+  def send_last_match_message(self):
+    self.thread_handler.handle_last_match_message(create_last_match())
+    self.assertEqual(len(self.thread_handler.get_all_immutable_threads()), 1)
+    thread = self.thread_handler.get_all_immutable_threads()[0]
+    thread.join()
+
   def wait_for_threads(self):
-    for thread in self.thread_handler.get_threads():
+    for thread in self.thread_handler.get_all_threads():
       if thread is not None:
         thread.join()
 
@@ -185,5 +259,3 @@ class TestThreadHandler(unittest.TestCase):
       else:
         raise TimeoutError("Could not find order after waiting 10 seconds.")
     return create_match(order), order
-
-

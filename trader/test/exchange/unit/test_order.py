@@ -1,9 +1,9 @@
-import logging
+import logging.config
 import unittest
 import decimal
 from decimal import Decimal
 
-from trader.exchange.order import Order
+from trader.database.models.order import Order
 import config
 
 

@@ -3,7 +3,7 @@ import unittest
 
 import config
 from trader.database.db import dal
-from trader.exchange.persisted_book import Book
+from trader.database.models.book import Book
 
 logging.config.dictConfig(config.log_config)
 logger = logging.getLogger(__name__)
