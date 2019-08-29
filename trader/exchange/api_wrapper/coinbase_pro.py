@@ -59,7 +59,9 @@ class CoinbasePro(ExchangeApi):
       ))
 
     else:
+      # if message log it as warn
       # order.update_history(response["message"])  # TODO this should be persisted
+
       logger.error("API sent message: {}\n{}".format(
         response["message"],
         str(order)
@@ -84,20 +86,21 @@ class CoinbasePro(ExchangeApi):
       logger.info("Order Deleted with id:" + str(message))
 
     elif "message" in message:
-      order.status = "error"
-
-      logger.error(
-        "When deleting order received message: {}\n{}".format(
-          message["message"],
-          str(order)
-        )
+      log_message = "When deleting order id {} received message: {}".format(
+            str(order.exchange_id),
+            message["message"]
       )
+      if message["message"].lower() in (
+        "order not found", "order already done"):
+        logger.warning(log_message)
+      else:
+        # Unknown error
+        logger.error(log_message)
 
     else:
       logger.error(
-        ("Order id was found before deleting but was found in delete response"
-         " \n{}")
-          .format(str(order)))
+        ("Order id was found before deleting but was found in delete response: "
+         "{}").format(str(order.exchange_id)))
 
     return message
 

@@ -3,7 +3,7 @@ import queue
 import threading
 from decimal import Decimal
 
-from pymysql import OperationalError
+from sqlalchemy.exc import OperationalError
 
 import config
 from trader.database.db import dal
@@ -34,7 +34,6 @@ class ThreadHandler:
     """Check if matched trade is in book and process trade if it is
     """
     try:
-      logger.info("Checking book for matched trade")
       book_manager = self.BookManagerMaker()
       book_manager.load_book()
       order = book_manager.look_for_order(match)
@@ -57,25 +56,25 @@ class ThreadHandler:
           "size": order.size,
           "price": order.price
         }
+        # Thread will open its own book
+        book_manager.close_book()
         self.handle_full_match(order_description)
       else:
         logger.info("Match filled {} of order, {} is remaining."
                     .format(Decimal(match_size), order.size - order.filled))
+        book_manager.close_book()
 
-      book_manager.close_book()
+      # Reset error count for successful check of match.
       self.session_errors = 0
-    except ConnectionError as e:
-      dal.disconnect()
+    except OperationalError as e:
       dal.connect()
       self.session_errors += 1
       if self.session_errors < 3:
         logger.warning(
-          "Attempting to reconnect for database exception code: {} message: {}"
-          "".format(
-            e.args[0], e.args[1]
-          )
+          "Attempting to reconnect for database exception: {}".format(e.args)
         )
         self.check_book_for_match(match)
+        self.session_errors = 0
       else:
         raise e
 

@@ -29,6 +29,12 @@ db = {
   'name': ''
 }
 
+# sqlalchemy engine configs
+POOL_SIZE = 10
+MAX_OVERFLOW = 10
+# This needs to be lower then mysql's thread_pool_idle_timeout
+POOL_RECYCLE = 45
+
 log_config = {
   'version': 1,
   'disable_existing_loggers': False,
