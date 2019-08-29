@@ -4,7 +4,7 @@ import logging.config
 from pprint import pformat
 import time
 
-from pymysql import OperationalError
+from sqlalchemy.exc import OperationalError
 
 import config
 from trader.exchange.api_wrapper.exchange_api import ExchangeApi
@@ -50,6 +50,7 @@ class book_manager_maker:
         session.commit()
         kw["book_id"] = book.id
       except OperationalError as e:
+        session.rollback()
         logger.error("Initial db connection failed")
         raise e
     else:
@@ -86,6 +87,7 @@ class BookManager(AbstractBookManager):
 
     self.adjust_queue = None
     self.session = None
+    self.is_retry = False
 
   def load_book(self, session=None):
     try:
@@ -98,10 +100,16 @@ class BookManager(AbstractBookManager):
       else:
         self.session = session
       self.book = self.session.query(Book).filter(Book.id == self.book_id).one()
+
+    except OperationalError as e:
+      logger.warning("OperationError: {} ".format(e.args))
+      self.session.rollback()
+      raise e  # This gets raised to thread handler to reconnect
+
     except Exception as e:
       logger.error("Rolling back book load {}".format(e.args))
       self.session.rollback()
-      raise e
+      raise e  # This gets raised
 
   def close_book(self):
     if self.session is not None:
@@ -113,10 +121,14 @@ class BookManager(AbstractBookManager):
     if self.session is not None:
       try:
         self.session.commit()
+      except OperationalError as e:
+        logger.warning("OperationError: {} ".format(e.args))
+        self.session.rollback()
+        raise e
       except Exception as e:
         logger.error("Rolling back commit: {}".format(e.args))
         self.session.rollback()
-        raise ConnectionError
+        raise e
 
   def look_for_order(self, match):
     try:
@@ -298,14 +310,15 @@ class BookManager(AbstractBookManager):
       return
     elif len(matched_orders) > 1:
       logger.warning("Found more than one trade to cancel: {}"
-                   .format(matched_orders))
+                     .format([o.exchange_id for o in matched_orders]))
       for o in matched_orders:
         logger.debug("One of orders found to cancel {}".format(o.exchange_id))
         self.cancel_sent_order(o)
-    order_to_cancel = matched_orders[0]
-    logging.debug("Found order to cancel {}"
-                  .format(order_to_cancel.exchange_id))
-    self.cancel_sent_order(order_to_cancel)
+    else:
+      order_to_cancel = matched_orders[0]
+      logging.debug("Found order to cancel {}"
+                    .format(order_to_cancel.exchange_id))
+      self.cancel_sent_order(order_to_cancel)
 
   def send_trade_sequence(self, filled_order_desc, adjust_queue=None):
     """
@@ -316,7 +329,7 @@ class BookManager(AbstractBookManager):
     """
     side, count, price = self.get_sequence_parameter(filled_order_desc)
     size = self.get_terms_min_size()
-    logger.info("*ADJUSTING ORDERS FOR MATCHED TRADE*")
+    logger.info("Adjusting Orders")
     logger.debug("side: {}, count: {}, price {}".format(side, count, price))
 
     max_size = size + (count - 1) * self.terms.size_change
@@ -339,12 +352,16 @@ class BookManager(AbstractBookManager):
           other_thread.join()
 
       # Main logic of canceling thread
-      self.cancel_order_by_attribute(side, size)
-      self.add_and_send_order(side, size, price)
-      price = price + (plus_or_minus * self.terms.price_change)
-      size = size + self.terms.size_change
-      # CoinbasePro API is rate limited, need to slow down accordingly.
-      time.sleep(.2)
+      if count == 1:
+        # one trade means that the first size does not need to be canceled
+        self.add_and_send_order(side, size, price)
+      else:
+        self.cancel_order_by_attribute(side, size)
+        self.add_and_send_order(side, size, price)
+        price = price + (plus_or_minus * self.terms.price_change)
+        size = size + self.terms.size_change
+        # CoinbasePro API is rate limited, need to slow down accordingly.
+        time.sleep(.2)
 
   def add_and_send_order(self, side, size, price):
     order = Order(self.terms.pair, side, size, price)
