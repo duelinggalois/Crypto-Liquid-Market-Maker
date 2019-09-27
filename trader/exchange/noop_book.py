@@ -1,4 +1,3 @@
-import uuid
 from decimal import Decimal
 
 from trader.exchange.abstract_book import AbstractBook
@@ -6,7 +5,7 @@ from trader.exchange.abstract_book import AbstractBook
 
 class NoopBook(AbstractBook):
 
-  def __init__(self, pair="BTC-USD", mid_market=Decimal("500") ):
+  def __init__(self, pair="BTC-USD"):
     self.pair = pair
     self.orders = []
 
@@ -32,4 +31,5 @@ class NoopBook(AbstractBook):
     filled_order.status = "filled"
 
   def get_all_orders(self):
-    return self.ready_orders.extend(self.open_orders).extend(self.filled_orders).extend(self.rejected_orders)
+    return self.ready_orders.extend(self.open_orders) \
+      .extend(self.filled_orders).extend(self.rejected_orders)

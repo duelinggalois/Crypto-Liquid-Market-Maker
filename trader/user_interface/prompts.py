@@ -4,8 +4,10 @@ import readline
 
 from pick import pick
 
-from trader.exchange.api_wrapper.coinbase_pro import CoinbasePro
-from trader.sequence.trading_terms import TradingTerms
+from trader.exchange.api_enum import ApiEnum
+from trader.exchange.coinbase_pro import CoinbasePro, \
+  CoinbaseProTest
+from trader.database.models.trading_terms import TradingTerms
 
 NAVIGATE = ["Back", "Menu", "Exit"]
 HEADER = lambda terms: "Current Terms:\n{}\n\n".format(str(terms))
@@ -60,7 +62,7 @@ class Prompts:
     os.system('cls' if os.name == 'nt' else 'clear')
     print(
       "** Crypto Liquid Market Maker **\n"
-      "This program will list a sequence of buy and sell trades on \n"
+      "This program will list a operations of buy and sell trades on \n"
       "pro.coinbase.com based on pertinent user input.\n\n"
     )
     input("Press return to continue...")
@@ -83,7 +85,8 @@ class Prompts:
       0
     )
     if test is not None:
-      self.terms.trading_api = CoinbasePro(test=test)
+      self.terms.api_enum = ApiEnum.CoinbaseProTest if test else \
+        ApiEnum.CoinbasePro
       self.state += 1
 
   def _prompts_pair(self):
@@ -144,7 +147,7 @@ class Prompts:
 
   def _prompt_size_change(self):
     size_change = self._prompt_decimal(
-      "How much should each trade in the sequence of buys and sells increase "
+      "How much should each trade in the operations of buys and sells increase "
       "by?",
       str(self.terms.min_size / 50)
     )

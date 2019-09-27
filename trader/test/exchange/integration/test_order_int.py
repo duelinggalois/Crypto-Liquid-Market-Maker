@@ -1,9 +1,8 @@
-import logging
 import logging.config
 import unittest
 
 import config
-from trader.exchange.order import Order
+from trader.database.models.order import Order
 from trader.database.db import dal
 
 logging.config.dictConfig(config.log_config)

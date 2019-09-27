@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>{{ title }}</h2>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.pair.label }}<br>
+            {{ form.pair }}<br>
+            {% for error in form.pair.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.budget.label }}<br>
+            {{ form.budget(size=15) }}<br>
+            {% for error in form.budget.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.min_size.label }}<br>
+            {{ form.min_size(size=10) }}<br>
+            {% for error in form.min_size.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.size_change.label }}<br>
+            {{ form.size_change(size=10) }}<br>
+            {% for error in form.size_change.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.low_price.label }}<br>
+            {{ form.low_price(size=10) }}<br>
+            {% for error in form.low_price.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.high_price.label }}<br>
+            {{ form.high_price(size=10) }}<br>
+            {% for error in form.high_price.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}

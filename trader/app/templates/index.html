@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Operations</h2>
+    <hr>
+    <div>
+        <h3>Operator</h3>
+        <li>Running: {{ op_info.operator.running }}</li>
+        <form action="{{ url_for('operate', test=False) }}" method="post" novalidate>
+            {{ op_info.form.hidden_tag() }}
+            {% if op_info.operator.running %}
+            <li>Active Strategies:</li>
+                <div>
+                    {% for strategy in op_info.operator.strategies %}
+                    <li>{{ strategy }}<li>
+                    {% endfor %}
+                </div>
+             <li>{{ op_info.form.stop() }}</li>
+            {% else %}
+            <li>{{ op_info.form.start() }}</li>
+            {% endif %}
+        </form>
+    </div>
+    <hr>
+    <div>
+        <h3>Test Operator</h3>
+        <li>Running: {{ op_info.test_operator.running }}</li>
+        <form action="{{ url_for('operate', test=True) }}" method="post" novalidate>
+            {{ op_info.form.hidden_tag() }}
+            {% if op_info.test_operator.running %}
+            <li>Active Strategies:</li>
+                <div>
+                    {% for strategy in op_info.test_operator.strategies %}
+                    <li>{{ strategy }}<li>
+                    {% endfor %}
+                </div>
+            <li>{{ op_info.form.stop() }}</li>
+            {% else %}
+            <li>{{ op_info.form.start() }}</li>
+            {% endif %}
+        </form>
+    </div>
+    <hr>
+    <div>
+        <h3>Inactive</h3>
+         <div>
+            {% for strategy in op_info.inactive %}
+            <li>{{ strategy }}<li>
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock %}
