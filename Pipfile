@@ -11,7 +11,7 @@ name = "piwheels"
 [packages]
 urllib3 = ">=1.24.2"
 requests = "*"
-websockets = "*"
+websockets = "==3.4"
 pick = "*"
 coverage = "*"
 nose = "*"
@@ -25,8 +25,3 @@ flask-migrate = "*"
 flask-login = "*"
 flask-testing = "*"
 testing-mysqld = "*"
-
-[dev-packages]
-
-[requires]
-python_version = "3.6"
