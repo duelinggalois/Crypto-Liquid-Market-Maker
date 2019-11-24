@@ -1,0 +1,12 @@
+[Unit]
+Description=uWSGI Service
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/home/pi/Projects/Crypto-Liquid-Market-Maker
+ExecStart=/home/pi/Projects/Crypto-Liquid-Market-Maker/.venv/bin/uswgi --ini /home/pi/Projects/Crypto-Liquid-Market-Maker/uwsgi.ini
+
+[Install]
+WantedBy=multi-user.target

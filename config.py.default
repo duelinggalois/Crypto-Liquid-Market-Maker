@@ -21,13 +21,6 @@ test_socket = 'wss://ws-feed-public.sandbox.pro.coinbase.com/'
 
 CB_FEE = 0.003
 
-# App Config object
-class AppConfig:
-  SECRET_KEY = ''
-  SQLALCHEMY_DATABASE_URI = ''
-  SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-
 # Mysql Database credentials
 db = {
   'user': '',
@@ -35,6 +28,24 @@ db = {
   'host': '',
   'name': ''
 }
+
+# App Config
+class AppConfig():
+  SECRET_KEY = '1234567890abc'
+  SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://{}:{}@{}/{}'.format(
+    db['user'],
+    db['password'],
+    db['host'],
+    db['name']
+  )
+  SQLALCHEMY_BINDS = {"test": 'mysql+pymysql://{}:{}@{}/{}'.format(
+    db['user'],
+    db['password'],
+    db['host'],
+    db['test_name']
+  )}
+  SQLALCHEMY_TRACK_MODIFICATIONS = False
+  SQLALCHEMY_POOL_RECYCLE = 30
 
 # sqlalchemy engine configs
 POOL_SIZE = 10
