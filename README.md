@@ -23,7 +23,8 @@ This program will list a sequence of buy and sell trades on pro.coinbase.com bas
 * `cp config.py.default config.py`
 * Add Coinbase Pro API passphrase, keys, and secret to `config.py`
 * Add MySQL credentials and name of databases to use to `config.py`
-* `sudo pipenv install` (dependencies managed by `Pipfile` in project root)
+* `pipenv install` (dependencies managed by `Pipfile` in project root)
+* `pipenv run flask db upgrade` to set up mysql tables. 
 * `pipenv run python -m trader` (Skip the config and run this to get a glimps)
 
 **Alternatively run from the command line**
