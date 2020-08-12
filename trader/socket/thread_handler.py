@@ -249,7 +249,8 @@ class ThreadHandler(AbstractThreadHandler):
 
     for thread in self.get_all_threads_for_pair(pair):
       if thread.is_alive():
-        thread.intervene(sys.maxsize)
+        # kill thread, max size will ensure the thread ends
+        thread.intervene(sys.maxsize, None)
 
   def clean_thread_pools(self):
 
