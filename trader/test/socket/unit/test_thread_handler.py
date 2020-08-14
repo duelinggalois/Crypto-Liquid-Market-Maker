@@ -6,9 +6,11 @@ import config
 from trader.exchange.api_enum import ApiEnum
 from trader.exchange.api_provider import ApiProvider
 from trader.exchange.noop_book import NoopBook
-from trader.operations.noop_book_manager import noop_book_manager_maker
+from trader.operations.noop_book_manager import noop_book_manager_maker, \
+  NoopBookManager
 from trader.database.models.trading_terms import TradingTerms
 from trader.socket.thread_handler import ThreadHandler
+from trader.socket.trading_threads import TradingThreadBase
 from trader.test.common_utils import create_match, create_last_match
 
 
@@ -67,6 +69,11 @@ class TestThreadHandler(unittest.TestCase):
 
   def test_remove_terms(self):
     self.send_last_match_message()
+    # Hacky way of adding a thread to the thread handler to execute a code path
+    # That had a bug in it.
+    thread = RepeatingUntilInterruptedThread()
+    thread.start()
+    self.thread_handler._immutable_threads[self.terms.pair].append(thread)
     self.thread_handler.remove_terms(self.terms)
     self.wait_for_threads()
     expected_orders = set()
@@ -259,3 +266,36 @@ class TestThreadHandler(unittest.TestCase):
       else:
         raise TimeoutError("Could not find order after waiting 10 seconds.")
     return create_match(order), order
+
+
+class RepeatingUntilInterruptedThread(TradingThreadBase):
+
+  def __init__(self):
+    super().__init__(None)
+
+  def run_method(self):
+    max_size = 1
+
+    def never_ending(n):
+      if self.adjust_queue.qsize():
+        while self.adjust_queue.qsize():
+          other_max_size, other_thread = self.adjust_queue.get()
+          print("Thread with max size {} being adjusted by {}"
+                .format(max_size, other_max_size))
+          if other_max_size >= max_size:
+            # Stop this thread work will be reproduced other thread
+            return
+          while other_thread.has_not_started() and not other_thread.is_alive():
+            # wait for other thread to start before joining
+            time.sleep(.0001)
+          # pause thread until other thread is complete
+          other_thread.join()
+          self.adjust_queue.task_done()
+      n = n + 1
+      result = 2 ^ n
+      print(result)
+      return never_ending(n)
+
+    never_ending(0)
+
+

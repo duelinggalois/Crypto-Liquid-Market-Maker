@@ -25,8 +25,4 @@ flask-migrate = "*"
 flask-login = "*"
 flask-testing = "*"
 testing-mysqld = "*"
-
-[dev-packages]
-
-[requires]
-python_version = "3.6"
+uwsgi = "*"

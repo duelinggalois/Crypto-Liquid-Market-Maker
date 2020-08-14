@@ -7,26 +7,43 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
-config = context.config
+
+
+#   config = context.config
+def get_config():
+  config = context.config
+  fileConfig(config.config_file_name)
+  logger = logging.getLogger('alembic.env')
+  config.set_main_option(
+    'sqlalchemy.url', current_app.config.get(
+      'SQLALCHEMY_DATABASE_URI').replace('%', '%%'))
+  return config
+
+
+def get_logger():
+  fileConfig(get_config().config_file_name)
+  return logging.getLogger('alembic.env')
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-fileConfig(config.config_file_name)
-logger = logging.getLogger('alembic.env')
+# fileConfig(config.config_file_name)
+# logger = logging.getLogger('alembic.env')
 
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 from flask import current_app
-config.set_main_option(
-    'sqlalchemy.url', current_app.config.get(
-        'SQLALCHEMY_DATABASE_URI').replace('%', '%%'))
-target_metadata = current_app.extensions['migrate'].db.metadata
+# config.set_main_option(
+#     'sqlalchemy.url', current_app.config.get(
+#         'SQLALCHEMY_DATABASE_URI').replace('%', '%%'))
+# target_metadata = current_app.extensions['migrate'].db.metadata
 
+
+def get_target_metadata():
+  return current_app.extensiosn['migrate'].db.metadata
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
@@ -45,9 +62,10 @@ def run_migrations_offline():
     script output.
 
     """
+    config = get_config()
     url = config.get_main_option("sqlalchemy.url"), config
     context.configure(
-        url=url, target_metadata=target_metadata, literal_binds=True
+        url=url, target_metadata=get_target_metadata(), literal_binds=True
     )
 
     with context.begin_transaction():
@@ -64,6 +82,7 @@ def run_migrations_online():
     # first migration
     migrate_online()
 
+    config = get_config()
     # swap config with test url
     config.set_main_option(
       'sqlalchemy.url', current_app.config.get(
@@ -76,6 +95,8 @@ def migrate_online():
   # this callback is used to prevent an auto-migration from being generated
   # when there are no changes to the schema
   # reference: http://alembic.zzzcomputing.com/en/latest/cookbook.html
+  config = get_config()
+  logger = get_logger()
   def process_revision_directives(context, revision, directives):
     if getattr(config.cmd_opts, 'autogenerate', False):
       script = directives[0]
@@ -91,7 +112,7 @@ def migrate_online():
   with connectable.connect() as connection:
     context.configure(
       connection=connection,
-      target_metadata=target_metadata,
+      target_metadata=get_target_metadata(),
       process_revision_directives=process_revision_directives,
       **current_app.extensions['migrate'].configure_args
     )
@@ -100,7 +121,16 @@ def migrate_online():
       context.run_migrations()
 
 
-if context.is_offline_mode():
-    run_migrations_offline()
-else:
-    run_migrations_online()
+def not_test():
+  try:
+    context.is_offline_mode()
+    return True
+  except NameError:
+    return False
+
+
+if not_test():
+  if context.is_offline_mode():
+      run_migrations_offline()
+  else:
+      run_migrations_online()
